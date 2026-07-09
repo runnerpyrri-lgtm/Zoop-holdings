@@ -34,6 +34,14 @@ jobs:
             test -d "apps/$a" || { echo "::error::apps/$a 폴더 없음(registry와 불일치)"; exit 1; }
           done
 
+  # 운영 정합성: 직원 수, 버전 표기, 8시 보고 문구가 서로 맞는지 확인
+  ops-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 운영 문서·보고 정합성 확인
+        run: bash ops/scripts/verify-ops-consistency.sh
+
   # lockfile 대량 변경 차단
   lockfile-guard:
     runs-on: ubuntu-latest

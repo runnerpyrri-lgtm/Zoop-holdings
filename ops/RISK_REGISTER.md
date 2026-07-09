@@ -9,6 +9,7 @@
 | R5 | secret 노출 | 보안사고 | gitleaks + .env 커밋 금지 | 방어중 |
 | R6 | AI가 범위 밖 파일 수정 | 예측불가 변경 | 범위 선언 + inspector 검사 | 방어중 |
 | R7 | main 직접 push | 무결재 반영 | branch protection(설정 예정) | 열림 |
-| R8 | 토큰 비용 폭주 | 비용 | 매일 5팀 상한 + state 요약 | 방어중 |
+| R8 | 토큰 비용 폭주 | 비용 | 매일 제품개선 5명 상한 + state 요약 | 방어중 |
 | R9 | runningcall /api/* 무인증 → Kakao 유료키 소진 | 비용/쿼터 고갈 | 레이트리밋·오리진 제한(앱 저장소 작업) | 열림(P0) |
 | R10 | 3개 앱 공통로직 3벌 중복(KST·알람·알림) | 표류·버그 | 공유 core 패키지화 | 열림(P1) |
+| R11 | 운영 문서·보고 문구 불일치 | 사장이 보고를 오해하고 PR 검토를 놓침 | operating-model 단일 기준 + ops-consistency CI | 방어중 |

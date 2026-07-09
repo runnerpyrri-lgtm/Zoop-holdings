@@ -151,9 +151,9 @@ zoop-holdings  (관제 저장소 / control plane)
 
 ---
 
-## 4. v1에서 실제로 유지할 최소 직원 (LLM subagent)
+## 4. v1에서 실제로 유지할 최소 운영 인원 (LLM subagent)
 
-**"등록만 하는 명단"과 "실제 프롬프트를 유지보수하는 직원"을 구분하라.** v1에서 실제 프롬프트 파일을 만들고 유지할 직원은 **딱 이 6명**이다.
+**"등록된 직원"과 "매일 부르는 직원"을 구분하라.** 현재 저장소의 실제 프롬프트 파일은 **11개**이고, 그중 v1 기본 운영에서 반드시 도는 핵심 인원은 **6명**이다.
 
 | # | 직원 | 주기 | 왜 필수인가 |
 |---|---|---|---|
@@ -168,7 +168,7 @@ zoop-holdings  (관제 저장소 / control plane)
 - Risk Auditor는 agent가 아니라 **CI 가드레일 + Reviewer의 주간 점검**으로 대체(7절).
 - Release Manager는 **주간**만. 매일 릴리스 안 하므로 매일 호출 낭비.
 
-> "12명 → 6명(매일 5·주간 1)"이 v1 정답. 초안의 12명은 v1.5 목표로 미룬다.
+> 기준: 전체 등록 직원은 11명, 매일 기본 가동은 제품개선 5명 + 홍보 1명, 주간 3명, 월간/TF 2명이다. 운영 시간표의 단일 기준은 `ops/playbooks/operating-model.md`다.
 
 ---
 
@@ -259,7 +259,7 @@ zoop-holdings/                     # 코드 배포 안 함. ops·agents·workflo
                   base-path-check, rollback, security-boundaries,
                   new-app-onboarding, agent-performance-review }.md
     registry/   apps.yml            # 앱→저장소 URL·base path·배포방식 매핑 (10개 확장 지점)
-  .claude/agents/                   # v1은 6개만 실제 존재 (4절)
+  .claude/agents/                   # 현재 11개. 매일 기본 가동은 6명(4절)
   .github/workflows/                # daily-company-run · weekly-review · guardrails
 ```
 - 앱 코드는 `zoopzoopcall` 저장소에 그대로. holdings의 daily-run이 **그 저장소를 checkout → 수정 → 그 저장소에 PR**.
@@ -311,7 +311,7 @@ zoop-holdings/                     # 코드 배포 안 함. ops·agents·workflo
 |---|---|---|
 | D1 | 코드 물리 위치: 관제(A) / 서브모듈(B) / 복제(C) | **A (관제 저장소)** |
 | D2 | 앱 목록 단일 소스 | `ops/registry/apps.yml` |
-| D3 | v1 실제 agent 수 | **6명** (매일5·주간1) |
+| D3 | v1 운영 기준 | 전체 등록 11명, 매일 기본 가동 6명(제품개선5+홍보1), 주간3, 월간/TF2 |
 | D4 | 가드레일을 agent 아닌 CI로 구현 | **YES** (base-path/secret/lockfile/test) |
 | D5 | 자동화 실행 기반 | GitHub Actions cron(안정) 중심, Routines는 실험 보조 |
 | D6 | Claude Code 토큰 권한 | 브랜치 push + PR만. main branch protection 필수 |
@@ -358,7 +358,7 @@ zoop-holdings/                     # 코드 배포 안 함. ops·agents·workflo
 8. 4주 데이터로 D7(조건부 auto-merge) 재검토.
 
 ## 부록 B. 이번 리포트가 v0.3.0에서 바꾼 것 (diff 요약)
-- 조직: **12명 → 실동6명**. 가드레일 4종을 **agent→CI로 강등**.
+- 조직: 전체 등록 **11명**, 매일 기본 가동 **6명**. 가드레일 4종을 **agent→CI로 강등**.
 - 구조: "모노레포 안 모노레포(복제)" → **관제 저장소(모델 A)** 로 재정의(결정 #2·#3 자동 충족).
 - 안전: base path 방어를 **CI grep + CODEOWNERS + 빌드 스모크**로 구체화.
 - 부채: core↔supabase **중복 동기화**를 명시적 실패모드로 등록.

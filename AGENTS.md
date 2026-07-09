@@ -33,7 +33,7 @@
 zoop-holdings/
   AGENTS.md          ← 지금 이 문서 (AI 온보딩)
   CLAUDE.md          ← 절대 규칙 / 금지작업
-  VERSION            ← 시스템 버전 (현재 0.2.0)
+  VERSION            ← 시스템 버전 (현재 0.2.9)
   CHANGELOG.md       ← 시스템 업데이트 내역
   README.md          ← 사람용 소개
   STRUCTURE.md       ← 파일구조 설명
@@ -46,7 +46,7 @@ zoop-holdings/
     state/<app>.md            ← 앱별 실황(인수인계)
     changelog/<app>.md        ← 앱별 이력(holdings 관점)
     scorecards/app-priority.md← 오늘 어느 앱? 점수표
-    playbooks/                ← 실행 규칙(마케팅·base-path·보안 등)
+    playbooks/                ← 실행 규칙(운영모델·마케팅·base-path·보안 등)
     content/<날짜>/<app>/     ← 홍보팀 산출물(게시 대기)
   apps/
     zoopzoopcall/  runningcall/  pushrun/   ← 독립 앱 3개(각자 스택)
@@ -61,11 +61,12 @@ zoop-holdings/
 > 앱 코드는 각자 원본 저장소에도 존재하고 **거기서 배포된다.** 여기 `apps/`는 관제·개발 사본(D1/D9). 원본 배포는 건드리지 않는다.
 
 ## 5. 어떻게 일하나 (하루 사이클)
-1. 마스터(`.claude/agents/ceo-orchestrator.md`)가 `app-priority.md`로 **오늘 앱 1개** 선택
-2. 실행 4팀 호출: `planner`→`builder`→`inspector`→`recorder`
-3. 홍보팀(`growth-marketer`)이 오늘 앱의 다채널 콘텐츠 초안을 `ops/content/`에 생성
-4. **하루 = 앱1·목표1·PR1.** 브랜치 `claude/daily-YYYY-MM-DD` → **draft PR** → 사람 merge
-5. 주간: `supervisor`(직원 평가·프롬프트 개선)·`upgrader`·`release-manager` / 월간: `strategist`·`architect`
+1. 직원 수와 시간표의 단일 기준은 `ops/playbooks/operating-model.md`다. 전체 등록 AI 직원은 **11명**이다.
+2. 08:00 보고 자동화가 열린 PR만 요약해 보낸다. 완료된 PR 번호는 정기 보고에서 제외한다.
+3. 09:00 마스터(`.claude/agents/ceo-orchestrator.md`)가 앱 1개를 고르고 제품개선 5명(`planner`→`builder`→`inspector`→`recorder`)이 PR을 만든다.
+4. 09:30 홍보팀(`growth-marketer`)이 오늘 앱의 다채널 콘텐츠 초안을 `ops/content/`에 생성한다.
+5. **하루 = 앱1·목표1·PR1.** 브랜치 `claude/daily-YYYY-MM-DD` → **draft PR** → 사람 merge.
+6. 주간: `supervisor`(직원 평가·프롬프트 개선)·`upgrader`·`release-manager` / 월간: `strategist`·`architect`.
 
 ## 6. 절대 규칙 (자세한 건 CLAUDE.md)
 - main 직접 push ✗ / PR만 ✓
@@ -84,4 +85,4 @@ zoop-holdings/
 - [ ] 새 결정을 했으면 `ops/DECISIONS.md`에 추가했는가
 
 ---
-*이 문서는 회사가 바뀌면 같이 갱신한다. 마지막 갱신: 2026-07-09 (시스템 v0.2.0, 앱 3개 편입).*
+*이 문서는 회사가 바뀌면 같이 갱신한다. 마지막 갱신: 2026-07-10 (시스템 v0.2.9, 운영 모델 정합성 정리).*

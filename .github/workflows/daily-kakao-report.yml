@@ -1,6 +1,6 @@
 name: daily-kakao-report
 
-# 매일 draft PR 현황을 카카오톡 "나에게 보내기"로 발송한다.
+# 매일 열린 PR 현황을 카카오톡 "나에게 보내기"로 발송한다.
 # 필요한 GitHub Secrets (사람이 직접 등록, Claude는 값에 접근하지 않음):
 #   - KAKAO_CLIENT_SECRET : 카카오 디벨로퍼스 > 플랫폼 키 > 클라이언트 시크릿
 #   - KAKAO_REFRESH_TOKEN : 카카오 로그인 OAuth로 발급받은 refresh_token
@@ -15,6 +15,14 @@ on:
         default: ""
   schedule:
     - cron: "0 23 * * *" # UTC 23:00 = KST 08:00
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: daily-kakao-report
+  cancel-in-progress: false
 
 jobs:
   send-report:
@@ -44,10 +52,13 @@ jobs:
           ACCESS_TOKEN: ${{ steps.token.outputs.access_token }}
           MSG: ${{ github.event.inputs.message }}
         run: |
-          DEFAULT="[Zoop Holdings 8시 보고]
-          08시는 보고 자동화 1개가 보냅니다.
-          매일 일하는 팀: 제품개선 5명(CEO/기획/개발/검수/기록), 홍보 1명.
-          보고 내용: 오늘 확인할 열린 PR만. 완료된 PR 번호는 제외합니다."
+          DEFAULT=$(cat <<'REPORT'
+          [Zoop Holdings 8시 보고]
+          전체 등록 직원: 11명
+          오늘 가동: 09시 제품개선 5명, 09시30분 홍보 1명
+          보고: 열린 PR만 확인. 완료 PR 제외.
+          REPORT
+          )
           TEXT="${MSG:-$DEFAULT}"
           TEMPLATE=$(jq -nc --arg t "$TEXT" '{object_type:"text",text:$t,link:{web_url:"https://github.com/runnerpyrri-lgtm/Zoop-holdings/pulls"},button_title:"열린 PR 보기"}')
           curl -sS -X POST "https://kapi.kakao.com/v2/api/talk/memo/default/send" \

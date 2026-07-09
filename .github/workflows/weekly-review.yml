@@ -11,6 +11,10 @@ permissions:
   pull-requests: write
   issues: write
 
+concurrency:
+  group: weekly-review
+  cancel-in-progress: false
+
 jobs:
   weekly:
     runs-on: ubuntu-latest

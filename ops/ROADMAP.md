@@ -13,6 +13,7 @@
 - [ ] branch protection + required checks + CODEOWNERS 설정(사장)
 - [ ] weekly-review 첫 회 + agent-performance 첫 기록
 - [ ] 홍보 성과 측정 필드를 state에 연결(성장 루프)
+- [x] 직원 수·팀 배치·8시 보고 기준 단일화 + 운영 정합성 CI 추가
 
 ## 나중 (v0.3.x+)
 - [ ] runningcall / pushrun 실구현 온보딩
@@ -35,6 +36,7 @@
       공유 패키지로 승격 → runningcall·pushrun 가 소비(3벌 중복 → 1벌) — cross-repo
 
 ### P2 — 품질/퀵윈
+- [ ] holdings: `ops/scripts/verify-ops-consistency.sh` 검사 범위를 점진 확장(워크플로 cron·보고 문구·버전 표기 자동 검증 강화)
 - [ ] runningcall: ESLint + lint 스크립트 + CI 연결(숨은 exhaustive-deps 노출) — repo:runningcall
 - [ ] runningcall: page.tsx(2,180줄)·gacha.tsx 점진적 컴포넌트/훅 분해 — repo:runningcall
 - [ ] runningcall: lib/insights.ts(1,049줄) 테스트 추가, `--webpack` 사유 문서화 — repo:runningcall

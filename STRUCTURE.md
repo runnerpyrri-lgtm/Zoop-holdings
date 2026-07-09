@@ -28,8 +28,9 @@ zoop-holdings/
 │
 ├─ .github/
 │   └─ workflows/
-│       ├─ daily-company-run.yml   # 매일 09시: 실행 4팀 + 홍보 → PR
-│       ├─ daily-marketing.yml     # 매일: 앱별 다채널 콘텐츠팩 생성 → PR
+│       ├─ daily-kakao-report.yml  # 매일 08시: 열린 PR 보고
+│       ├─ daily-company-run.yml   # 매일 09시: 제품개선 5명 → PR
+│       ├─ daily-marketing.yml     # 매일 09시30분: 홍보 1명 → 콘텐츠 PR
 │       ├─ weekly-review.yml       # 주 1회: 감독·개선·릴리즈
 │       └─ guardrails.yml          # 상시(PR마다): 안전 레일 (각 앱 저장소에도 복사)
 │
@@ -65,7 +66,8 @@ zoop-holdings/
     │   └─ agent-performance.md    # 직원 주간 평가
     │
     └─ playbooks/
-        ├─ daily-routine.md
+        ├─ operating-model.md      # ★ 직원 11명·팀 배치·시간표 단일 기준
+        ├─ daily-report.md
         ├─ marketing-channels.md   # ★ 다채널 홍보 규칙 + 스팸 금지선
         ├─ base-path-check.md
         ├─ security-boundaries.md
@@ -79,8 +81,11 @@ zoop-holdings/
 3. 끝. 팀·워크플로·가드레일은 **손대지 않는다.**
 
 ## 실행 주체
-- **매일 09시** `daily-company-run.yml` → 실행 4팀이 앱 1개 개선 → PR(draft)
-- **매일** `daily-marketing.yml` → 홍보팀이 오늘 앱의 다채널 콘텐츠팩 생성 → PR(draft)
-- **주 1회** `weekly-review.yml` → 감독·개선·릴리즈
+- **전체 등록 AI 직원 11명** → `ops/playbooks/operating-model.md`가 단일 기준.
+- **매일 08시** `daily-kakao-report.yml` → 보고 자동화가 열린 PR만 안내.
+- **매일 09시** `daily-company-run.yml` → 제품개선 5명이 앱 1개 개선 → PR(draft)
+- **매일 09시30분** `daily-marketing.yml` → 홍보 1명이 오늘 앱의 다채널 콘텐츠팩 생성 → PR(draft)
+- **주 1회 월요일 09시** `weekly-review.yml` → 감독·개선·릴리즈
+- **월간/TF** 전략·설계 → 앱 방향·구조 변경 검토
 - **상시** `guardrails.yml` → PR마다 안전검사 (사람도 AI도 못 우회)
 - **사람(너)** → PR 승인·merge, 홍보 콘텐츠 실제 게시
