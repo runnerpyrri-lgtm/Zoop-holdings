@@ -100,3 +100,14 @@
 - 구현: 배치형 daily Routine 1개(각 앱 원본 저장소에 PR, 없으면 건너뜀). 알림 1회.
 - 원칙: 앱당 작은 변경 1개, 테스트 통과 필수, 확실치 않으면 skip(쓰레기 PR 금지), PR만·머지는 사람.
 - 홍보 Routine은 계속 비활성(보류).
+
+### D17. 무인 자동화(fresh-session 배치런) 실동 검증 완료 + Routine 정리
+- 검증: D16 배치형 Routine(trig_01Qj3iVh9ZqXbcqkZUYBtrT2)을 수동 fire → 새 세션(session_01QVWuk1cchKBzJoMULEhyK5)이 자율로 4개 저장소에 clone·구현·push·draft PR까지 **무인 완주**. 실제 결과 PR:
+  - zoopzoopcall#3 (apps/web 테스트 no-op→vitest 전환 + collectPendingAlerts 단위테스트 4)
+  - runningcall#2 (/api/* 레이트리밋 + same-origin 검증)
+  - pushrun#2 (모달 Esc 닫기)
+  - zoop-holdings#4 (ops state/ROADMAP/CHANGELOG 반영)
+- 브랜치명은 프롬프트가 지정한 claude/daily-* 가 아니라 Claude Code 자동생성명(claude/modest-volta-s42wz1 등)으로 생성됨 → 이후 검증 시 브랜치명 대신 **PR/작성세션 기준**으로 확인할 것(초기 오판 원인 기록).
+- 결론: fresh-session 무인 경로는 신뢰 가능. self-bind 전환 불필요 → 현행 배치형 Routine 유지.
+- 정리: 구(舊) 단일앱+홍보 포함 "Daily Company Run"(trig_01Qr1QrU5zCMCYE11ghT37fa)을 **비활성화**. 사유 (1)홍보 보류 규칙 위반 소지 (2)배치형과 같은 시각(0 0 * * *) 발화 시 중복 세션. 이제 매일 자동화는 **배치형 1개만** 활성.
+- 관찰: 미머지 상태에서 자동런이 돌면 같은 백로그 상위 항목을 골라 오늘 수동 배치런과 **중복 PR** 발생(runningcall#1↔#2, pushrun#1↔#2). 사람이 각 쌍에서 하나만 머지·나머지 close. 머지 누적되면 자연 해소.
