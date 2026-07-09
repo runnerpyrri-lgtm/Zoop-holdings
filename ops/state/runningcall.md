@@ -5,12 +5,13 @@
 - 상태: live (Vercel: https://runningcall.vercel.app)
 - 스택: Next.js 16 + React 19, pnpm, vitest
 
-## 방금 한 일
-- 2026-07-09: holdings에 federated 편입. 코드 변경 없음.
+## 방금 한 일 (최근)
+- 2026-07-09 daily#1: 홍보 다채널 콘텐츠팩 생성(ops/content/2026-07-09/runningcall/). 게시대기.
+- 2026-07-09: holdings에 federated 편입.
 
 ## Next
-- [ ] apps/runningcall/docs/superpowers/plans 의 미완 로드맵(v0.x) 중 작은 것부터
-- [ ] 러닝 점수 골든마스터 테스트 유지 확인
+- [ ] 콘텐츠팩 검수 → 게시 → 반응 측정
+- [ ] docs/superpowers/plans 의 미완 로드맵 중 작은 것부터(코드 사이클)
 
 ## Blocked
 - 없음
@@ -19,4 +20,4 @@
 - 없음
 
 ## 홍보 성과 (성장 루프)
-- 아직 게시 없음.
+- 2026-07-09: 콘텐츠팩 4채널 초안 생성(게시 전).

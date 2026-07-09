@@ -39,3 +39,10 @@
 ### 변경 (CI 자기수정)
 - guardrails 를 범용 검사만 남기고, 앱별 CI를 ci-zoopzoopcall/ci-runningcall/ci-pushrun 로 분리(path 필터).
 - runningcall CI pnpm 10 으로 교정(워크스페이스 문법 일치). 콘텐츠/문서 PR은 앱 빌드 스킵.
+
+## [0.2.3] - 2026-07-09
+
+### 추가 (포트폴리오 홍보 완성)
+- 홍보팀: runningcall·pushrun 다채널 콘텐츠팩 생성 → ops/content/2026-07-09/{runningcall,pushrun}/.
+  → 3개 앱 전부 첫 홍보 콘텐츠 확보. 상태=게시대기(외부 게시는 사람 승인).
+- 기록팀: runningcall·pushrun state 갱신.
