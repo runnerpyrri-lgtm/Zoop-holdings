@@ -26,3 +26,44 @@
 - registry/apps.yml 을 실제 스택·배포·버전으로 갱신(이종 앱 대응).
 - 앱별 가드레일 원칙 확정(D8), 편입 방식 결정(D9).
 - AGENTS.md 추가(모든 AI 온보딩·업데이트내역 안내), guardrails 3개 앱 대응(앱별 검사 + registry 정합성).
+
+## [0.2.1] - 2026-07-09
+
+### 추가 (첫 daily 사이클 · 홍보)
+- 홍보팀: zoopzoopcall 다채널 콘텐츠팩 생성 → `ops/content/2026-07-09/zoopzoopcall/`
+  (youtube-shorts / instagram / blog-seo / community-replies). 상태=게시대기, 외부 게시는 사람 승인.
+- 기록팀: state·changelog 갱신. 성장 루프 첫 산출물 기록.
+
+## [0.2.2] - 2026-07-09
+
+### 변경 (CI 자기수정)
+- guardrails 를 범용 검사만 남기고, 앱별 CI를 ci-zoopzoopcall/ci-runningcall/ci-pushrun 로 분리(path 필터).
+- runningcall CI pnpm 10 으로 교정(워크스페이스 문법 일치). 콘텐츠/문서 PR은 앱 빌드 스킵.
+
+## [0.2.3] - 2026-07-09
+
+### 추가 (포트폴리오 홍보 완성)
+- 홍보팀: runningcall·pushrun 다채널 콘텐츠팩 생성 → ops/content/2026-07-09/{runningcall,pushrun}/.
+  → 3개 앱 전부 첫 홍보 콘텐츠 확보. 상태=게시대기(외부 게시는 사람 승인).
+- 기록팀: runningcall·pushrun state 갱신.
+
+## [0.2.4] - 2026-07-09
+
+### 변경 (전체 점검·최적화 1차 — 관제 레이어)
+- .gitignore 확장(Next.js/빌드 산출물), state(holdings) 최신화.
+- claude-code-action 워크플로 3종: --max-turns 비용 상한 + issues:write 권한(GA @v1 인터페이스 확인).
+- 문서 정리: REPO-SETUP 완료표시, STRUCTURE→AGENTS.md 정본 안내.
+- 점검 결과: 커밋에 secret/빌드산출물 없음(clean). 앱 코드 최적화는 각 앱 저장소에서(D11).
+
+## [0.2.5] - 2026-07-09
+
+### 추가 (전수 진단 결과 반영)
+- ROADMAP 앱 최적화 백로그(P0~P2), RISK_REGISTER R9(러닝콜 API키)·R10(공유코드 중복).
+- ci-pushrun: races.json 검증(JSON 파싱 + http:// mixed-content 경고).
+- DECISIONS D12(진단 요약).
+
+## [0.2.6] - 2026-07-09
+
+### 추가
+- ops/handoff/update-prompts.md — 각 앱(runningcall/pushrun/zoopzoopcall) 저장소 AI에게
+  진단 결과+업데이트 지시를 넘기는 자체완결 프롬프트(의견 요청 → 안전 항목 PR 실행).

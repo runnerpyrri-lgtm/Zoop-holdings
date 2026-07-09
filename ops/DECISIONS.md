@@ -49,3 +49,35 @@
 ### D9. 앱 편입 방식 = 당분간 vendored 복사, 추후 submodule 검토
 - 지금은 개발/기록용 복사(freeze 원칙). 3개 앱 모두 독립 배포 중이라 **배포 소스는 각 원본 저장소**.
 - 드리프트 위험(R2) 있으므로, 실제 운영 전 git submodule 전환을 D-open-4 로 검토.
+
+## 2026-07-09 · 첫 CI 실패에서 배운 것 (자기수정)
+
+### D10. 앱별 CI는 path 필터로 분리 + 앱별 pnpm 버전
+- 증상: daily#1(홍보 콘텐츠만 변경) PR에서 runningcall-ci 실패 — `pnpm install: packages field missing`.
+- 원인: (1) 앱 안 건드린 PR인데 3개 앱 빌드를 다 돌림 (2) runningcall 워크스페이스가 pnpm10 문법인데 CI가 pnpm9.
+- 결정:
+  - guardrails.yml = 범용 검사만(base-path/registry/lockfile/secret), 항상 실행.
+  - 앱별 CI를 ci-<app>.yml 로 분리, `on.pull_request.paths` 로 그 앱 변경 시에만 실행.
+  - runningcall CI는 pnpm 10 사용(스택 일치). pushrun 은 정적 파일 검증만.
+- 효과: 콘텐츠/문서 PR은 앱 빌드 안 돌려 빠르고 안 깨짐. 앱 변경 시에만 해당 앱 CI 작동.
+- 주의: 나중에 branch protection의 required checks 지정 시, path-filter로 안 도는 체크를 required로 걸면 안 됨(pending 고착). D-open-5.
+
+## 2026-07-09 · 전체 점검·최적화 1차
+
+### D11. 최적화 대상 = 관제 레이어. 앱 코드 최적화는 각 앱 저장소에서.
+- 이유: holdings의 apps/* 는 vendored 사본(D9). 여기서 앱 코드를 고치면 배포에 안 닿고 드리프트만 커짐.
+- 결정: 이번 최적화는 관제 레이어(workflows/ops/docs/CI/gitignore)만 적용.
+  앱 개선 후보는 ROADMAP '앱 최적화 백로그'로 모아 각 앱 원본 저장소에서 실행.
+- 적용:
+  - .gitignore 확장(.next/out/.vercel/coverage/*.tsbuildinfo) — 빌드 산출물 커밋 방지.
+  - claude-code-action 워크플로에 claude_args(--max-turns) 비용 상한 + issues:write 권한.
+  - 구식 문서 정리(REPO-SETUP 완료표시, STRUCTURE→AGENTS.md 정본 안내), state 최신화.
+- 검증: 커밋된 파일에 node_modules/.next/dist/.env/secret 없음(clean) 확인.
+- 미해결(구조): vendored 사본 드리프트 → git submodule 전환 검토(D-open-4 유지).
+
+### D12. 전수 진단(2026-07-09) 요약
+- 보안 양호(커밋 secret 없음, 키 서버보관, 입력검증, HTML 이스케이프).
+- 단 1건 실사용 리스크: runningcall 무인증 /api/* → Kakao 키 소진(R9, P0).
+- 최대 레버리지: 3개 앱 공통 로직 중복 → 공유 core 패키지(R10, P1).
+- 실제 적용(holdings 안전범위): ci-pushrun 에 races.json 검증(mixed-content 경고) 추가.
+- 앱 코드 개선은 백로그화(ROADMAP), 각 앱 저장소에서 실행.
