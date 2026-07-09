@@ -44,9 +44,12 @@ jobs:
           ACCESS_TOKEN: ${{ steps.token.outputs.access_token }}
           MSG: ${{ github.event.inputs.message }}
         run: |
-          DEFAULT="[Zoop Holdings 일일보고] 오늘자 데일리 사이클 draft PR을 확인해주세요."
+          DEFAULT="[Zoop Holdings 8시 보고]
+          08시는 보고 자동화 1개가 보냅니다.
+          매일 일하는 팀: 제품개선 5명(CEO/기획/개발/검수/기록), 홍보 1명.
+          보고 내용: 오늘 확인할 열린 PR만. 완료된 PR 번호는 제외합니다."
           TEXT="${MSG:-$DEFAULT}"
-          TEMPLATE=$(jq -nc --arg t "$TEXT" '{object_type:"text",text:$t,link:{web_url:"https://github.com/runnerpyrri-lgtm/Zoop-holdings/pulls"},button_title:"PR 목록 보기"}')
+          TEMPLATE=$(jq -nc --arg t "$TEXT" '{object_type:"text",text:$t,link:{web_url:"https://github.com/runnerpyrri-lgtm/Zoop-holdings/pulls"},button_title:"열린 PR 보기"}')
           curl -sS -X POST "https://kapi.kakao.com/v2/api/talk/memo/default/send" \
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
             --data-urlencode "template_object=${TEMPLATE}"
