@@ -67,3 +67,9 @@
 ### 추가
 - ops/handoff/update-prompts.md — 각 앱(runningcall/pushrun/zoopzoopcall) 저장소 AI에게
   진단 결과+업데이트 지시를 넘기는 자체완결 프롬프트(의견 요청 → 안전 항목 PR 실행).
+
+## [0.2.7] - 2026-07-09
+
+### 변경 (경영 지시)
+- 홍보팀 보류(Routine 비활성화, D13). Day1 PR 머지로 main 정상화(D14).
+- R9(P0) 러닝콜 API 레이트리밋 착수 → PR runningcall#1 (D15).

@@ -81,3 +81,16 @@
 - 최대 레버리지: 3개 앱 공통 로직 중복 → 공유 core 패키지(R10, P1).
 - 실제 적용(holdings 안전범위): ci-pushrun 에 races.json 검증(mixed-content 경고) 추가.
 - 앱 코드 개선은 백로그화(ROADMAP), 각 앱 저장소에서 실행.
+
+## 2026-07-09 · 경영 지시 반영 (사장)
+
+### D13. 홍보팀 보류 (별도 지시 전까지)
+- 사장 지시: 정식 앱 출시 전까지 홍보 불필요. 매일 홍보 Routine 비활성화(trig_01Qr…, disabled).
+- 콘텐츠는 이미 만든 초안 보존. 재개 시 채널 개설 후.
+
+### D14. Day1 PR(#1) 머지 완료 → main 정상화
+- 부트스트랩+3앱+CI수정+진단+최적화가 main에 반영. 이후 데일리는 main 기준으로 깨끗이 동작.
+
+### D15. R9(P0) 러닝콜 API 보안 착수 → PR runningcall#1
+- lib/rate-limit.ts(인메모리 IP 레이트리밋)+3개 라우트 게이트+검색 캐시. typecheck/test 통과.
+- 한계: 서버리스 인스턴스별 → 후속으로 공유저장소(KV/Upstash) 검토(D-open-6).
