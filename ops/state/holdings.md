@@ -1,20 +1,21 @@
 # state: holdings (본사)
 
 ## 현재 상태
-- 시스템 버전: 0.2.3
+- 시스템 버전: 루트 `VERSION` 파일 참조(단일 소스, 여기 숫자 복제 안 함)
 - 단계: 가동(저장소 live, 첫 사이클 성공)
 - 저장소: github.com/runnerpyrri-lgtm/Zoop-holdings (main)
 
 ## 방금 한 일 (최근)
-- 2026-07-09: 3개 앱(zoopzoopcall/runningcall/pushrun) 각 1개 소규모 안전 변경 + draft PR 3개 생성.
+- 2026-07-10: 전체 코드리뷰 → 운영 규율 정합화(v0.3.0). 버전 5곳 불일치 단일화, 데일리 프롬프트 근본원인 교정,
+  agent 경로 holdings 레이아웃 정합, registry-sanity apps.yml 기반화, CODEOWNERS·rollback·new-app-onboarding 추가. draft PR.
+- 2026-07-09: 3개 앱 각 1개 소규모 안전 변경 + draft PR 3개 생성.
 - 2026-07-09: Day1 — 3개 앱 홍보 콘텐츠팩 생성(게시대기), CI 자기수정(D10).
-- 2026-07-09: 관제 저장소 부트스트랩 + 3개 앱 편입 + main push.
 
 ## Next
+- [ ] **사장**: main branch protection + "Require review from Code Owners" 켜기(R7 종결)
 - [ ] 3개 앱 draft PR 검수·머지(사람)
 - [ ] ANTHROPIC_API_KEY 시크릿 등록(사장) → 매일 자동 가동
-- [ ] Day1 PR 검수·머지
-- [ ] 코드 개선 사이클(앱 최적화 백로그는 ROADMAP)
+- [ ] 앱 코드 개선(각 원본 저장소): zoopzoopcall dedup(R3/R10), runningcall 토큰폐기 확인, pushrun PWA
 
 ## Blocked
 - 없음 (저장소 생성 완료)

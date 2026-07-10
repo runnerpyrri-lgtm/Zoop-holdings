@@ -83,3 +83,25 @@
 
 ### 다음
 - 3개 앱 draft PR 검수·머지(사람), zoopzoopcall P0 dedup 제안서 작성.
+
+## [0.3.0] - 2026-07-10
+
+### 변경 (전체 코드리뷰 → 운영 규율 정합화)
+- **버전 단일화(D13)**: 시스템 버전 숫자를 루트 `VERSION` 단일 소스로. README·AGENTS·REPO-SETUP에서
+  하드코딩 숫자 제거("VERSION 참조"로). 5곳 불일치(0.1.0~0.2.7) 해소.
+- **근본원인 제거**: `daily-company-run.yml`이 앱 작업에도 시스템 VERSION을 올리라던 지시를 교정
+  (앱은 package.json만 bump, 시스템 VERSION은 운영/자동화 변경 때만).
+- **agent 프롬프트 경로 교정**: inspector/builder/release-manager가 holdings 레이아웃(`apps/<app>/...`)에서
+  실제 동작하도록 수정. inspector는 registry의 앱별 test/build 명령을 그 앱 디렉터리에서 실행하도록 일반화.
+- **가드레일 단일 소스 실천**: `guardrails.yml`의 registry-sanity가 앱명 하드코딩 대신 `apps.yml`에서 읽음.
+- **끊긴 참조 정리**: 참조만 되고 없던 playbook `rollback.md`·`new-app-onboarding.md` 생성.
+  AGENTS.md 워크플로 목록(4→8)·마지막 갱신 최신화. REPO-SETUP stale 정정.
+- **방어선 정직화**: `.github/CODEOWNERS` 추가(base path·워크플로·거버넌스 파일). RISK_REGISTER R1/R7 갱신.
+
+### 사장 액션 필요
+- GitHub → Settings → Branches → main 보호 + "Require review from Code Owners" 활성화(R7). 켜야 PR-only가 실제 강제됨.
+
+### 앱 코드(D11 — 각 원본 저장소에서, holdings 미변경)
+- runningcall: `docs/TODO.md`에 유출 `ghp_` 토큰 폐기 항목 → 실제 폐기 확인 필요(보안).
+- zoopzoopcall: core↔edge 정규화 복사본이 이미 갈라짐(edge가 과거공고 필터·정렬 추가). 테스트 있는 쪽이 배포 안 됨 → dedup 시급(R3/R10).
+- pushrun: PWA(manifest/SW/파비콘) 부재 → 알림이 탭 전용. 죽은 permissionModal 정리.

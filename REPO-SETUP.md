@@ -7,12 +7,12 @@ AI(나)는 **새 GitHub 저장소를 만들 권한이 없다**(API 403 — integ
 그래서 빈 저장소만 사장이 만들어주면, 내가 완성된 회사(3개 앱 + 관제)를 통째로 push한다.
 
 ## 지금 준비된 것 (로컬 /home/user/zoop-holdings, 완성본)
-- 관제: `CLAUDE.md`, `ops/`(설계·결정·로드맵·리스크·registry·state·플레이북), `.claude/agents/`(11), `.github/workflows/`(4)
+- 관제: `CLAUDE.md`, `ops/`(설계·결정·로드맵·리스크·registry·state·플레이북), `.claude/agents/`(11), `.github/workflows/`(8: daily-company-run·daily-marketing·weekly-review·guardrails·ci-3종·daily-kakao-report)
 - 앱 3개 편입 완료:
   - `apps/zoopzoopcall` (줍줍콜, v0.1.0, Vite PWA)
   - `apps/runningcall` (러닝콜, v0.13.1, Next.js/Vercel)
   - `apps/pushrun` (PushRun, v0.6.6, 정적)
-- 시스템 버전: 0.2.0
+- 시스템 버전 숫자는 루트 `VERSION` 파일이 단일 소스(이 문서에 복제하지 않는다).
 
 ## 사장이 할 일 (택1)
 ### 방법 A — 빈 저장소 직접 생성 (권장, 30초)

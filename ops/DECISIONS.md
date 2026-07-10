@@ -81,3 +81,15 @@
 - 최대 레버리지: 3개 앱 공통 로직 중복 → 공유 core 패키지(R10, P1).
 - 실제 적용(holdings 안전범위): ci-pushrun 에 races.json 검증(mixed-content 경고) 추가.
 - 앱 코드 개선은 백로그화(ROADMAP), 각 앱 저장소에서 실행.
+
+## 2026-07-10 · 운영 규율 정합화 (코드리뷰 반영)
+
+### D13. 시스템 버전은 VERSION 파일이 단일 소스 + 데일리 런은 시스템 VERSION을 올리지 않는다
+- 문제: 시스템 버전이 5곳(CHANGELOG·VERSION·state·AGENTS·README)에서 제각각. 근본원인은
+  daily-company-run 프롬프트가 매 앱 작업마다 "VERSION 갱신 필수"라고 지시해 시스템/앱 버전을 혼동시킨 것.
+- 결정: (1) 숫자는 루트 `VERSION`에만 둔다(다른 문서는 "VERSION 참조"로만 표기, 복제 금지).
+  (2) 앱 코드 작업은 그 앱 `package.json`만 bump. 루트 VERSION은 운영방식·자동화 변경 때만 bump(D5 재확인·강제).
+- 부수 정합화: registry-sanity 가드레일이 앱명을 하드코딩하지 않고 `apps.yml`에서 읽는다(단일 소스 실천).
+  agent 프롬프트(inspector/builder/release-manager)의 경로를 holdings 레이아웃(`apps/<app>/...`)에 맞게 교정.
+  참조만 되고 없던 playbook(rollback·new-app-onboarding) 생성. CODEOWNERS 추가(단, branch protection은 사장 설정 필요).
+- 미해결(사장): main branch protection + "Require review from Code Owners" 활성화(R7). 켜기 전엔 PR-only가 물리 강제되지 않음.
