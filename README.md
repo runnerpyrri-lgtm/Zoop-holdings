@@ -15,7 +15,7 @@
 자세한 설계는 `ops/DESIGN.md`, 확정 결정은 `ops/DECISIONS.md`, 구조는 `STRUCTURE.md`.
 
 ## 버전
-- 시스템 버전: `VERSION` (현재 0.1.0) — 회사 운영 방식/자동화 변경 시 bump.
+- 시스템 버전: `VERSION` 파일이 **단일 소스**(숫자를 다른 문서에 복제하지 않는다) — 회사 운영 방식/자동화 변경 시 bump.
 - 앱 버전: `apps/<app>/package.json` — 앱 기능 변경 시 bump.
 
 ## 원칙

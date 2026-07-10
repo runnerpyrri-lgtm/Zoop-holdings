@@ -33,13 +33,14 @@
 zoop-holdings/
   AGENTS.md          ← 지금 이 문서 (AI 온보딩)
   CLAUDE.md          ← 절대 규칙 / 금지작업
-  VERSION            ← 시스템 버전 (현재 0.2.0)
+  VERSION            ← 시스템 버전 (단일 소스 — 숫자는 이 파일만, 문서에 복제 금지)
   CHANGELOG.md       ← 시스템 업데이트 내역
   README.md          ← 사람용 소개
   STRUCTURE.md       ← 파일구조 설명
   REPO-SETUP.md      ← 저장소 셋업 이력
   .claude/agents/    ← AI 직원 11명(프롬프트). 마스터가 이들을 호출
-  .github/workflows/ ← daily-company-run / daily-marketing / weekly-review / guardrails
+  .github/workflows/ ← daily-company-run · daily-marketing · weekly-review · guardrails(범용 CI)
+                       ci-{zoopzoopcall,runningcall,pushrun}(앱별 path 필터) · daily-kakao-report(일일보고)
   ops/
     DESIGN.md  DECISIONS.md  ROADMAP.md  RISK_REGISTER.md
     registry/apps.yml         ← 앱 목록 단일 소스
@@ -84,4 +85,4 @@ zoop-holdings/
 - [ ] 새 결정을 했으면 `ops/DECISIONS.md`에 추가했는가
 
 ---
-*이 문서는 회사가 바뀌면 같이 갱신한다. 마지막 갱신: 2026-07-09 (시스템 v0.2.0, 앱 3개 편입).*
+*이 문서는 회사가 바뀌면 같이 갱신한다. 시스템 버전 숫자는 루트 `VERSION` 파일이 단일 소스다. 마지막 갱신: 2026-07-10 (운영 규율 정합화).*
