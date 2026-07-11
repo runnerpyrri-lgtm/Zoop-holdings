@@ -14,9 +14,8 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   icons: {
-    icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
   },
   openGraph: {
     title: "로봄 | 중요한 순간을 먼저 보는 알림 스튜디오",
@@ -28,7 +27,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1536,
         height: 1024,
-        alt: "한쪽 안경을 쓴 로봄 캐릭터와 중요한 순간을 먼저 봐요 문구",
+        alt: "따뜻한 색의 타이밍 신호로 표현한 로봄 알림 앱 스튜디오",
       },
     ],
   },

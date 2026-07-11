@@ -36,7 +36,8 @@ test("server-renders the finished Robom signal hub", async () => {
   assert.match(html, /야외봄/);
   assert.match(html, /청약봄/);
   assert.match(html, /러닝봄/);
-  assert.match(html, /한쪽 둥근 안경을 쓰고 손을 흔드는 흰색 로봄 캐릭터/);
+  assert.match(html, /오늘의 타이밍/);
+  assert.match(html, /알림은 많아도/);
   assert.match(html, /https:\/\/runningcall\.vercel\.app/);
   assert.match(html, /https:\/\/runnerpyrri-lgtm\.github\.io\/zoopzoopcall\//);
   assert.match(html, /https:\/\/runnerpyrri-lgtm\.github\.io\/pushrun\//);
@@ -52,13 +53,14 @@ test("keeps production branding and accessibility assets in place", async () => 
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
-    access(new URL("../public/robom-mascot.png", import.meta.url)),
     access(new URL("../public/og.png", import.meta.url)),
-    access(new URL("../public/favicon.png", import.meta.url)),
+    access(new URL("../public/favicon.svg", import.meta.url)),
   ]);
 
   assert.match(page, /function BrandLockup/);
-  assert.match(page, /src="\/robom-mascot\.png"/);
+  assert.match(page, /function SignalArtwork/);
+  assert.match(page, /timing-board/);
+  assert.doesNotMatch(page, /mascot|character|캐릭터|robom-mascot/);
   assert.match(layout, /metadataBase:\s*new URL\("https:\/\/robom\.kr"\)/);
   assert.match(layout, /summary_large_image/);
   assert.match(css, /a:focus-visible/);

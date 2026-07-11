@@ -16,5 +16,5 @@ npm test
 - `app/page.tsx`에서 회사 소개와 앱 연결을 관리합니다.
 - `app/globals.css`에서 반응형 디자인을 관리합니다.
 - `app/layout.tsx`에서 검색·공유 메타데이터를 관리합니다.
-- `public/`에서 로봄 캐릭터, 아이콘과 공유 이미지를 관리합니다.
+- `public/`에서 로봄의 신호 아이콘과 공유 이미지를 관리합니다.
 - `.openai/hosting.json`의 기존 Sites 프로젝트 ID를 유지합니다.
