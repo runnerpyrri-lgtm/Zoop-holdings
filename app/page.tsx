@@ -1,6 +1,5 @@
 // 로봄의 알림 스튜디오 정체성과 첫 세 앱을 소개하는 랜딩페이지다.
 import type { Metadata } from "next";
-import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "중요한 순간을 먼저 봅니다",
@@ -109,13 +108,11 @@ export default function Home() {
           </div>
 
           <div className="hero-art" aria-label="중요한 순간으로 향하는 세 개의 신호">
-            <Image
+            {/* vinext 런타임에서는 정적 공개 자산을 직접 제공해 이미지 경로를 안정적으로 유지한다. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/robom-signal-hero.png"
               alt="따뜻한 빛이 나는 문으로 향하는 세 개의 붉은 신호"
-              width={2048}
-              height={2048}
-              priority
-              sizes="(max-width: 760px) 100vw, 44vw"
             />
             <div className="art-note">
               <span>오늘의 신호</span>
