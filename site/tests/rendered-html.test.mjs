@@ -39,6 +39,8 @@ test("server-renders the finished Robom signal hub", async () => {
   assert.match(html, /알림 예시/);
   assert.match(html, /날씨·야외/);
   assert.match(html, /러닝대회/);
+  assert.match(html, /오늘, .*무엇을 볼까요/);
+  assert.match(html, /나가기 좋은 날씨와 시간을 봐요/);
   assert.doesNotMatch(html, />LIVE</);
   assert.doesNotMatch(html, /08:42|JUL 11/);
   assert.match(html, /알림은 많아도/);
@@ -71,13 +73,14 @@ test("keeps production branding and accessibility assets in place", async () => 
   assert.match(layout, /summary_large_image/);
   assert.match(css, /a:focus-visible/);
   assert.match(page, /mobile-quick-launch/);
+  assert.match(page, /mobile-home-copy/);
   assert.doesNotMatch(page, /mobile-nav-links/);
   assert.match(page, /quickLabel: "날씨·야외"/);
   assert.match(page, /quickLabel: "청약"/);
   assert.match(page, /quickLabel: "러닝대회"/);
   assert.doesNotMatch(page, /HOMBOM|>LIVE<|08:42|JUL 11/);
-  assert.match(css, /\.quick-launch-list \{[^}]*gap: 8px;/);
-  assert.match(css, /\.quick-launch-link \{[^}]*min-height: 56px;/);
+  assert.match(css, /\.quick-launch-list \{[^}]*gap: 12px;/);
+  assert.match(css, /\.quick-launch-link \{[^}]*min-height: 96px;/);
   assert.match(css, /\.hero-actions \.text-link \{[^}]*min-height: 44px;/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);

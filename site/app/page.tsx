@@ -11,6 +11,7 @@ const signals = [
     appName: "야외봄",
     englishName: "OUTBOM",
     quickLabel: "날씨·야외",
+    mobileDescription: "나가기 좋은 날씨와 시간을 봐요",
     label: "바깥의 좋은 때",
     title: "나가기 좋은 순간을 봐요.",
     body: "날씨와 공기를 살펴 걷기·산책·러닝·등산·자전거를 시작하기 좋은 시간을 알려줍니다.",
@@ -24,6 +25,7 @@ const signals = [
     appName: "청약봄",
     englishName: "HOMEBOM",
     quickLabel: "청약",
+    mobileDescription: "놓치기 쉬운 청약 접수를 챙겨요",
     label: "기회가 열리는 때",
     title: "신청할 순간을 놓치지 않아요.",
     body: "무순위 청약의 접수 시작과 마감처럼, 지나가면 다시 오지 않을 기회를 제때 알려줍니다.",
@@ -37,6 +39,7 @@ const signals = [
     appName: "러닝봄",
     englishName: "RUNNINGBOM",
     quickLabel: "러닝대회",
+    mobileDescription: "러닝 대회 접수 오픈을 잡아요",
     label: "출발선이 열리는 때",
     title: "대회 접수의 출발을 잡아요.",
     body: "선착순 러닝 대회 접수 오픈부터 마감까지, 출발선에 설 기회를 놓치지 않게 알려줍니다.",
@@ -141,6 +144,7 @@ export default function Home() {
             <a className="mobile-brand" href="#top" aria-label="로봄 처음으로">
               <BrandLockup compact />
             </a>
+            <span className="mobile-app-count">3 APPS</span>
             <p className="top-status"><span className="pulse-dot" aria-hidden="true" />세 가지 알림 예시를 보여드려요</p>
           </nav>
 
@@ -153,8 +157,12 @@ export default function Home() {
                 기회가 열릴 때, 출발선에 설 때. 행동할 수 있는 순간을 골라
                 늦지 않게 알려주는 생활 알림 앱 스튜디오입니다.
               </p>
+              <div className="mobile-home-copy">
+                <p>ROBOM HOME</p>
+                <h2>오늘, <em>무엇을 볼까요?</em></h2>
+                <span>필요한 순간을 골라 바로 시작하세요.</span>
+              </div>
               <nav className="mobile-quick-launch" aria-label="앱 바로 열기">
-                <p>바로 앱 열기</p>
                 <div className="quick-launch-list">
                   {signals.map((signal) => (
                     <a
@@ -163,11 +171,13 @@ export default function Home() {
                       key={signal.appName}
                       aria-label={`${signal.appName} ${signal.quickLabel} 앱 열기`}
                     >
-                      <span aria-hidden="true" />
+                      <span className="quick-launch-mark" aria-hidden="true">{signal.number}</span>
                       <span className="quick-launch-copy">
+                        <small>{signal.englishName}</small>
                         <strong>{signal.appName}</strong>
-                        <small>{signal.quickLabel}</small>
+                        <em>{signal.mobileDescription}</em>
                       </span>
+                      <span className="quick-launch-open">열기 <b aria-hidden="true">→</b></span>
                     </a>
                   ))}
                 </div>
