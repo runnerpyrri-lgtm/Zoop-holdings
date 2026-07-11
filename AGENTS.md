@@ -1,11 +1,11 @@
-# AGENTS.md — 이 저장소에서 일하는 모든 AI가 가장 먼저 읽는 문서
+# AGENTS.md — robom 저장소에서 일하는 모든 AI가 가장 먼저 읽는 문서
 
 > 목적: 어떤 AI가 이 저장소를 처음 열어도 **5분 안에 전체 그림과 최신 상태를 파악**하고, 규칙을 어기지 않고 이어서 일할 수 있게 한다. 사람도 이걸 먼저 읽으면 된다.
 
 ---
 
 ## 0. 이게 뭐야 (3줄 요약)
-- `zoop-holdings`는 **1인 지주회사** — 여러 앱을 매일 조금씩 자동으로 개선·홍보하는 AI 운영 회사다.
+- `robom`은 **1인 AI 앱 스튜디오** — 중요한 순간을 먼저 알려주는 앱을 만들고 운영한다.
 - **본사(관제)** = 이 저장소 루트(`ops/`·`.claude/`·`.github/`). **제품** = `apps/` 아래 3개 앱.
 - **모든 변경은 PR로.** main 직접 push 금지. 배포·비밀키·큰 변경은 **사람(사장) 승인** 필수.
 
@@ -37,6 +37,7 @@ zoop-holdings/
   CHANGELOG.md       ← 시스템 업데이트 내역
   README.md          ← 사람용 소개
   STRUCTURE.md       ← 파일구조 설명
+  site/              ← robom 브랜드 홈페이지(GitHub Pages)
   REPO-SETUP.md      ← 저장소 셋업 이력
   .claude/agents/    ← AI 직원 11명(프롬프트). 마스터가 이들을 호출
   .github/workflows/ ← daily-company-run · daily-marketing · weekly-review · monthly-board-run · guardrails(범용 CI)

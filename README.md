@@ -1,6 +1,8 @@
-# zoop-holdings
+# robom
 
-1인 지주회사 — 여러 앱을 **매일 스스로 개선·홍보**하는 자동 운영 회사.
+중요한 순간을 먼저 발견하고 알려주는 앱을 만드는 1인 AI 앱 스튜디오.
+
+- **브랜드 사이트**: `site/`의 정적 홈페이지. main 머지 후 GitHub Pages로 배포한다.
 
 - **본사(관제)**: 이 저장소. 운영 장부(`ops/`) + AI 직원(`.claude/agents/`) + 자동화(`.github/workflows/`).
 - **제품(앱)**: `apps/` 아래. 각 앱은 독립 워크스페이스(federated). 현재 `zoopzoopcall`(live).

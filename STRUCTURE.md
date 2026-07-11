@@ -1,16 +1,20 @@
 > 이 문서는 파일구조 참고용. **회사 전체 파악은 AGENTS.md 를 먼저 읽으세요(정본).**
 
-# zoop-holdings — 최종 파일 구조 (v1.0.0 착수용 블루프린트)
+# robom — 회사 운영·브랜드 사이트 구조
 
 > 이 폴더(`docs/zoop-holdings/blueprint/`)의 파일들을 **새 `zoop-holdings` 저장소 루트로 복사**하면 바로 뼈대가 된다.
 > 모델 A(관제 저장소): 앱 코드는 각자 저장소에 남고, holdings는 운영·자동화만 담당. 앱이 3개든 30개든 이 구조는 그대로.
 
 ```
-zoop-holdings/
+robom/
 ├─ VERSION                         # 지주회사 시스템 버전 (예: 1.0.0)
 ├─ CHANGELOG.md                    # 회사 운영방식 변경 이력
 ├─ README.md                       # 회사 소개
 ├─ CLAUDE.md                       # Claude에게 주는 회사 규칙(금지작업·안전선)
+├─ site/                           # robom 브랜드 홈페이지
+│  ├─ index.html
+│  ├─ styles.css
+│  └─ assets/robom-mascot.png
 │
 ├─ .claude/
 │   └─ agents/                     # AI 직원 = subagent 프롬프트
@@ -28,6 +32,7 @@ zoop-holdings/
 │
 ├─ .github/
 │   └─ workflows/
+│       ├─ deploy-robom-site.yml   # 회사 홈페이지 GitHub Pages 배포
 │       ├─ daily-company-run.yml   # 매일 09시: 실행 4팀 + 홍보 → PR
 │       ├─ daily-marketing.yml     # 매일: 앱별 다채널 콘텐츠팩 생성 → PR
 │       ├─ weekly-review.yml       # 주 1회: 감독·개선·릴리즈
