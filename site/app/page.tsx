@@ -110,15 +110,13 @@ export default function Home() {
               className={`app-menu-link ${signal.tone}`}
               href={signal.href}
               key={signal.appName}
-              target="_blank"
-              rel="noreferrer"
             >
               <span className="app-menu-mark" aria-hidden="true" />
               <span>
                 <strong>{signal.appName}</strong>
                 <small>{signal.label}</small>
               </span>
-              <b aria-hidden="true">↗</b>
+              <b aria-hidden="true">→</b>
             </a>
           ))}
         </nav>
@@ -143,7 +141,7 @@ export default function Home() {
             <p className="top-status"><span className="pulse-dot" aria-hidden="true" />오늘의 중요한 순간을 살펴보는 중</p>
             <div className="mobile-nav-links">
               {signals.map((signal) => (
-                <a href={signal.href} key={signal.appName} target="_blank" rel="noreferrer">{signal.appName}</a>
+                <a href={signal.href} key={signal.appName}>{signal.appName}</a>
               ))}
             </div>
           </nav>
@@ -211,8 +209,8 @@ export default function Home() {
 
           <div className="signal-grid">
             {signals.map((signal) => (
-              <a className={`signal-card ${signal.tone}`} href={signal.href} key={signal.number} target="_blank" rel="noreferrer" aria-label={`${signal.appName} 열기`}>
-                <div className="card-topline"><span>{signal.number} · {signal.englishName}</span><span>앱 열기 ↗</span></div>
+              <a className={`signal-card ${signal.tone}`} href={signal.href} key={signal.number} aria-label={`${signal.appName} 열기`}>
+                <div className="card-topline"><span>{signal.number} · {signal.englishName}</span><span>앱 열기 →</span></div>
                 <SignalArtwork tone={signal.tone} />
                 <p className="signal-label">{signal.label}</p>
                 <h3>{signal.appName}<br /><span>{signal.title}</span></h3>
