@@ -139,11 +139,6 @@ export default function Home() {
               <BrandLockup compact />
             </a>
             <p className="top-status"><span className="pulse-dot" aria-hidden="true" />오늘의 중요한 순간을 살펴보는 중</p>
-            <div className="mobile-nav-links">
-              {signals.map((signal) => (
-                <a href={signal.href} key={signal.appName}>{signal.appName}</a>
-              ))}
-            </div>
           </nav>
 
           <div className="hero-grid">
@@ -155,6 +150,23 @@ export default function Home() {
                 기회가 열릴 때, 출발선에 설 때. 행동할 수 있는 순간을 골라
                 늦지 않게 알려주는 생활 알림 앱 스튜디오입니다.
               </p>
+              <nav className="mobile-quick-launch" aria-label="앱 바로 열기">
+                <p>바로 앱 열기</p>
+                <div className="quick-launch-list">
+                  {signals.map((signal) => (
+                    <a
+                      className={`quick-launch-link ${signal.tone}`}
+                      href={signal.href}
+                      key={signal.appName}
+                      aria-label={`${signal.appName} ${signal.label} 앱 열기`}
+                    >
+                      <span aria-hidden="true" />
+                      <strong>{signal.appName}</strong>
+                      <b aria-hidden="true">→</b>
+                    </a>
+                  ))}
+                </div>
+              </nav>
               <div className="hero-actions">
                 <a className="primary-link" href="#signals">지금 필요한 앱 찾기 <span aria-hidden="true">↘</span></a>
                 <a className="text-link" href="#philosophy">로봄이 알리는 방식</a>
