@@ -3,12 +3,21 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://robom.kr"),
   title: {
     default: "로봄 | 중요한 순간을 먼저 보는 알림 스튜디오",
     template: "%s | 로봄",
   },
   description:
     "놓치면 끝나는 중요한 순간을, 생활에 맞는 신호로 먼저 알려주는 알림 앱 스튜디오 로봄입니다.",
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
   openGraph: {
     title: "로봄 | 중요한 순간을 먼저 보는 알림 스튜디오",
     description: "놓치면 끝나는 중요한 순간을, 생활에 맞는 신호로 먼저 알려줍니다.",
@@ -16,12 +25,18 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/robom-signal-hero.png",
-        width: 2048,
-        height: 2048,
-        alt: "로봄의 신호가 도착하는 장면",
+        url: "/og.png",
+        width: 1536,
+        height: 1024,
+        alt: "한쪽 안경을 쓴 로봄 캐릭터와 중요한 순간을 먼저 봐요 문구",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "로봄 | 중요한 순간을 먼저 보는 알림 스튜디오",
+    description: "놓치면 끝나는 중요한 순간을, 생활에 맞는 신호로 먼저 알려줍니다.",
+    images: ["/og.png"],
   },
 };
 
