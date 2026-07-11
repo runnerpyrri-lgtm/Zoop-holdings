@@ -41,6 +41,7 @@ test("server-renders the finished Robom signal hub", async () => {
   assert.match(html, /https:\/\/runningcall\.vercel\.app/);
   assert.match(html, /https:\/\/robom-labs\.github\.io\/homebom\//);
   assert.match(html, /https:\/\/robom-labs\.github\.io\/runningbom\//);
+  assert.doesNotMatch(html, /target="_blank"/);
   assert.doesNotMatch(html, /runnerpyrri-lgtm\.github\.io\/(zoopzoopcall|pushrun)/);
   assert.match(html, /https:\/\/robom\.kr\/og\.png/);
   assert.match(html, /twitter:card/);
