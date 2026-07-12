@@ -13,7 +13,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const app = getFamilyApp((await params).id);
-  return app ? { title: app.name, description: app.description } : {};
+  return app ? {
+    title: app.name,
+    description: app.description,
+    alternates: { canonical: app.hubPath },
+    openGraph: { title: app.name, description: app.description, url: app.hubPath },
+  } : {};
 }
 
 export default async function AppLanding({ params }: { params: Promise<{ id: string }> }) {

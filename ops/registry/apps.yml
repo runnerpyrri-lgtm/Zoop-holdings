@@ -7,7 +7,12 @@ apps:
     english_name: OutBom
     legacy_id: runningcall
     status: live
-    version: 0.14.0
+    version: 0.15.1
+    version_source: https://raw.githubusercontent.com/robom-labs/outbom/main/package.json
+    healthcheck_url: https://runningcall.vercel.app
+    privacy_url: https://robom.kr/privacy/outbom
+    support_url: https://robom.kr/support
+    mobile_status: planned
     repo: robom-labs/outbom
     legacy_repo: runnerpyrri-lgtm/runningcall
     stack: Next.js 16 + React 19 (pnpm)
@@ -22,7 +27,12 @@ apps:
     english_name: HomeBom
     legacy_id: zoopzoopcall
     status: live
-    version: 0.2.0
+    version: 0.3.2
+    version_source: https://raw.githubusercontent.com/robom-labs/homebom/main/apps/web/package.json
+    healthcheck_url: https://robom-labs.github.io/homebom/
+    privacy_url: https://robom.kr/privacy/homebom
+    support_url: https://robom.kr/support
+    mobile_status: planned
     repo: robom-labs/homebom
     legacy_repo: runnerpyrri-lgtm/zoopzoopcall
     stack: pnpm + Vite + React PWA
@@ -39,7 +49,12 @@ apps:
     english_name: RunningBom
     legacy_id: pushrun
     status: live
-    version: 0.7.0
+    version: 0.9.5
+    version_source: https://raw.githubusercontent.com/robom-labs/runningbom/main/package.json
+    healthcheck_url: https://robom-labs.github.io/runningbom/
+    privacy_url: https://robom.kr/privacy/runningbom
+    support_url: https://robom.kr/support
+    mobile_status: planned
     repo: robom-labs/runningbom
     legacy_repo: runnerpyrri-lgtm/pushrun
     stack: static PWA (HTML/CSS/JS)

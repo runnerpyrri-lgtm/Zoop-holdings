@@ -45,6 +45,9 @@ test("serves stable app, support, policy and license routes", async () => {
     ["/apps/runningbom", "대회 접수가 열리기 전에 준비합니다"],
     ["/support", "무엇을 도와드릴까요"],
     ["/privacy", "개인정보처리방침"],
+    ["/privacy/outbom", "야외봄 개인정보처리방침"],
+    ["/privacy/homebom", "청약봄 개인정보처리방침"],
+    ["/privacy/runningbom", "러닝봄 개인정보처리방침"],
     ["/terms", "이용약관"],
     ["/licenses", "오픈소스 라이선스"],
     ["/open-source", "오픈소스 라이선스"],
@@ -64,9 +67,9 @@ test("keeps registry URLs and versions aligned with rendered data", async () => 
   ]);
 
   for (const value of [
-    "0.14.0",
-    "0.2.0",
-    "0.7.0",
+    "0.15.1",
+    "0.3.2",
+    "0.9.5",
     "https://runningcall.vercel.app",
     "https://robom-labs.github.io/homebom/",
     "https://robom-labs.github.io/runningbom/",
