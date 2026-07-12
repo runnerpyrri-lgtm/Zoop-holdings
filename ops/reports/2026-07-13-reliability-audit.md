@@ -20,10 +20,12 @@
 - 러닝봄: 데이터 검증과 테스트 23건, 앱·캘린더·서비스워커 구문 검사.
 - robom.kr: ESLint, vinext 운영 빌드, 렌더링 4건, 12개 정적 경로 프리렌더.
 - 본사 레지스트리 원격 버전 대조: outbom 0.15.1, homebom 0.3.2, runningbom 0.9.5 일치.
+- 청약봄 Supabase notices 함수 v3: 공개 응답 8건, ID 8건 고유, 외부 URL 15건 모두 HTTP/HTTPS.
+- 운영 배포: robom.kr Sites, 야외봄 Vercel, 청약봄·러닝봄 GitHub Pages 성공.
 
 ## 남은 위험
 
 - 브라우저가 완전히 종료되면 현재 로컬 예약 알림은 보장되지 않는다. 서버 Web Push가 필요하다.
 - 청약봄 core와 Supabase Edge Function의 정규화 구현은 아직 두 곳에 있어 장기적으로 단일 소스화가 필요하다.
-- Supabase 함수 배포와 VAPID·Vercel 비밀값 확인은 외부 계정 권한이 필요한 별도 작업이다.
+- VAPID 생성과 야외봄 Vercel 비밀값 확인은 외부 계정 권한이 필요한 별도 작업이다.
 - 네 저장소 main branch protection은 현재 비활성이다. 운영 방식과 충돌하지 않게 사람 결정이 필요하다.
