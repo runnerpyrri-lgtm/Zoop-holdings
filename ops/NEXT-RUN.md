@@ -23,7 +23,7 @@
 
 ## 사람 또는 외부 계정이 필요한 항목
 
-- [ ] 청약봄 Supabase Edge Function에 이번 정규화 변경을 배포하고 공개 notices 응답을 확인한다.
+- [x] 청약봄 Supabase Edge Function v3에 정규화 변경을 배포하고 공개 notices 응답을 확인했다.
 - [ ] 야외봄 Vercel의 `KAKAO_REST_API_KEY` 유지 여부를 설정 화면에서 확인한다.
 - [ ] Web Push VAPID 키 생성과 운영 비밀 저장소를 승인한다.
 - [ ] Google Play 본인·주소·전화번호 인증을 완료한다.
