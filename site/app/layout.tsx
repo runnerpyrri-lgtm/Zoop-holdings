@@ -19,9 +19,6 @@ export const metadata: Metadata = {
   },
   description:
     "야외 날씨, 청약 접수, 러닝 대회처럼 놓치고 싶지 않은 순간을 먼저 보는 로봄 패밀리 공식 허브입니다.",
-  alternates: {
-    canonical: "/",
-  },
   icons: {
     icon: [
       { url: "/icons/robom.svg", type: "image/svg+xml" },

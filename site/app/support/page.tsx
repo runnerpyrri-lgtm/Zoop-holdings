@@ -4,7 +4,7 @@ import Link from "next/link";
 import { PageShell } from "../components";
 import { contactHref, familyApps, SITE_VERSION } from "../app-data";
 
-export const metadata: Metadata = { title: "고객 지원" };
+export const metadata: Metadata = { title: "고객 지원", alternates: { canonical: "/support" } };
 
 export default function SupportPage() {
   return (
