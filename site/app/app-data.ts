@@ -22,7 +22,7 @@ export type FamilyApp = {
   highlights: readonly string[];
 };
 
-export const SITE_VERSION = "1.7.3";
+export const SITE_VERSION = "1.7.4";
 
 // 값의 정본은 ../../ops/registry/apps.yml이며 렌더링 테스트에서 URL과 버전의 일치를 검증한다.
 export const familyApps: readonly FamilyApp[] = [
@@ -84,7 +84,7 @@ export const familyApps: readonly FamilyApp[] = [
     status: "live",
     statusLabel: "운영 중",
     accessLabel: "웹으로 이용",
-    version: "0.11.3",
+    version: "0.12.0",
     webUrl: "https://robom-labs.github.io/runningbom/",
     hubPath: "/apps/runningbom",
     tone: "run",
