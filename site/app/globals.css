@@ -211,6 +211,20 @@ em { font-style: normal; }
   .app-hero-card { padding: 22px 19px; }.ad-placeholder p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.product-copy h1 { font-size: 39px; }
 }
 
+/* 높이가 짧은 휴대폰에서도 세 번째 앱 타일이 고정 하단 메뉴 위에 완전히 보이게 한다. */
+@media (max-width: 760px) and (max-height: 640px) {
+  .site-header { min-height: 58px; padding-block: 6px; }
+  .robom-icon { width: 32px; height: 32px; }
+  .family-hero { padding-top: 14px; }
+  .hero-copy .eyebrow { margin-bottom: 7px; }
+  .hero-copy h1 { margin-bottom: 9px; font-size: clamp(32px, 10vw, 38px); line-height: 1.03; }
+  .mobile-jump-label { margin-bottom: 7px; font-size: 12px; }
+  .mobile-app-jump { gap: 5px; margin-bottom: 18px; }
+  .app-jump { min-height: 54px; padding-block: 4px; }
+  .app-jump .app-glyph { width: 42px; height: 42px; }
+  .app-jump-text small { font-size: 11px; }
+}
+
 @media (prefers-color-scheme: dark) {
   :root { color-scheme: light; --ink: #17211d; --muted: #5f6e67; --paper: #fff8ef; --surface: #ffffff; --soft: #f6f0e7; --line: #eadfd2; --robom-soft: #e5f3f2; --out-soft: #e9f5fc; --home-soft: #eaf6ed; --run-soft: #fff0e7; --shadow: 0 18px 50px rgba(91,67,44,.09); }
   .site-header { background: rgba(255, 248, 239, .92); }.family-preview { background: rgba(255, 255, 255, .94); }.button.primary { background: var(--ink); color: #fff; }.button.secondary, .desktop-nav a:hover { background: var(--surface); }.preview-hero > a { background: var(--ink); color: #fff; }.mobile-tabbar { background: rgba(255, 255, 255, .96); }

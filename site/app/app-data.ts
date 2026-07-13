@@ -22,7 +22,7 @@ export type FamilyApp = {
   highlights: readonly string[];
 };
 
-export const SITE_VERSION = "1.6.0";
+export const SITE_VERSION = "1.7.0";
 
 // 값의 정본은 ../../ops/registry/apps.yml이며 렌더링 테스트에서 URL과 버전의 일치를 검증한다.
 export const familyApps: readonly FamilyApp[] = [
@@ -36,7 +36,7 @@ export const familyApps: readonly FamilyApp[] = [
     status: "live",
     statusLabel: "운영 중",
     accessLabel: "웹으로 이용",
-    version: "0.16.0",
+    version: "0.17.0",
     webUrl: "https://runningcall.vercel.app",
     hubPath: "/apps/outbom",
     tone: "out",
@@ -60,7 +60,7 @@ export const familyApps: readonly FamilyApp[] = [
     status: "live",
     statusLabel: "운영 중",
     accessLabel: "웹으로 이용",
-    version: "0.4.0",
+    version: "0.5.0",
     webUrl: "https://robom-labs.github.io/homebom/",
     hubPath: "/apps/homebom",
     tone: "home",
@@ -84,7 +84,7 @@ export const familyApps: readonly FamilyApp[] = [
     status: "live",
     statusLabel: "운영 중",
     accessLabel: "웹으로 이용",
-    version: "0.10.0",
+    version: "0.11.1",
     webUrl: "https://robom-labs.github.io/runningbom/",
     hubPath: "/apps/runningbom",
     tone: "run",
@@ -104,8 +104,7 @@ export function getFamilyApp(id: string) {
   return familyApps.find((app) => app.id === id);
 }
 
-export function contactHref(kind: "general" | "partnership", context = "로봄 웹사이트") {
-  const purpose = kind === "general" ? "일반 문의" : "광고·제휴 문의";
-  const subject = `[${context}] ${purpose} · v${SITE_VERSION}`;
+export function contactHref(context = "로봄 웹사이트") {
+  const subject = `[${context}] 문의·광고·제휴 · v${SITE_VERSION}`;
   return `mailto:hello.robom@gmail.com?subject=${encodeURIComponent(subject)}`;
 }

@@ -70,9 +70,9 @@ test("keeps registry URLs and versions aligned with rendered data", async () => 
   ]);
 
   for (const value of [
-    "0.16.0",
-    "0.4.0",
-    "0.10.0",
+    "0.17.0",
+    "0.5.0",
+    "0.11.1",
     "https://runningcall.vercel.app",
     "https://robom-labs.github.io/homebom/",
     "https://robom-labs.github.io/runningbom/",
@@ -111,8 +111,23 @@ test("keeps branding, accessibility and hosting assets in place", async () => {
   assert.match(css, /a:focus-visible/);
   assert.match(css, /min-height:\s*48px/);
   assert.match(css, /safe-area-inset-bottom/);
+  assert.match(css, /max-height:\s*640px/);
   assert.match(css, /prefers-color-scheme:\s*dark/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   assert.doesNotMatch(await readFile(new URL("../app/components.tsx", import.meta.url), "utf8"), /next\/image/);
+});
+
+test("prerenders subpath-safe links and PWA assets for the Pages preview", async () => {
+  const [script, manifest] = await Promise.all([
+    readFile(new URL("../scripts/prerender-static.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(script, /replaceAll\('href="\//);
+  assert.match(script, /replaceAll\('src="\//);
+  assert.match(script, /modulepreload/);
+  assert.match(script, /application\\\/ld\\\+json/);
+  assert.equal(JSON.parse(manifest).start_url, "./");
+  assert.equal(JSON.parse(manifest).scope, "./");
 });

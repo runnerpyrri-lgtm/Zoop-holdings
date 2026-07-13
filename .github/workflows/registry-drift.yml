@@ -1,6 +1,11 @@
 name: Registry drift
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "ops/registry/apps.yml"
+      - "ops/scripts/check-app-registry.mjs"
   schedule:
     - cron: "17 21 * * *"
   workflow_dispatch:

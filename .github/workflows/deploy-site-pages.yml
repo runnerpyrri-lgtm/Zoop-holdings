@@ -8,6 +8,8 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "ops/registry/apps.yml"
+      - "ops/scripts/check-app-registry.mjs"
       - ".github/workflows/deploy-site-pages.yml"
   workflow_dispatch:
 
@@ -39,6 +41,8 @@ jobs:
           enablement: true
         continue-on-error: true
       - run: npm ci
+      - name: Verify app registry
+        run: node ../ops/scripts/check-app-registry.mjs
       - name: Build + rendered-html tests
         run: npm test
       - name: Prerender static site

@@ -56,13 +56,21 @@ for (const path of routes) {
   const depth = path === "/" ? 0 : path.split("/").filter(Boolean).length;
   const prefix = depth === 0 ? "./" : "../".repeat(depth);
   const html = (await response.text())
+    // 정적 허브에는 클라이언트 상태가 없으므로 루트 경로를 다시 요청하는 hydration 런타임을 싣지 않는다.
+    .replace(/<link rel="modulepreload"[^>]*>/g, "")
+    .replace(/<script(?![^>]*type="application\/ld\+json")[^>]*>[\s\S]*?<\/script>/g, "")
+    .replaceAll('href="https://robom.kr/icons/', `href="${prefix}icons/`)
+    .replaceAll('href="https://robom.kr/manifest.webmanifest', `href="${prefix}manifest.webmanifest`)
+    .replaceAll('href="/', `href="${prefix}`)
+    .replaceAll('src="/', `src="${prefix}`)
     .replaceAll('"/assets/', `"${prefix}assets/`)
     .replaceAll('"/favicon.svg', `"${prefix}favicon.svg`)
     .replaceAll('"/icons/', `"${prefix}icons/`)
-    .replaceAll('"/brand/', `"${prefix}brand/`);
+    .replaceAll('"/brand/', `"${prefix}brand/`)
+    .replaceAll('"/manifest.webmanifest', `"${prefix}manifest.webmanifest`);
 
-  if (html.includes('"/assets/')) {
-    throw new Error(`prerender sanity check failed for ${path}: absolute /assets/ path remains`);
+  if (html.includes('href="/') || html.includes('src="/') || html.includes('"/assets/') || html.includes('rel="modulepreload"')) {
+    throw new Error(`prerender sanity check failed for ${path}: root-relative path remains`);
   }
 
   const outputDir = path === "/" ? staticDir : resolve(staticDir, path.slice(1));
