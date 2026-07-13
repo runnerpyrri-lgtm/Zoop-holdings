@@ -129,9 +129,9 @@ test("keeps registry URLs and versions aligned with rendered data", async () => 
   ]);
 
   for (const value of [
-    "0.20.0",
-    "0.7.1",
-    "0.13.0",
+    "0.22.0",
+    "0.10.0",
+    "0.15.0",
     "https://robom-labs.github.io/outbom/",
     "https://robom-labs.github.io/homebom/",
     "https://robom-labs.github.io/runningbom/",
