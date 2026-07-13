@@ -5,7 +5,24 @@ import { AppGlyph, FamilyFooter, MobileNav, SiteHeader, Wordmark } from "./compo
 import { contactHref, familyApps } from "./app-data";
 
 export const metadata: Metadata = {
-  title: "중요한 순간을 먼저 봅니다",
+  title: { absolute: "로봄 | 날씨·청약·러닝, 놓치기 전에" },
+  description: "오늘 나가기 좋은 시간, 청약 접수 일정, 러닝 대회 오픈을 한곳에서 확인하세요. 야외봄·청약봄·러닝봄으로 바로 연결됩니다.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "로봄 | 날씨·청약·러닝, 놓치기 전에",
+    description: "오늘 나가기 좋은 시간, 청약 접수 일정, 러닝 대회 오픈을 한곳에서 확인하세요. 야외봄·청약봄·러닝봄으로 바로 연결됩니다.",
+    url: "/",
+    siteName: "로봄",
+    locale: "ko_KR",
+    type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "따뜻한 색의 타이밍 신호로 표현한 로봄 알림 앱 스튜디오" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "로봄 | 날씨·청약·러닝, 놓치기 전에",
+    description: "오늘 나가기 좋은 시간, 청약 접수 일정, 러닝 대회 오픈을 한곳에서 확인하세요.",
+    images: ["/og.png"],
+  },
 };
 
 export default function Home() {
@@ -16,25 +33,23 @@ export default function Home() {
         <section className="family-hero" aria-labelledby="hero-title">
           <div className="hero-copy">
             <p className="eyebrow"><span aria-hidden="true" /> ROBOM FAMILY</p>
-            <h1 id="hero-title">놓치고 싶지 않은 순간을<br /><em>먼저 봅니다.</em></h1>
-            <p className="hero-lead">날이 개는 아침, 문이 열리는 순간, 출발선이 그려지는 날. 로봄은 쏟아지는 정보 대신, 지금 당신이 내디딜 한 걸음만 조용히 건네드립니다.</p>
+            <h1 id="hero-title">날씨·청약·러닝,<br /><em>중요한 순간을 놓치기 전에.</em></h1>
+            <p className="hero-lead">야외봄은 나가기 좋은 시간을, 청약봄은 접수 일정을, 러닝봄은 대회 오픈을 챙깁니다.</p>
             <div className="hero-actions">
               <a className="button primary" href="#apps">세 앱 만나기 <span aria-hidden="true">↓</span></a>
               <Link className="button secondary" href="/support">도움받기</Link>
             </div>
-            <p className="mobile-jump-label">지금 필요한 앱을 바로 여세요.</p>
+            <p className="mobile-jump-label">오늘 필요한 앱을 골라 바로 확인하세요.</p>
             <nav className="mobile-app-jump" aria-label="앱 바로 열기">
               {familyApps.map((app) => (
                 <a className={`app-jump ${app.tone}`} href={app.webUrl} target="_blank" rel="noopener noreferrer" key={app.id} aria-label={`${app.name} 웹 앱 새 창으로 열기`}>
                   <AppGlyph app={app} />
-                  <span className="app-jump-text"><b>{app.name}</b><small>{app.tagline}</small></span>
-                  <span className="app-jump-go" aria-hidden="true">바로 열기 ↗</span>
+                  <span className="app-jump-text"><b>{app.name}</b><small>{app.mobileValue}</small></span>
+                  <span className="app-jump-go" aria-hidden="true">{app.mobileAction} ↗</span>
                 </a>
               ))}
             </nav>
-            <ul className="trust-list" aria-label="로봄의 제품 원칙">
-              <li>먼저 살펴두고</li><li>당신 몫만 남겨</li><li>때가 오면 알려요</li>
-            </ul>
+            <p className="trust-copy">로봄이 직접 운영하는 야외봄·청약봄·러닝봄의 공식 웹 허브입니다. 각 앱의 원문·데이터 출처는 서비스 안에서 확인할 수 있습니다.</p>
           </div>
 
           <div className="family-preview" aria-label="로봄 패밀리 앱 미리보기">
@@ -63,7 +78,7 @@ export default function Home() {
                 <div className="filter-row" aria-label={`${app.name} 주요 기능`}>{app.highlights.map((item, index) => <span className={index === 0 ? "active" : ""} key={item}>{item}</span>)}</div>
                 <div className="app-hero-card"><span className="card-rule" /><p className="card-eyebrow">{app.eyebrow}</p><h3>{app.heroTitle}</h3><p>{app.heroBody}</p><div className="metric-row">{app.metrics.map((metric) => <span key={metric.label}><b>{metric.value}</b><small>{metric.label}</small></span>)}</div><a className="card-cta" href={app.webUrl} target="_blank" rel="noopener noreferrer">{app.name} 웹으로 열기 <span aria-hidden="true">↗</span></a></div>
                 <div className="short-list"><strong>이 앱이 챙기는 것</strong>{app.highlights.slice(0, 2).map((item, index) => <span key={item}>{item}<b>{index === 0 ? "핵심" : "보기"}</b></span>)}</div>
-                <div className="ad-placeholder" aria-label="광고 영역 비활성"><span>광고</span><p>추천 정보 영역 · 현재 비활성</p><b>OFF</b></div>
+                <div className="ad-placeholder" aria-label="광고 영역 비활성" data-nosnippet><span>광고</span><p>추천 정보 영역 · 현재 비활성</p><b>OFF</b></div>
                 <Link className="web-access" href={app.hubPath}>{app.name} 소개 자세히 <span aria-hidden="true">→</span></Link>
               </article>
             ))}
@@ -79,6 +94,21 @@ export default function Home() {
       </main>
       <FamilyFooter />
       <MobileNav />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": "https://robom.kr/#website",
+            url: "https://robom.kr/",
+            name: "로봄",
+            alternateName: ["ROBOM", "robom.kr"],
+            inLanguage: "ko-KR",
+            publisher: { "@id": "https://robom.kr/#organization" },
+          }),
+        }}
+      />
     </div>
   );
 }

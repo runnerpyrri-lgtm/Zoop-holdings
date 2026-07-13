@@ -14,23 +14,26 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://robom.kr"),
   title: {
-    default: "로봄 | 중요한 순간을 먼저 보는 알림 스튜디오",
+    default: "로봄 | 날씨·청약·러닝, 놓치기 전에",
     template: "%s | 로봄",
   },
   description:
-    "야외 날씨, 청약 접수, 러닝 대회처럼 놓치고 싶지 않은 순간을 먼저 보는 로봄 패밀리 공식 허브입니다.",
+    "오늘 나가기 좋은 시간, 청약 접수 일정, 러닝 대회 오픈을 한곳에서 확인하세요. 야외봄·청약봄·러닝봄으로 바로 연결됩니다.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-96.png", sizes: "96x96", type: "image/png" },
       { url: "/icons/robom.svg", type: "image/svg+xml" },
-      { url: "/icons/robom-32.png", sizes: "32x32", type: "image/png" },
     ],
-    shortcut: "/icons/robom.svg",
     apple: [{ url: "/icons/robom-180.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
-    title: "로봄 | 중요한 순간을 먼저 보는 알림 스튜디오",
-    description: "야외봄·청약봄·러닝봄을 한곳에서 만나고 공식 웹 서비스로 이동하세요.",
+    title: "로봄 | 날씨·청약·러닝, 놓치기 전에",
+    description: "오늘 나가기 좋은 시간, 청약 접수 일정, 러닝 대회 오픈을 한곳에서 확인하세요. 야외봄·청약봄·러닝봄으로 바로 연결됩니다.",
+    siteName: "로봄",
+    url: "https://robom.kr/",
     locale: "ko_KR",
     type: "website",
     images: [
@@ -44,8 +47,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "로봄 | 중요한 순간을 먼저 보는 알림 스튜디오",
-    description: "놓치면 끝나는 중요한 순간을, 생활에 맞는 신호로 먼저 알려줍니다.",
+    title: "로봄 | 날씨·청약·러닝, 놓치기 전에",
+    description: "오늘 나가기 좋은 시간, 청약 접수 일정, 러닝 대회 오픈을 한곳에서 확인하세요.",
     images: ["/og.png"],
   },
   verification: {
@@ -77,26 +80,19 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@graph": [
-                {
-                  "@type": "Organization",
-                  "@id": "https://robom.kr/#org",
-                  name: "로봄",
-                  alternateName: "ROBOM",
-                  url: "https://robom.kr",
-                  email: "hello.robom@gmail.com",
-                  logo: "https://robom.kr/icons/robom.svg",
-                  description: "야외봄·청약봄·러닝봄을 운영하는 생활 알림 앱 스튜디오",
-                },
-                {
-                  "@type": "WebSite",
-                  "@id": "https://robom.kr/#site",
-                  url: "https://robom.kr",
-                  name: "로봄",
-                  inLanguage: "ko-KR",
-                  publisher: { "@id": "https://robom.kr/#org" },
-                },
-              ],
+              "@type": "Organization",
+              "@id": "https://robom.kr/#organization",
+              name: "로봄",
+              alternateName: "ROBOM",
+              url: "https://robom.kr/",
+              email: "hello.robom@gmail.com",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://robom.kr/icons/robom-512.png",
+                width: 512,
+                height: 512,
+              },
+              description: "야외봄·청약봄·러닝봄을 운영하는 생활 타이밍 앱 패밀리",
             }),
           }}
         />

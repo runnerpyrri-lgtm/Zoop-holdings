@@ -61,8 +61,7 @@ em { font-style: normal; }
 .button.primary { background: var(--ink); color: #fff; }
 .button.secondary { border-color: var(--line); background: var(--surface); }
 .button.light { background: #fff; color: var(--ink); }
-.trust-list { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 34px 0 0; padding: 0; color: var(--muted); font-size: 13px; font-weight: 750; list-style: none; }
-.trust-list li::before { margin-right: 8px; color: var(--robom); content: "✓"; }
+.trust-copy { max-width: 700px; margin: 30px 0 0; color: var(--muted); font-size: 13px; font-weight: 750; line-height: 1.7; }
 
 /* 모바일 첫 화면 앱 바로 열기(데스크톱은 기본 display:none으로 완전 비노출) */
 .mobile-app-jump, .mobile-jump-label { display: none; }
@@ -148,6 +147,7 @@ em { font-style: normal; }
 .mobile-tabbar { display: none; }
 
 .product-page { --tone: var(--out); --tint: var(--out-soft); max-width: 1220px; margin: auto; padding: 70px 28px 110px; }
+.breadcrumb { display: flex; align-items: center; gap: 8px; margin: 0 0 24px; color: var(--muted); font-size: 13px; font-weight: 800; }.breadcrumb a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .product-appbar { margin-bottom: 24px; }.product-appbar .wordmark { font-size: 38px; }.product-appbar .status-pill { background: var(--tint); color: var(--tone); }
 .product-chips { margin-bottom: 26px; }.product-chips span { min-height: 46px; }
 .product-hero { display: grid; grid-template-columns: 1fr auto; gap: 40px; border-radius: var(--radius-xl); background: var(--tint); padding: clamp(34px, 6vw, 78px); }
@@ -179,7 +179,7 @@ em { font-style: normal; }
   .mobile-app-jump { order: 3; display: grid; gap: 8px; margin: 0 0 26px; }
   .hero-lead { order: 4; font-size: 17px; }
   .hero-actions { order: 5; }.hero-actions .button { flex: 1; }
-  .trust-list { order: 6; display: grid; }
+  .trust-copy { order: 6; }
   /* 장식 프리뷰와 카드 군더더기는 모바일에서 숨겨 앱 진입까지 스크롤을 줄인다(마크업은 유지) */
   .family-preview { display: none; }
   .family-card .ad-placeholder, .family-card .short-list, .family-card .web-access { display: none; }
@@ -196,7 +196,7 @@ em { font-style: normal; }
   .family-footer { display: block; padding: 46px 24px 34px; }.footer-links { grid-template-columns: 1fr 1fr; margin-top: 40px; }.footer-links div:last-child { grid-column: 1 / -1; }.footer-meta { margin-top: 35px; }
   .mobile-tabbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 60; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .95); padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); backdrop-filter: blur(18px); }
   .mobile-tabbar a { display: flex; min-width: 0; min-height: 58px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 16px; color: var(--muted); font-size: 11px; font-weight: 850; }.mobile-tabbar a > span { font-size: 20px; line-height: 1; }.mobile-tabbar a[aria-current="page"] { background: var(--robom-soft); color: var(--robom); }
-  .product-page { padding: 44px 16px 80px; }.product-appbar { align-items: center; }.app-glyph.large { width: 64px; height: 64px; border-radius: 21px; }.product-appbar .wordmark { font-size: 31px; }.product-appbar .status-pill { min-height: 38px; padding: 0 10px; font-size: 10px; }
+  .product-page { padding: 44px 16px 80px; }.breadcrumb { margin-bottom: 18px; }.product-appbar { align-items: center; }.app-glyph.large { width: 64px; height: 64px; border-radius: 21px; }.product-appbar .wordmark { font-size: 31px; }.product-appbar .status-pill { min-height: 38px; padding: 0 10px; font-size: 10px; }
   .product-hero { display: block; padding: 30px 24px; }.product-copy h1 { font-size: 43px; }.product-copy > p:not(.card-eyebrow) { font-size: 16px; }.product-actions .button { width: 100%; }.product-score { width: auto; min-height: 74px; grid-template-columns: auto auto auto; gap: 10px; align-items: center; margin-top: 28px; border-width: 2px; border-radius: 22px; }.product-score strong { margin: 0; font-size: 21px; }
   .product-metrics { margin-bottom: 76px; }.product-metrics span { padding: 8px 10px; }.product-metrics b { font-size: 18px; }.product-metrics small { font-size: 10px; }
   .feature-section { display: block; margin-bottom: 75px; }.feature-section h2 { margin-bottom: 35px; font-size: 38px; }.family-menu { padding: 25px 18px; }.family-menu h2 { font-size: 28px; }.family-menu > div:last-child { grid-template-columns: 1fr; }

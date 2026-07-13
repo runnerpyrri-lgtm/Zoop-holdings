@@ -8,6 +8,10 @@ export type FamilyApp = {
   prefix: string;
   tagline: string;
   description: string;
+  metadataTitle: string;
+  metadataDescription: string;
+  mobileValue: string;
+  mobileAction: string;
   status: "live";
   statusLabel: string;
   accessLabel: string;
@@ -22,7 +26,7 @@ export type FamilyApp = {
   highlights: readonly string[];
 };
 
-export const SITE_VERSION = "1.7.4";
+export const SITE_VERSION = "1.8.0";
 
 // 값의 정본은 ../../ops/registry/apps.yml이며 렌더링 테스트에서 URL과 버전의 일치를 검증한다.
 export const familyApps: readonly FamilyApp[] = [
@@ -33,6 +37,10 @@ export const familyApps: readonly FamilyApp[] = [
     prefix: "야외",
     tagline: "바람이 당신을 부르는 때",
     description: "날씨와 대기질로 야외활동하기 좋은 시간을 알려주는 앱",
+    metadataTitle: "야외봄 | 오늘 나가기 좋은 시간과 날씨",
+    metadataDescription: "걷기·러닝·등산·자전거에 좋은 시간과 비·바람·대기질, 준비물을 오늘과 내일 예보로 확인하세요.",
+    mobileValue: "오늘 나가기 좋은 시간",
+    mobileAction: "지금 확인",
     status: "live",
     statusLabel: "운영 중",
     accessLabel: "웹으로 이용",
@@ -57,6 +65,10 @@ export const familyApps: readonly FamilyApp[] = [
     prefix: "청약",
     tagline: "다시 오지 않을 그 하루",
     description: "일반공급과 무순위 청약의 접수·발표·계약 일정을 한눈에 챙기는 앱",
+    metadataTitle: "청약봄 | 특별공급·1순위·무순위 청약 일정",
+    metadataDescription: "특별공급·1순위·2순위·무순위·재공급의 접수와 발표·계약 일정을 달력과 알림으로 확인하세요.",
+    mobileValue: "이번 달 접수 일정",
+    mobileAction: "일정 보기",
     status: "live",
     statusLabel: "운영 중",
     accessLabel: "웹으로 이용",
@@ -81,6 +93,10 @@ export const familyApps: readonly FamilyApp[] = [
     prefix: "러닝",
     tagline: "다시 출발선에 서는 날",
     description: "러닝 대회 탐색과 접수 시작 시간을 알려주는 앱",
+    metadataTitle: "러닝봄 | 마라톤 대회 접수 일정과 알림",
+    metadataDescription: "전국 마라톤·러닝 대회를 지역과 거리로 찾고, 공식 접수 일정과 시작 알림을 확인하세요.",
+    mobileValue: "곧 열리는 대회 접수",
+    mobileAction: "대회 찾기",
     status: "live",
     statusLabel: "운영 중",
     accessLabel: "웹으로 이용",

@@ -15,13 +15,50 @@ async function render(path = "/") {
   );
 }
 
+function metaContent(html, attribute, value) {
+  const escaped = escapeRegExp(value);
+  const match = html.match(new RegExp(`<meta[^>]*${attribute}="${escaped}"[^>]*content="([^"]*)"[^>]*>`));
+  return match?.[1];
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function jsonLdBlocks(html) {
+  return [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((match) => JSON.parse(match[1]));
+}
+
+function pngDimensions(buffer) {
+  assert.equal(buffer.subarray(1, 4).toString("ascii"), "PNG");
+  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
+}
+
 test("server-renders the Robom family hub", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>중요한 순간을 먼저 봅니다 \| 로봄<\/title>/);
+  assert.match(html, /<title>로봄 \| 날씨·청약·러닝, 놓치기 전에<\/title>/);
+  assert.equal(metaContent(html, "name", "description"), "오늘 나가기 좋은 시간, 청약 접수 일정, 러닝 대회 오픈을 한곳에서 확인하세요. 야외봄·청약봄·러닝봄으로 바로 연결됩니다.");
+  assert.match(html, /<link rel="canonical" href="https:\/\/robom\.kr\/"\/>/);
+  assert.equal(metaContent(html, "property", "og:site_name"), "로봄");
+  assert.equal(metaContent(html, "property", "og:title"), "로봄 | 날씨·청약·러닝, 놓치기 전에");
+  assert.equal(metaContent(html, "name", "twitter:title"), "로봄 | 날씨·청약·러닝, 놓치기 전에");
+  const faviconLinks = [...html.matchAll(/<link\b[^>]*>/g)]
+    .map((match) => match[0])
+    .filter((link) => /rel="icon"|rel="apple-touch-icon"/.test(link))
+    .filter((link) => /favicon\.ico|favicon-48\.png|favicon-96\.png|icons\/robom\.svg|icons\/robom-180\.png/.test(link));
+  assert.deepEqual(faviconLinks.map((link) => link.match(/href="([^"]+)"/)?.[1]?.replace("https://robom.kr/", "")), [
+    "favicon.ico", "favicon-48.png", "favicon-96.png", "icons/robom.svg", "icons/robom-180.png",
+  ]);
+  assert.match(html, /날씨·청약·러닝,<br\/><em>중요한 순간을 놓치기 전에\.<\/em>/);
+  assert.match(html, /야외봄은 나가기 좋은 시간을, 청약봄은 접수 일정을, 러닝봄은 대회 오픈을 챙깁니다\./);
+  assert.match(html, /오늘 필요한 앱을 골라 바로 확인하세요\./);
+  assert.match(html, /오늘 나가기 좋은 시간/);
+  assert.match(html, /이번 달 접수 일정/);
+  assert.match(html, /곧 열리는 대회 접수/);
   assert.match(html, /야외봄/);
   assert.match(html, /청약봄/);
   assert.match(html, /러닝봄/);
@@ -39,14 +76,30 @@ test("server-renders the Robom family hub", async () => {
   assert.match(html, /href="https:\/\/robom-labs\.github\.io\/runningbom\/"[^>]*target="_blank"/);
   assert.doesNotMatch(html, /runnerpyrri-lgtm\.github\.io\/(zoopzoopcall|pushrun)/);
   assert.doesNotMatch(html, /러닝콜|줍줍콜|PushRun/);
+
+  const blocks = jsonLdBlocks(html);
+  const organization = blocks.find((block) => block["@type"] === "Organization");
+  const website = blocks.find((block) => block["@type"] === "WebSite");
+  assert.equal(blocks.filter((block) => block["@type"] === "WebSite").length, 1);
+  assert.deepEqual(website, {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://robom.kr/#website",
+    url: "https://robom.kr/",
+    name: "로봄",
+    alternateName: ["ROBOM", "robom.kr"],
+    inLanguage: "ko-KR",
+    publisher: { "@id": "https://robom.kr/#organization" },
+  });
+  assert.deepEqual(organization.logo, { "@type": "ImageObject", url: "https://robom.kr/icons/robom-512.png", width: 512, height: 512 });
 });
 
 test("serves stable app, support, policy and license routes", async () => {
   const routes = [
-    ["/apps/outbom", "나가기 좋은 시간을 먼저 봅니다"],
-    ["/apps/homebom", "접수 시작과 마감을 놓치지 않게"],
-    ["/apps/runningbom", "대회 접수가 열리기 전에 준비합니다"],
-    ["/support", "무엇을 도와드릴까요"],
+    ["/apps/outbom", "야외봄 | 오늘 나가기 좋은 시간과 날씨", "걷기·러닝·등산·자전거에 좋은 시간과 비·바람·대기질, 준비물을 오늘과 내일 예보로 확인하세요."],
+    ["/apps/homebom", "청약봄 | 특별공급·1순위·무순위 청약 일정", "특별공급·1순위·2순위·무순위·재공급의 접수와 발표·계약 일정을 달력과 알림으로 확인하세요."],
+    ["/apps/runningbom", "러닝봄 | 마라톤 대회 접수 일정과 알림", "전국 마라톤·러닝 대회를 지역과 거리로 찾고, 공식 접수 일정과 시작 알림을 확인하세요."],
+    ["/support", "고객 지원"],
     ["/privacy", "개인정보처리방침"],
     ["/privacy/outbom", "야외봄 개인정보처리방침"],
     ["/privacy/homebom", "청약봄 개인정보처리방침"],
@@ -56,10 +109,16 @@ test("serves stable app, support, policy and license routes", async () => {
     ["/open-source", "오픈소스 라이선스"],
   ];
 
-  for (const [path, copy] of routes) {
+  for (const [path, copy, description] of routes) {
     const response = await render(path);
     assert.equal(response.status, 200, path);
-    assert.match(await response.text(), new RegExp(copy), path);
+    const html = await response.text();
+    assert.match(html, new RegExp(escapeRegExp(copy)), path);
+    if (!description) continue;
+    assert.match(html, new RegExp(`<title>${escapeRegExp(copy)}<\\/title>`), path);
+    assert.equal(metaContent(html, "name", "description"), description, path);
+    assert.match(html, /<nav class="breadcrumb" aria-label="현재 위치">/, path);
+    assert.equal(jsonLdBlocks(html).filter((block) => block["@type"] === "BreadcrumbList").length, 1, path);
   }
 });
 
@@ -82,29 +141,28 @@ test("keeps registry URLs and versions aligned with rendered data", async () => 
   }
 });
 
-test("keeps branding, accessibility and hosting assets in place", async () => {
-  const [page, layout, css, packageJson] = await Promise.all([
+test("keeps branding, accessibility, favicon and hosting assets in place", async () => {
+  const [page, layout, css, packageJson, favicon48, favicon96, faviconIco, faviconScript] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
-    access(new URL("../public/og.png", import.meta.url)),
-    access(new URL("../public/favicon.svg", import.meta.url)),
-    access(new URL("../public/icons/robom.svg", import.meta.url)),
-    access(new URL("../public/icons/robom-192.png", import.meta.url)),
-    access(new URL("../public/icons/robom-512.png", import.meta.url)),
-    access(new URL("../public/manifest.webmanifest", import.meta.url)),
-    access(new URL("../public/robots.txt", import.meta.url)),
-    access(new URL("../public/sitemap.xml", import.meta.url)),
-    access(new URL("../public/icons/outbom.svg", import.meta.url)),
-    access(new URL("../public/icons/homebom.svg", import.meta.url)),
-    access(new URL("../public/icons/runningbom.svg", import.meta.url)),
-    access(new URL("../public/brand/bom-robom.svg", import.meta.url)),
-    access(new URL("../.openai/hosting.json", import.meta.url)),
+    readFile(new URL("../public/favicon-48.png", import.meta.url)),
+    readFile(new URL("../public/favicon-96.png", import.meta.url)),
+    readFile(new URL("../public/favicon.ico", import.meta.url)),
+    readFile(new URL("../scripts/generate-brand-favicons.mjs", import.meta.url), "utf8"),
   ]);
+
+  await Promise.all([
+    "../public/og.png", "../public/favicon.svg", "../public/favicon.ico", "../public/favicon-48.png", "../public/favicon-96.png",
+    "../public/icons/robom.svg", "../public/icons/robom-192.png", "../public/icons/robom-512.png", "../public/manifest.webmanifest",
+    "../public/robots.txt", "../public/sitemap.xml", "../public/icons/outbom.svg", "../public/icons/homebom.svg",
+    "../public/icons/runningbom.svg", "../public/brand/bom-robom.svg", "../.openai/hosting.json",
+  ].map((path) => access(new URL(path, import.meta.url))));
 
   assert.match(page, /function Home/);
   assert.match(layout, /metadataBase:\s*new URL\("https:\/\/robom\.kr"\)/);
+  assert.match(layout, /siteName:\s*"로봄"/);
   assert.match(layout, /viewportFit:\s*"cover"/);
   assert.match(layout, /width:\s*1200/);
   assert.match(layout, /height:\s*630/);
@@ -118,6 +176,14 @@ test("keeps branding, accessibility and hosting assets in place", async () => {
   assert.match(css, /height:\s*1\.18em/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(packageJson, /"version": "1\.8\.0"/);
+  assert.deepEqual(pngDimensions(favicon48), { width: 48, height: 48 });
+  assert.deepEqual(pngDimensions(favicon96), { width: 96, height: 96 });
+  assert.equal(faviconIco.readUInt16LE(2), 1);
+  assert.equal(faviconIco.readUInt16LE(4), 2);
+  assert.deepEqual([faviconIco[6], faviconIco[22]], [32, 48]);
+  assert.match(faviconScript, /ROBOM_FAVICON_PREVIEW_DIR/);
+  assert.doesNotMatch(faviconScript, /sharp/);
   assert.doesNotMatch(await readFile(new URL("../app/components.tsx", import.meta.url), "utf8"), /next\/image/);
 });
 
