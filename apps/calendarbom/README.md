@@ -3,7 +3,9 @@
 큰 달력에서 날짜를 누르고, 버튼 몇 번으로 일정과 알람을 저장하는 **우리 가족 달력** PWA.
 로봄(robom) 패밀리의 네 번째 앱입니다.
 
-- 운영 주소: https://robom-labs.github.io/calendarbom/
+- 현재 운영 주소(임시): https://robom-labs.github.io/robom/calendarbom/
+  — `robom-labs/calendarbom` 저장소 생성 전까지 본사 Pages 아래에서 운영합니다(`ops/HUMAN-TASKS.md`).
+- 정식 목표 주소: https://robom-labs.github.io/calendarbom/
 - 현재 버전: **v0.1.0** (`app/sw.js` 의 `calendarbom-v0.1.0` 과 일치)
 
 ## 누구를 위한 앱인가
