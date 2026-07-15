@@ -1,6 +1,8 @@
 # 로봄 AI 합동회의
 
-이 폴더는 GitHub `robom-labs/robom` 안의 회의 설정 정본이다. Codex와 Claude Code는 이 파일과 각 회의실 프롬프트를 GitHub에서 읽고, 코드 변경은 대상 저장소의 브랜치와 PR로만 올린다.
+이 폴더는 GitHub `robom-labs/robom` 안의 회의 설정 정본이다. Codex와 Claude Code는 이 파일과 각 회의실 프롬프트를 GitHub에서 읽는다. 코드 변경과 배포는 `PROTOCOL.md`의 회의실별 승인 규칙을 따른다.
+
+다른 PC에서 01·02·03 전체 지침을 복원할 때는 `CODEX-HUB.md`, `.agents/skills/robom-company-hub/SKILL.md`, `BOOTSTRAP-CODEX.md`를 사용한다. 루트 `AGENTS.md`, 휴대 사용자 지침, 운영 프로토콜, 회사 모드, 각 방 프롬프트와 비공개 회의록 연결이 이 허브에 포함된다.
 
 | 번호 | Codex 채팅 제목 | Claude 채팅 제목 | GitHub 코드 범위 | 비공개 회의록 폴더 |
 | --- | --- | --- | --- | --- |
@@ -31,4 +33,4 @@
 - 04는 `회사모드로 청약 알림 누락 위험을 확인하고 필요한 수정까지 해줘`라고 요청한다.
 - 05는 `회사모드로 러닝 대회 접수 화면을 점검하고 모바일에서 누르기 쉽게 개선해줘`라고 요청한다.
 
-각 새 채팅에는 해당 회의실의 `PROMPT-CODEX.md` 또는 `PROMPT-CLAUDE.md` 전체를 붙여넣는다.
+개별 새 채팅에는 해당 회의실의 `PROMPT-CODEX.md` 또는 `PROMPT-CLAUDE.md`를 적용한다. 새 PC에서 01·02·03을 함께 복원할 때는 `BOOTSTRAP-CODEX.md` 하나를 실행한다.
