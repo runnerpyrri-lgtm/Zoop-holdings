@@ -120,8 +120,8 @@ apps:
     stable_install_url: https://robom.kr/get/calendarbom
     mobile_status: pwa
     family_spec_version: 1.0.0
-    last_verified_at: "2026-07-16T13:42:23+09:00"
-    last_deployed_sha: 997f13ef4221723658bc5d8827d4dde8be9d2a19
+    last_verified_at: "2026-07-17T03:40:00+09:00"
+    last_deployed_sha: bc0b9ba5f303620d8afc772effd298adcea728e1
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: local-only
     freshness_slo_hours: 720
@@ -152,8 +152,8 @@ apps:
     stable_install_url: https://robom.kr/get/certbom
     mobile_status: pwa
     family_spec_version: 1.0.0
-    last_verified_at: "2026-07-16T18:13:31+09:00"
-    last_deployed_sha: ceff17921012bad6fb956d21260821368266e9c9
+    last_verified_at: "2026-07-17T03:40:00+09:00"
+    last_deployed_sha: d2b6363bde9fdb5d33945fbed818cf97030b9dd6
     last_data_sync_at: "2026-07-16T15:00:00+09:00"
     freshness_status: last-known-good
     freshness_slo_hours: 48
