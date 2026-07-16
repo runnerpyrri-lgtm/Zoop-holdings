@@ -173,7 +173,7 @@ em { font-style: normal; }
 .family-line-icon { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 
 .product-page { --tone: var(--out); --tone-ink: var(--out-strong); --tint: var(--out-soft); max-width: 1220px; margin: auto; padding: 70px 28px 110px; }
-.breadcrumb { display: flex; align-items: center; gap: 8px; margin: 0 0 24px; color: var(--muted); font-size: 13px; font-weight: 800; }.breadcrumb a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.breadcrumb { display: flex; align-items: center; gap: 4px; margin: 0 0 14px; color: var(--muted); font-size: 13px; font-weight: 800; }.breadcrumb a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 10px; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .product-appbar { margin-bottom: 24px; }.product-appbar .wordmark { font-size: 38px; }.product-appbar .status-pill { background: var(--tint); color: var(--tone-ink); }
 .product-chips { margin-bottom: 26px; }.product-chips span { min-height: 46px; }
 .product-hero { display: grid; grid-template-columns: 1fr auto; gap: 40px; border-radius: var(--radius-xl); background: var(--tint); padding: clamp(34px, 6vw, 78px); }

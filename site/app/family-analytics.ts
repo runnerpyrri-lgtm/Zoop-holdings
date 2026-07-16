@@ -1,6 +1,8 @@
 // 동의와 공급자 설정이 모두 있을 때만 개인정보를 제거해 공통 분석 이벤트를 전송한다.
 "use client";
 
+import { SITE_VERSION } from "./app-data";
+
 const CONSENT_KEY = "robom:analytics-consent:v1";
 const ANONYMOUS_KEY = "robom:anonymous-id:v1";
 const FORBIDDEN = /latitude|longitude|address|email|phone|token|endpoint|medication|medicine|hospital|calendar|raw_query|raw_answer|search|note/i;
@@ -49,7 +51,7 @@ export const familyAnalytics = {
     const payload = {
       event_name: event.event_name,
       app_id: event.app_id ?? "robom",
-      app_version: "2.1.4",
+      app_version: SITE_VERSION,
       platform: platform(),
       surface: event.surface,
       session_kind: sessionStorage.getItem("robom:seen:v1") ? "returning-session" : "fresh-session",
