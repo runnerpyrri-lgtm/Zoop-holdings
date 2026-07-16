@@ -2,7 +2,7 @@
 
 ## 현재 상태
 
-- 버전: 0.5.0
+- 버전: 0.5.1
 - 상태: live (독립 저장소·독립 Pages)
 - 소스: https://github.com/robom-labs/calendarbom
 - 운영: https://robom-labs.github.io/calendarbom/
@@ -15,6 +15,9 @@
 - 2026-07-16: 0.5.0에 패밀리 워드마크·토큰·5앱 설정·PWA 설치·consent 분석 OFF·immutable family contract를 적용하고 `e197251` 운영 표식을 확인했습니다.
 - 2026-07-16: 서비스워커가 `calendarbom-pwa-v*` 자기 캐시만 정리하도록 격리하고 Chromium·WebKit E2E를 release gate에 넣었습니다.
 - 2026-07-16: 기존 localStorage 키를 유지하고 기존 주소는 데이터를 읽거나 삭제하지 않는 이전 화면으로 전환했습니다.
+- 2026-07-16: 0.5.1에서 잘못된 grid ARIA를 수정하고 큰 글자·모바일 대비·Android·iPhone local notification 기반을 운영 검증했습니다.
+- 운영 main: `997f13ef4221723658bc5d8827d4dde8be9d2a19`.
+- PWA 캐시: `calendarbom-pwa-v0.5.1`.
 
 ## 다음
 
