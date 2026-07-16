@@ -24,8 +24,8 @@ apps:
     stable_install_url: https://robom.kr/get/outbom
     mobile_status: pwa
     family_spec_version: 1.0.0
-    last_verified_at: "2026-07-16T13:42:23+09:00"
-    last_deployed_sha: 0addaa70cd5fa8e197682c6e43b28962ba620f65
+    last_verified_at: "2026-07-17T02:40:00+09:00"
+    last_deployed_sha: 7e0b15fe73ecbc913cd9446931a02cdaa6661e57
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: runtime
     freshness_slo_hours: 48
