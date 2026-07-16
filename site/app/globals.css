@@ -1,6 +1,5 @@
 /* 로봄 패밀리의 공통 앱 문법과 서비스별 색을 구현하는 반응형 디자인 시스템이다. */
-/* Pretendard 웹폰트는 layout.tsx의 <head> preconnect+link로 비차단 로드한다.
-   (CSS @import는 스타일 다운로드 이후에야 폰트를 발견해 첫 렌더가 늦어지므로 제거) */
+/* 첫 화면 외부 요청과 한글 FOUT를 없애기 위해 기기 기본 한글 글꼴만 사용한다. */
 @import "tailwindcss";
 
 :root {
@@ -13,12 +12,12 @@
   --line: #eadfd2;
   --robom: #2f95a0;
   --robom-soft: #e5f3f2;
-  --out: #3c9ed8;
-  --out-soft: #e9f5fc;
-  --home: #4da25e;
-  --home-soft: #eaf6ed;
-  --run: #ed7b3f;
-  --run-soft: #fff0e7;
+  --out: #2f95a0;
+  --out-soft: #e3f5f5;
+  --home: #d99a1f;
+  --home-soft: #fff2d7;
+  --run: #f35f46;
+  --run-soft: #ffebe6;
   --cal: #7454c8;
   --cal-soft: #f1ebfb;
   --cert: #2457d6;
@@ -32,7 +31,7 @@
 @theme inline { --color-background: var(--paper); --color-foreground: var(--ink); }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; overflow-x: hidden; background: var(--paper); color: var(--ink); font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; word-break: keep-all; }
+body { margin: 0; overflow-x: hidden; background: var(--paper); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; word-break: keep-all; }
 a { color: inherit; text-decoration: none; }
 a, button { touch-action: manipulation; }
 a:focus-visible, button:focus-visible { outline: 3px solid var(--robom); outline-offset: 4px; }
@@ -66,6 +65,20 @@ em { font-style: normal; }
 .button.secondary { border-color: var(--line); background: var(--surface); }
 .button.light { background: #fff; color: var(--ink); }
 .trust-copy { max-width: 700px; margin: 30px 0 0; color: var(--muted); font-size: 13px; font-weight: 750; line-height: 1.7; }
+
+.family-hero--install { display: block; min-height: auto; padding-block: clamp(54px, 7vw, 86px) clamp(64px, 8vw, 96px); background: radial-gradient(circle at 10% 0, rgba(47, 149, 160, .13), transparent 30%), radial-gradient(circle at 88% 4%, rgba(217, 154, 31, .13), transparent 27%), var(--paper); }
+.hero-intro { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(330px, .75fr); align-items: end; gap: 48px; max-width: 1450px; margin: 0 auto 38px; }
+.hero-intro .eyebrow { grid-column: 1 / -1; margin-bottom: -24px; }
+.hero-intro h1 { margin: 0; font-size: clamp(50px, 5.5vw, 82px); font-weight: 950; line-height: 1.04; }
+.hero-intro h1 em { color: var(--robom); }
+.hero-intro .hero-lead { margin: 0 0 5px; }
+.quick-install-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; max-width: 1450px; margin: auto; }
+.quick-install-card { --tone: var(--out); --tint: var(--out-soft); display: grid; min-width: 0; min-height: 226px; grid-template-rows: auto 1fr auto; border: 1px solid color-mix(in srgb, var(--tone) 25%, var(--line)); border-radius: 25px; background: rgba(255, 255, 255, .92); padding: 17px; box-shadow: 0 10px 28px rgba(31, 51, 43, .06); }
+.quick-install-card.home { --tone: var(--home); --tint: var(--home-soft); }.quick-install-card.run { --tone: var(--run); --tint: var(--run-soft); }.quick-install-card.cal { --tone: var(--cal); --tint: var(--cal-soft); }.quick-install-card.cert { --tone: var(--cert); --tint: var(--cert-soft); }
+.quick-app-name { display: flex; min-width: 0; align-items: center; gap: 8px; }.quick-app-name .app-glyph { width: 42px; height: 42px; border-radius: 14px; }.quick-app-name .wordmark { min-width: 0; font-size: 23px; }
+.quick-install-card > p { margin: 18px 0; color: var(--muted); font-size: 14px; font-weight: 800; line-height: 1.45; }
+.quick-install-card > div:last-child { display: grid; gap: 7px; }.quick-install-card > div:last-child a { display: flex; min-height: 48px; align-items: center; justify-content: space-between; border-radius: 14px; padding: 0 13px; font-size: 12px; font-weight: 900; }.quick-install-card > div:last-child a:first-child { background: var(--tone); color: #fff; }.quick-install-card > div:last-child a:last-child { justify-content: center; border: 1px solid var(--line); color: var(--muted); }
+.family-hero--install > .trust-copy { max-width: 1450px; margin: 22px auto 0; }
 
 /* 모바일 첫 화면 앱 바로 열기(데스크톱은 기본 display:none으로 완전 비노출) */
 .mobile-app-jump, .mobile-jump-label { display: none; }
@@ -133,9 +146,6 @@ em { font-style: normal; }
 .short-list > strong { margin-bottom: 5px; font-size: 17px; }
 .short-list > span { display: flex; min-height: 48px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 750; }
 .short-list b { border-radius: 999px; background: var(--tint); padding: 5px 8px; color: var(--tone); font-size: 10px; }
-.ad-placeholder { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; min-height: 62px; margin-top: 18px; border: 1px dashed #cad5cf; border-radius: 18px; padding: 11px 14px; color: var(--muted); }
-.ad-placeholder span { border: 1px solid var(--line); border-radius: 8px; padding: 5px 7px; font-size: 10px; font-weight: 900; }
-.ad-placeholder p { margin: 0; font-size: 11px; }.ad-placeholder b { font-size: 10px; }
 .web-access { margin-top: 12px; padding: 0 5px 0 14px; color: var(--tone); }
 
 .standard-section { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(60px, 10vw, 170px); padding: 126px clamp(24px, 7vw, 120px); }
@@ -146,13 +156,14 @@ em { font-style: normal; }
 .standard-section li > span { color: var(--robom); font-size: 12px; font-weight: 950; }
 .standard-section b { font-size: 22px; }.standard-section li p { margin: 8px 0 0; color: var(--muted); line-height: 1.65; }
 .support-band { display: flex; align-items: center; justify-content: space-between; gap: 30px; margin: 0 clamp(24px, 5vw, 80px) 90px; border: 1px solid #f0d7bd; border-radius: var(--radius-xl); background: linear-gradient(135deg, #fff0dc, #eaf6e8); padding: 48px clamp(28px, 5vw, 70px); color: var(--ink); }
-.support-band p { margin-bottom: 8px; color: #c16a3b; font-size: 12px; font-weight: 900; }.support-band h2 { margin-bottom: 9px; font-size: clamp(28px, 3.4vw, 48px); }.support-band span { color: var(--muted); }.support-band .button { background: var(--ink); color: #fff; }
+.support-band p { margin-bottom: 8px; color: #c16a3b; font-size: 12px; font-weight: 900; }.support-band h2 { margin-bottom: 9px; font-size: clamp(28px, 3.4vw, 48px); }.support-band span { color: var(--muted); overflow-wrap: anywhere; }.support-band .button { background: var(--ink); color: #fff; }
 
 .family-footer { display: grid; grid-template-columns: .8fr 1.2fr; gap: 50px; background: #f5f0e6; padding: 58px clamp(24px, 5vw, 80px) 35px; color: var(--ink); }
 .footer-brand p { max-width: 320px; margin: 18px 0 0; color: var(--muted); line-height: 1.6; }.family-footer .wordmark { color: var(--ink); }
 .footer-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }.footer-links div { display: grid; align-content: start; gap: 2px; }.footer-links strong { margin-bottom: 6px; font-size: 13px; }.footer-links a { display: flex; min-height: 44px; align-items: center; color: var(--muted); font-size: 12px; }
 .footer-meta { display: flex; grid-column: 1 / -1; flex-wrap: wrap; gap: 12px 24px; border-top: 1px solid #dfd5c8; padding-top: 25px; color: var(--muted); font-size: 11px; }
 .mobile-tabbar { display: none; }
+.family-line-icon { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 
 .product-page { --tone: var(--out); --tint: var(--out-soft); max-width: 1220px; margin: auto; padding: 70px 28px 110px; }
 .breadcrumb { display: flex; align-items: center; gap: 8px; margin: 0 0 24px; color: var(--muted); font-size: 13px; font-weight: 800; }.breadcrumb a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
@@ -160,9 +171,17 @@ em { font-style: normal; }
 .product-chips { margin-bottom: 26px; }.product-chips span { min-height: 46px; }
 .product-hero { display: grid; grid-template-columns: 1fr auto; gap: 40px; border-radius: var(--radius-xl); background: var(--tint); padding: clamp(34px, 6vw, 78px); }
 .product-copy { max-width: 760px; }.product-copy h1 { margin-bottom: 20px; font-size: clamp(44px, 6vw, 76px); line-height: 1.08; }.product-copy > p:not(.card-eyebrow) { color: var(--muted); font-size: 18px; line-height: 1.8; }.product-copy .primary { background: var(--tone); }.product-score { display: grid; width: 170px; min-height: 170px; place-content: center; align-self: start; border: 7px solid var(--tone); border-radius: 50%; text-align: center; }.product-score small, .product-score span { color: var(--muted); font-size: 10px; }.product-score strong { margin: 7px 0; font-size: 29px; }
+.product-contact { display: inline-flex; min-height: 48px; align-items: center; margin-top: 12px; color: var(--tone); font-size: 13px; font-weight: 850; text-decoration: underline; text-underline-offset: 4px; }
 .product-metrics { margin: 30px 0 100px; border-bottom: 1px solid var(--line); padding: 0 0 30px; }.product-metrics span { padding: 10px 22px; }.product-metrics span + span { border-left: 1px solid var(--line); }.product-metrics b { font-size: 26px; }.product-metrics small { font-size: 12px; }
 .feature-section { display: grid; grid-template-columns: .8fr 1.2fr; gap: 60px; margin-bottom: 110px; }.feature-list article { display: grid; grid-template-columns: 50px 1fr; gap: 15px; border-top: 1px solid var(--line); padding: 23px 0; }.feature-list article:last-child { border-bottom: 1px solid var(--line); }.feature-list > article > span { color: var(--tone); font-size: 12px; font-weight: 900; }.feature-list h3 { margin-bottom: 8px; font-size: 22px; }.feature-list p { margin: 0; color: var(--muted); line-height: 1.65; }
 .family-menu { border-radius: var(--radius-xl); background: var(--surface); padding: 40px; }.family-menu > div:first-child p { margin-bottom: 7px; color: var(--muted); font-size: 12px; font-weight: 900; }.family-menu h2 { margin-bottom: 28px; font-size: 34px; }.family-menu > div:last-child { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }.family-menu a { display: grid; grid-template-columns: 50px 1fr auto; align-items: center; gap: 12px; min-height: 84px; border: 1px solid var(--line); border-radius: 22px; padding: 13px; }.family-menu a span { display: grid; }.family-menu a .wordmark { font-size: 21px; }.family-menu small { margin-top: 4px; color: var(--muted); font-size: 11px; }.family-menu a > b { font-size: 12px; }
+
+.install-page { --tone: var(--out); --tint: var(--out-soft); max-width: 1260px; margin: auto; padding: 58px 28px 110px; }.install-page.home { --tone: var(--home); --tint: var(--home-soft); }.install-page.run { --tone: var(--run); --tint: var(--run-soft); }.install-page.cal { --tone: var(--cal); --tint: var(--cal-soft); }.install-page.cert { --tone: var(--cert); --tint: var(--cert-soft); }
+.install-appbar { display: flex; align-items: center; gap: 16px; margin-bottom: 34px; }.install-appbar .wordmark { font-size: 38px; }.install-appbar p { max-width: 740px; margin: 6px 0 0; color: var(--muted); line-height: 1.55; }
+.install-layout { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: clamp(36px, 7vw, 90px); align-items: center; border-radius: var(--radius-xl); background: var(--tint); padding: clamp(32px, 6vw, 72px); }.install-copy h1 { margin-bottom: 22px; font-size: clamp(46px, 6vw, 76px); line-height: 1.06; }.install-copy h1 em { color: var(--tone); }.install-copy > p { max-width: 700px; color: var(--muted); font-size: 17px; line-height: 1.75; }
+.qr-card { display: grid; justify-items: center; border: 1px solid color-mix(in srgb, var(--tone) 25%, var(--line)); border-radius: 28px; background: #fff; padding: 24px; text-align: center; box-shadow: var(--shadow); }.qr-card img { display: block; width: min(100%, 300px); height: auto; border-radius: 12px; image-rendering: crisp-edges; }.qr-card strong { margin-top: 13px; font-size: 18px; }.qr-card a { min-height: 44px; display: flex; align-items: center; color: var(--tone); font-size: 12px; font-weight: 850; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }.qr-card small { color: var(--muted); line-height: 1.5; }
+.install-actions { margin-top: 26px; }.platform-note { margin: 0 0 12px; color: var(--ink); font-size: 14px; font-weight: 850; }.store-action { display: flex; width: 100%; min-height: 54px; align-items: center; justify-content: center; border: 0; border-radius: 16px; background: var(--tone); color: #fff; padding: 0 20px; font: inherit; font-size: 15px; font-weight: 900; cursor: pointer; }.store-status { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }.install-guide-toggle { display: flex; min-height: 48px; align-items: center; border: 0; background: transparent; color: var(--tone); padding: 0; font: inherit; font-size: 13px; font-weight: 850; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }.manual-install-guide { margin: 0 0 14px; border-left: 4px solid var(--tone); border-radius: 0 16px 16px 0; background: rgba(255, 255, 255, .72); padding: 14px 18px 14px 36px; color: var(--muted); font-size: 13px; line-height: 1.65; }.install-secondary-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }.install-secondary-actions a { display: flex; min-height: 48px; flex: 1; align-items: center; justify-content: center; border: 1px solid color-mix(in srgb, var(--tone) 25%, var(--line)); border-radius: 14px; background: #fff; color: var(--tone); font-size: 13px; font-weight: 850; }
+.install-trust { margin: 80px 0; }.install-trust h2 { font-size: 34px; }.install-trust > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }.install-trust article { border-top: 3px solid var(--tone); border-radius: 0 0 18px 18px; background: #fff; padding: 24px; }.install-trust b { font-size: 17px; }.install-trust p { margin: 9px 0 0; color: var(--muted); line-height: 1.65; }
 
 .info-page, .legal-page { max-width: 1040px; margin: auto; padding: 90px 28px 130px; }.info-page > h1, .legal-page > h1 { margin-bottom: 20px; font-size: clamp(48px, 7vw, 78px); }.info-lead { max-width: 750px; margin-bottom: 45px; color: var(--muted); font-size: 18px; line-height: 1.8; }.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
@@ -170,12 +189,19 @@ em { font-style: normal; }
 .contact-grid--single { grid-template-columns: 1fr; max-width: 560px; }.contact-grid > a { display: grid; grid-template-columns: 52px 1fr; gap: 16px; min-height: 190px; border: 1px solid var(--line); border-radius: 28px; background: var(--surface); padding: 28px; }.contact-grid > a > span { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 17px; background: var(--robom-soft); color: var(--robom); font-size: 22px; font-weight: 900; }.contact-grid strong { font-size: 23px; }.contact-grid p { margin: 10px 0 23px; color: var(--muted); line-height: 1.65; }.contact-grid small { color: var(--robom); font-weight: 850; }
 .support-list { margin: 70px 0 30px; }.support-list h2 { font-size: 30px; }.support-list > a { display: flex; min-height: 78px; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); }.support-list > a:last-child { border-bottom: 1px solid var(--line); }.support-list span { display: grid; gap: 5px; }.support-list small { color: var(--muted); }.support-list em { color: var(--muted); font-size: 12px; }.notice-box { border-radius: 24px; background: var(--robom-soft); padding: 25px; }.notice-box p { margin: 9px 0 0; color: var(--muted); line-height: 1.7; }.version-note { margin: 25px 0 0; color: var(--muted); font-size: 12px; }
 .legal-page { max-width: 860px; }.legal-date { margin-bottom: 60px; color: var(--muted); }.legal-page section { border-top: 1px solid var(--line); padding: 30px 0; }.legal-page section:last-child { border-bottom: 1px solid var(--line); }.legal-page h2 { font-size: 23px; }.legal-page section p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.85; }.legal-page section a { color: var(--robom); text-decoration: underline; text-underline-offset: 3px; }
+.auth-callback-page .policy-actions { display: flex; flex-wrap: wrap; gap: 10px; }.auth-callback-page .policy-actions a { min-height: 48px; }
 
 @media (max-width: 1100px) {
   .family-hero { grid-template-columns: 1fr 420px; gap: 45px; }
+  .family-hero--install { padding-block: 42px 54px; }.hero-intro { grid-template-columns: minmax(0, 1.1fr) minmax(290px, .7fr); gap: 28px; margin-bottom: 24px; }.hero-intro .eyebrow { margin-bottom: -18px; }.hero-intro h1 { font-size: clamp(46px, 5.4vw, 60px); }.hero-intro .hero-lead { font-size: 16px; line-height: 1.65; }.quick-install-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }.quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { min-height: 188px; padding: 12px; }.quick-app-name { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 5px; }.quick-app-name .app-glyph { width: 36px; height: 36px; }.quick-app-name .wordmark { font-size: 19px; }.quick-install-card > p { margin: 11px 0; font-size: 12px; }.quick-install-card > div:last-child a { padding-inline: 9px; font-size: 10px; }
+  .install-layout { grid-template-columns: minmax(0, 1fr) 340px; gap: 34px; }
   .app-card-grid { grid-template-columns: 1fr; max-width: 720px; }
   .family-card, .family-card:nth-child(4), .family-card:nth-child(5) { grid-column: auto; }
   .app-hero-card > p:not(.card-eyebrow) { min-height: auto; }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .hero-intro { grid-template-columns: 1fr; }.hero-intro .eyebrow { margin-bottom: -3px; }.quick-install-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }.quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { min-height: 192px; }
 }
 
 @media (max-width: 760px) {
@@ -184,6 +210,7 @@ em { font-style: normal; }
   .site-brand > span:last-child, .desktop-nav { display: none; }
   .wordmark { font-size: 28px; }
   .family-hero { display: block; min-height: auto; padding: 34px 20px 74px; }
+  .family-hero--install { padding-top: 30px; }.hero-intro { display: block; margin-bottom: 24px; }.hero-intro .eyebrow { margin-bottom: 12px; }.hero-intro h1 { margin-bottom: 15px; font-size: clamp(39px, 12vw, 54px); }.hero-intro .hero-lead { font-size: 16px; line-height: 1.65; }.quick-install-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }.quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { min-height: 196px; border-radius: 20px; padding: 12px; }.quick-app-name { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 6px; }.quick-app-name .app-glyph { width: 38px; height: 38px; border-radius: 12px; }.quick-app-name .wordmark { font-size: clamp(18px, 5vw, 22px); }.quick-install-card > p { margin: 12px 0; font-size: 12px; }.quick-install-card > div:last-child a { min-height: 48px; padding: 0 10px; font-size: 11px; }.family-hero--install > .trust-copy { margin-top: 16px; }
   .hero-copy { display: flex; flex-direction: column; }
   .hero-copy h1 { order: 1; margin-bottom: 14px; font-size: clamp(40px, 12vw, 54px); }
   .hero-copy .eyebrow { order: 0; }
@@ -194,7 +221,7 @@ em { font-style: normal; }
   .trust-copy { order: 6; }
   /* 장식 프리뷰와 카드 군더더기는 모바일에서 숨겨 앱 진입까지 스크롤을 줄인다(마크업은 유지) */
   .family-preview { display: none; }
-  .family-card .ad-placeholder, .family-card .short-list, .family-card .web-access { display: none; }
+  .family-card .short-list, .family-card .web-access { display: none; }
   .preview-head .wordmark { font-size: 25px; }
   .live-badge { min-height: 38px; padding: 0 11px; font-size: 10px; }
   .preview-hero { padding: 25px; }.preview-hero h2 { font-size: 29px; }.preview-metrics b { font-size: 15px; }
@@ -207,11 +234,12 @@ em { font-style: normal; }
   .support-band { display: block; margin: 0 16px 70px; padding: 34px 25px; }.support-band .button { width: 100%; margin-top: 24px; }
   .family-footer { display: block; padding: 46px 24px 34px; }.footer-links { grid-template-columns: 1fr 1fr; margin-top: 40px; }.footer-links div:last-child { grid-column: 1 / -1; }.footer-meta { margin-top: 35px; }
   .mobile-tabbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 60; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .95); padding: 7px 8px calc(7px + env(safe-area-inset-bottom)); backdrop-filter: blur(18px); }
-  .mobile-tabbar a { display: flex; min-width: 0; min-height: 58px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 16px; color: var(--muted); font-size: 11px; font-weight: 850; }.mobile-tabbar a > span { font-size: 20px; line-height: 1; }.mobile-tabbar a[aria-current="page"] { background: var(--robom-soft); color: var(--robom); }
+  .mobile-tabbar a { display: flex; min-width: 0; min-height: 58px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 16px; color: var(--muted); font-size: 11px; font-weight: 850; }.mobile-tabbar a[aria-current="page"] { background: var(--robom-soft); color: var(--robom); }
   .product-page { padding: 44px 16px 80px; }.breadcrumb { margin-bottom: 18px; }.product-appbar { align-items: center; }.app-glyph.large { width: 64px; height: 64px; border-radius: 21px; }.product-appbar .wordmark { font-size: 31px; }.product-appbar .status-pill { min-height: 38px; padding: 0 10px; font-size: 10px; }
   .product-hero { display: block; padding: 30px 24px; }.product-copy h1 { font-size: 43px; }.product-copy > p:not(.card-eyebrow) { font-size: 16px; }.product-actions .button { width: 100%; }.product-score { width: auto; min-height: 74px; grid-template-columns: auto auto auto; gap: 10px; align-items: center; margin-top: 28px; border-width: 2px; border-radius: 22px; }.product-score strong { margin: 0; font-size: 21px; }
   .product-metrics { margin-bottom: 76px; }.product-metrics span { padding: 8px 10px; }.product-metrics b { font-size: 18px; }.product-metrics small { font-size: 10px; }
   .feature-section { display: block; margin-bottom: 75px; }.feature-section h2 { margin-bottom: 35px; font-size: 38px; }.family-menu { padding: 25px 18px; }.family-menu h2 { font-size: 28px; }.family-menu > div:last-child { grid-template-columns: 1fr; }
+  .install-page { padding: 38px 16px 80px; }.install-appbar { align-items: flex-start; }.install-appbar .app-glyph.large { width: 58px; height: 58px; }.install-appbar .wordmark { font-size: 29px; }.install-appbar p { font-size: 12px; }.install-layout { display: flex; flex-direction: column; padding: 28px 20px; }.install-copy h1 { font-size: 42px; }.install-copy > p { font-size: 15px; }.install-actions { margin-top: 20px; }.qr-card { order: 2; width: 100%; padding: 20px; }.qr-card img { width: min(78vw, 300px); }.install-trust { margin: 58px 0; }.install-trust h2 { font-size: 29px; }.install-trust > div { grid-template-columns: 1fr; }
   .info-page, .legal-page { padding: 65px 20px 90px; }.info-page > h1, .legal-page > h1 { font-size: 47px; }.info-lead { font-size: 16px; }.contact-grid { grid-template-columns: 1fr; }.contact-grid > a { min-height: auto; padding: 22px; }.support-list small { max-width: 250px; }
 }
 
@@ -220,7 +248,7 @@ em { font-style: normal; }
   .app-jump { grid-template-columns: 46px minmax(0, 1fr) auto; padding-inline: 11px; }
   .app-jump-go { min-width: 72px; font-size: 10px; }
   .appbar .status-pill, .product-appbar .status-pill { align-self: flex-start; }.appbar p { max-width: 150px; }.product-appbar p { max-width: 175px; }
-  .app-hero-card { padding: 22px 19px; }.ad-placeholder p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.product-copy h1 { font-size: 39px; }
+  .app-hero-card { padding: 22px 19px; }.product-copy h1 { font-size: 39px; }
 }
 
 /* 높이가 짧은 휴대폰에서도 다섯 앱을 첫 화면 가까이에서 고를 수 있게 2열로 압축한다. */

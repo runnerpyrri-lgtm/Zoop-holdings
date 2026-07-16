@@ -14,6 +14,11 @@ const routes = [
   "/apps/runningbom",
   "/apps/calendarbom",
   "/apps/certbom",
+  "/get/outbom",
+  "/get/homebom",
+  "/get/runningbom",
+  "/get/calendarbom",
+  "/get/certbom",
   "/support",
   "/privacy",
   "/privacy/outbom",
@@ -24,6 +29,7 @@ const routes = [
   "/terms",
   "/licenses",
   "/open-source",
+  "/auth/callback",
 ];
 
 async function render(path) {
@@ -84,13 +90,12 @@ for (const path of routes) {
   await mkdir(outputDir, { recursive: true });
   await writeFile(resolve(outputDir, "index.html"), html);
 }
-// 캘린더봄 임시 호스팅: robom-labs/calendarbom 저장소 생성 전까지 본사 Pages 아래 /calendarbom/ 로 함께 배포한다.
-// 원본 소스는 apps/calendarbom 이며, 저장소가 생기면 그쪽 파이프라인으로 이전한다(ops/HUMAN_ACTIONS.md).
+// 기존 캘린더봄 설치·북마크는 same-origin localStorage를 보존한 채 독립 저장소 주소로 안내한다.
 const calendarbomTarget = resolve(staticDir, "calendarbom");
-await cp(resolve(root.pathname, "..", "apps", "calendarbom", "app"), calendarbomTarget, { recursive: true });
-const calendarbomAppJs = resolve(calendarbomTarget, "app.js");
+await cp(resolve(root.pathname, "legacy", "calendarbom"), calendarbomTarget, { recursive: true });
+const calendarbomBridge = resolve(calendarbomTarget, "index.html");
 const buildSha = (process.env.GITHUB_SHA || "").slice(0, 7) || "local";
-await writeFile(calendarbomAppJs, (await readFile(calendarbomAppJs, "utf8")).replace("__BUILD_SHA__", buildSha));
+await writeFile(calendarbomBridge, (await readFile(calendarbomBridge, "utf8")).replace("__BUILD_SHA__", buildSha));
 
 await writeFile(resolve(staticDir, ".nojekyll"), "");
 

@@ -30,40 +30,22 @@ export default function Home() {
     <div className="site-shell">
       <SiteHeader />
       <main id="main">
-        <section className="family-hero" aria-labelledby="hero-title">
-          <div className="hero-copy">
+        <section className="family-hero family-hero--install" aria-labelledby="hero-title">
+          <div className="hero-intro">
             <p className="eyebrow"><span aria-hidden="true" /> ROBOM FAMILY</p>
-            <h1 id="hero-title">날씨·청약·러닝·달력·자격증,<br /><em>중요한 순간을 놓치기 전에.</em></h1>
-            <p className="hero-lead">야외봄은 나가기 좋은 시간을, 청약봄은 접수 일정을, 러닝봄은 대회 오픈을, 캘린더봄은 가족 일정을, 자격증봄은 시험 준비를 챙깁니다.</p>
-            <div className="hero-actions">
-              <a className="button primary" href="#apps">다섯 앱 만나기 <span aria-hidden="true">↓</span></a>
-              <Link className="button secondary" href="/support">도움받기</Link>
-            </div>
-            <p className="mobile-jump-label">오늘 필요한 앱을 골라 바로 확인하세요.</p>
-            <nav className="mobile-app-jump" aria-label="앱 바로 열기">
-              {familyApps.map((app) => (
-                <a className={`app-jump ${app.tone}`} href={app.webUrl} target="_blank" rel="noopener noreferrer" key={app.id} aria-label={`${app.name} 웹 앱 새 창으로 열기`}>
-                  <AppGlyph app={app} />
-                  <span className="app-jump-text"><b>{app.name}</b><small>{app.mobileValue}</small></span>
-                  <span className="app-jump-go" aria-hidden="true">{app.mobileAction} ↗</span>
-                </a>
-              ))}
-            </nav>
-            <p className="trust-copy">로봄이 직접 운영하는 야외봄·청약봄·러닝봄·캘린더봄·자격증봄의 공식 웹 허브입니다. 각 앱의 원문·데이터 출처는 서비스 안에서 확인할 수 있습니다.</p>
+            <h1 id="hero-title">오늘 필요한 앱을 고르고,<br /><em>휴대폰에서 바로 쓰세요.</em></h1>
+            <p className="hero-lead">날씨·청약·러닝 대회·가족 일정·자격증 시험에서 지금 해야 할 행동을 다섯 개의 독립 앱이 또렷하게 알려드립니다.</p>
           </div>
-
-          <div className="family-preview" aria-label="로봄 패밀리 앱 미리보기">
-            <div className="preview-head"><Wordmark /><span className="live-badge"><i aria-hidden="true" /> 다섯 앱 운영 중</span></div>
-            <div className="preview-chips" aria-hidden="true"><span>날씨</span><span>청약</span><span>러닝</span><span>달력</span><span>자격증</span></div>
-            <div className="preview-hero">
-              <span className="preview-rule" />
-              <p>오늘, 놓치면 아쉬운 신호</p>
-              <h2>그 순간이 닿기 전에,<br />미리 준비해 둘 수 있도록.</h2>
-              <div className="preview-metrics"><span><b>5개</b>생활 앱</span><span><b>한곳</b>공식 허브</span><span><b>제때</b>행동 안내</span></div>
-              <a href="#apps">앱 고르기</a>
-            </div>
-            <div className="preview-list">{familyApps.map((app) => <span key={app.id}><i className={app.tone} aria-hidden="true" />{app.name}<b>{app.statusLabel}</b></span>)}</div>
+          <div className="quick-install-grid" aria-label="로봄 다섯 앱 설치 선택">
+            {familyApps.map((app) => (
+              <article className={`quick-install-card ${app.tone}`} key={app.id}>
+                <div className="quick-app-name"><AppGlyph app={app} /><Wordmark app={app} /></div>
+                <p>{app.mobileValue}</p>
+                <div><Link href={app.installPath}>설치·휴대폰 사용 <span aria-hidden="true">→</span></Link><a href={app.webUrl} target="_blank" rel="noopener noreferrer">웹 체험</a></div>
+              </article>
+            ))}
           </div>
+          <p className="trust-copy">다섯 앱 모두 운영 중이며, 설치 QR은 바뀌지 않는 robom.kr/get 주소를 사용합니다. 스토어 출시 전에는 PWA 설치와 웹 사용을 안내합니다.</p>
         </section>
 
         <section className="apps-section" id="apps" aria-labelledby="apps-title">
@@ -76,9 +58,8 @@ export default function Home() {
               <article className={`family-card ${app.tone}`} key={app.id}>
                 <div className="appbar"><AppGlyph app={app} /><div><Wordmark app={app} /><p>robom · {app.tagline}</p></div><span className="status-pill">{app.statusLabel}</span></div>
                 <div className="filter-row" aria-label={`${app.name} 주요 기능`}>{app.highlights.map((item, index) => <span className={index === 0 ? "active" : ""} key={item}>{item}</span>)}</div>
-                <div className="app-hero-card"><span className="card-rule" /><p className="card-eyebrow">{app.eyebrow}</p><h3>{app.heroTitle}</h3><p>{app.heroBody}</p><div className="metric-row">{app.metrics.map((metric) => <span key={metric.label}><b>{metric.value}</b><small>{metric.label}</small></span>)}</div><a className="card-cta" href={app.webUrl} target="_blank" rel="noopener noreferrer">{app.name} 웹으로 열기 <span aria-hidden="true">↗</span></a></div>
+                <div className="app-hero-card"><span className="card-rule" /><p className="card-eyebrow">{app.eyebrow}</p><h3>{app.heroTitle}</h3><p>{app.heroBody}</p><div className="metric-row">{app.metrics.map((metric) => <span key={metric.label}><b>{metric.value}</b><small>{metric.label}</small></span>)}</div><Link className="card-cta" href={app.installPath}>{app.name} 설치·휴대폰 사용 <span aria-hidden="true">→</span></Link></div>
                 <div className="short-list"><strong>이 앱이 챙기는 것</strong>{app.highlights.slice(0, 2).map((item, index) => <span key={item}>{item}<b>{index === 0 ? "핵심" : "보기"}</b></span>)}</div>
-                <div className="ad-placeholder" aria-label="광고 영역 비활성" data-nosnippet><span>광고</span><p>추천 정보 영역 · 현재 비활성</p><b>OFF</b></div>
                 <Link className="web-access" href={app.hubPath}>{app.name} 소개 자세히 <span aria-hidden="true">→</span></Link>
               </article>
             ))}

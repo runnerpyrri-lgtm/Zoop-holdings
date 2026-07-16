@@ -1,5 +1,6 @@
 # changelog: calendarbom
 
+- 2026-07-16: 0.5.0. 패밀리 1.0.0 생성물·다섯 앱 설정·설치 안내·기본 OFF 분석 adapter를 적용하고 외부 폰트 CDN을 제거했다. unit 33, Chromium·WebKit E2E, family contract, Pages smoke가 통과했으며 운영 build는 `e197251`이다.
 - 2026-07-16: 0.4.0. Git 이력을 보존해 `robom-labs/calendarbom` 독립 저장소로 이전하고 Pages·Chromium·WebKit release gate와 운영 SHA smoke를 추가했다. 서비스워커는 `calendarbom-pwa-v*` 자기 캐시만 정리하며 기존 URL은 same-origin 저장 데이터를 건드리지 않는 이전 화면을 제공한다.
 
 - 2026-07-15: 0.3.0. 심층 감사 보완(GATE A/B/C) — 데이터 트랜잭션·손상 복구·난수 ID·사전 알림 horizon·하루 종일 복수 알림·약 슬롯별 수정·전체 백업/복원·권한별 저장 문구·알림 전달 후 기록, 첫 화면 ≤6·관계·기준일·기념일 병합·전체 편집·초안 개선, 터치 실측 44px+·포커스 트랩·복용 기록 보관·전체 삭제. PR 기반 배포, 캘린더봄 테스트가 Pages 게이트.

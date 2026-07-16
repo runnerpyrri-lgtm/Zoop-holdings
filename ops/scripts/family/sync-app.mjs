@@ -57,6 +57,21 @@ const settings = {
   sections: ["app-about", "account-and-sync-if-supported", "notifications-and-permissions", "accessibility-and-font-size", "install-and-update", "data-source-and-last-verified", "family-apps", "support-and-feedback", "privacy-terms-and-official-notice", "app-meta"],
   appMeta: ["app-name", "version", "build-sha", "family-spec-version", "service-worker-cache", "data-version", "last-verified", "deployment-provider"],
 };
+const featureFlags = {
+  _generated: `DO NOT EDIT · robom family ${familyVersion.familySpecVersion}`,
+  ads: { enabled: false, provider: "none", placement: "bottom-safe", minSessionDepth: 2, maxPerSession: 0, personalization: false },
+  analytics: { enabled: false, consentRequired: true },
+  experiments: { enabled: false, maxConcurrent: 1 },
+};
+const authConfig = {
+  _generated: `DO NOT EDIT · robom family ${familyVersion.familySpecVersion}`,
+  guestFirst: true,
+  issuer: "",
+  redirectBase: "https://robom.kr/auth/callback",
+  providers: { kakao: "unconfigured", google: "unconfigured", apple: "unconfigured" },
+  namespace: appId,
+  calendarSensitiveSync: appId === "calendarbom" ? "local-only-default" : "not-applicable",
+};
 const analytics = flavor === "react"
   ? `// DO NOT EDIT. ${app.name}의 개인정보 최소 분석 이벤트 계약이다.\nexport const familyEventNames = ${JSON.stringify(events)} as const;\nexport type FamilyEventName = (typeof familyEventNames)[number];\nexport const forbiddenAnalyticsFields = ${JSON.stringify(forbidden)} as const;\n`
   : `// DO NOT EDIT. ${app.name}의 개인정보 최소 분석 이벤트 계약이다.\nwindow.RobomFamilyAnalyticsContract = Object.freeze({ appId: ${JSON.stringify(appId)}, events: ${JSON.stringify(events)}, forbiddenFields: ${JSON.stringify(forbidden)} });\n`;
@@ -66,6 +81,8 @@ const generated = new Map([
   ["wordmark.svg", canonicalBom.replace("__INK__", accent.ink).replaceAll("__ACCENT__", accent.brand)],
   ["icons.svg", icons],
   ["settings-contract.json", `${JSON.stringify(settings, null, 2)}\n`],
+  ["feature-flags.json", `${JSON.stringify(featureFlags, null, 2)}\n`],
+  ["auth-config.json", `${JSON.stringify(authConfig, null, 2)}\n`],
   [flavor === "react" ? "analytics-events.ts" : "analytics-events.js", analytics],
 ]);
 

@@ -6,7 +6,7 @@ const REPOSITORIES = {
   outbom: "https://github.com/robom-labs/outbom",
   homebom: "https://github.com/robom-labs/homebom",
   runningbom: "https://github.com/robom-labs/runningbom",
-  calendarbom: "https://github.com/robom-labs/robom/tree/main/apps/calendarbom",
+  calendarbom: "https://github.com/robom-labs/calendarbom",
   certbom: "https://github.com/robom-labs/certbom",
 } as const;
 

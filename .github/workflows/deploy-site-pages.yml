@@ -1,6 +1,4 @@
-# robom.kr 홈페이지(site/) GitHub Pages 자동배포.
-# main 에 site/ 변경이 머지되면: 테스트 → 정적 프리렌더 → Pages 배포 → 배포본 검증.
-# 비밀키 불필요(GITHUB_TOKEN 내장). 기존 Sites 배포 경로와 독립적이라 robom.kr DNS 전환 전까지 서로 간섭 없음.
+# robom 패밀리 허브를 생성물 검증·정적 프리렌더·운영 smoke와 함께 GitHub Pages에 배포한다.
 name: Deploy robom site to Pages
 
 on:
@@ -8,53 +6,26 @@ on:
     branches: [main]
     paths:
       - "site/**"
-      - "apps/calendarbom/**"
       - "ops/registry/apps.yml"
+      - "ops/family/**"
       - "ops/scripts/check-app-registry.mjs"
+      - "ops/scripts/lib/**"
+      - "ops/scripts/family/**"
       - ".github/workflows/deploy-site-pages.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: deploy-site-pages
   cancel-in-progress: false
 
 jobs:
-  # 캘린더봄 자체 테스트가 실패하면 Pages 배포를 막는다 (V7 §7)
-  verify-calendarbom:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/calendarbom
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm ci
-      - name: 단위 테스트 + 정적 검증
-        run: npm test
-      - name: Playwright 브라우저 설치
-        run: npx playwright install --with-deps chromium webkit
-      - name: E2E (Chromium)
-        run: npm run test:e2e
-      - name: E2E (WebKit)
-        run: BROWSER=webkit node scripts/e2e.mjs
-      - name: 실패 스크린샷 업로드
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: calendarbom-e2e-screenshots
-          path: apps/calendarbom/screenshots/
-          if-no-files-found: ignore
-
   build:
-    needs: verify-calendarbom
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: site
@@ -65,18 +36,27 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: site/package-lock.json
-      - name: Enable GitHub Pages (first run only)
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-        continue-on-error: true
       - run: npm ci
-      - name: Verify app registry
-        run: node ../ops/scripts/check-app-registry.mjs
-      - name: Build + rendered-html tests
-        run: npm test
-      - name: Prerender static site
-        run: node scripts/prerender-static.mjs
+      - name: Registry·family drift·QR decode
+        run: node ../ops/scripts/check-app-registry.mjs && npm run family:verify
+      - name: Build·rendered HTML 검사
+        run: NEXT_PUBLIC_BUILD_SHA=${GITHUB_SHA} npm test
+      - name: Chromium·WebKit 설치
+        run: npx playwright install --with-deps chromium webkit
+      - name: 모바일·설치 E2E Chromium
+        run: NEXT_PUBLIC_BUILD_SHA=${GITHUB_SHA} npm run test:e2e
+      - name: 모바일·설치 E2E WebKit
+        run: NEXT_PUBLIC_BUILD_SHA=${GITHUB_SHA} BROWSER=webkit npm run test:e2e
+      - name: GitHub Pages 정적 프리렌더
+        run: GITHUB_SHA=${GITHUB_SHA} node scripts/prerender-static.mjs
+      - name: 실패 화면 업로드
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robom-site-e2e-screenshots
+          path: site/screenshots/family-final/
+          if-no-files-found: ignore
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist/static
@@ -84,6 +64,10 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
@@ -93,23 +77,30 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
 
-  verify:
+  smoke:
     needs: deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - name: Verify deployed page renders the family hub
+      - name: 허브·설치·QR·캘린더봄 이전·빌드 SHA 확인
+        shell: bash
         run: |
-          URL="${{ needs.deploy.outputs.page_url }}"
-          if [ -z "$URL" ]; then URL="https://robom-labs.github.io/robom/"; fi
-          echo "checking $URL"
-          for i in 1 2 3 4 5; do
-            BODY=$(curl -fsSL "$URL" || true)
-            APP=$(curl -fsSL "${URL}calendarbom/" || true)
-            SW=$(curl -fsSL "${URL}calendarbom/sw.js" || true)
-            if echo "$BODY" | grep -q "ROBOM FAMILY" && echo "$BODY" | grep -q "야외봄" && echo "$BODY" | grep -q "캘린더봄" && echo "$BODY" | grep -q "자격증봄" \
-              && echo "$APP" | grep -q "캘린더봄" && echo "$SW" | grep -q 'CACHE_NAME = "calendarbom-v'; then
-              echo "OK: five-app family hub + calendarbom markers found"; exit 0
+          BASE="${{ needs.deploy.outputs.page_url }}"
+          for attempt in 1 2 3 4 5; do
+            HOME="$(curl -fsSL "${BASE}" || true)"
+            INSTALL="$(curl -fsSL "${BASE}get/outbom/" || true)"
+            QR="$(curl -fsSL "${BASE}install/qr/outbom.svg" || true)"
+            BRIDGE="$(curl -fsSL "${BASE}calendarbom/" || true)"
+            BRIDGE_SW="$(curl -fsSL "${BASE}calendarbom/sw.js" || true)"
+            if grep -q "설치·휴대폰 사용" <<<"$HOME" \
+              && grep -q "https://robom.kr/get/outbom" <<<"$INSTALL" \
+              && grep -q "<svg" <<<"$QR" \
+              && grep -q "독립 주소로 이사" <<<"$BRIDGE" \
+              && grep -q "LEGACY_CACHE_PREFIX" <<<"$BRIDGE_SW" \
+              && grep -q "${GITHUB_SHA::7}" <<<"$HOME"; then
+              exit 0
             fi
-            echo "retry $i..."; sleep 10
+            sleep 10
           done
-          echo "FAIL: deployed page missing expected markers"; exit 1
+          exit 1

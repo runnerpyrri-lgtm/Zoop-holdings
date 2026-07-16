@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element -- 로컬 SVG는 변환 없이 직접 제공해 이미지 런타임을 싣지 않는다. */
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { contactHref, familyApps, SITE_VERSION, type FamilyApp } from "./app-data";
+import { contactHref, familyApps, SITE_BUILD_SHA, SITE_VERSION, type FamilyApp } from "./app-data";
 
 export function Wordmark({ app }: { app?: FamilyApp }) {
   const prefix = app?.prefix ?? "로";
@@ -28,6 +28,10 @@ export function RobomIcon() {
   return <img className="robom-icon" src="/icons/robom.svg" alt="" aria-hidden="true" width={64} height={64} />;
 }
 
+export function FamilyIcon({ name }: { name: "home" | "family" | "info" | "install" | "search" | "settings" }) {
+  return <svg className="family-line-icon" aria-hidden="true" viewBox="0 0 24 24"><use href={`/family/icons.svg#family-icon-${name}`} /></svg>;
+}
+
 export function SiteHeader({ current }: { current?: string }) {
   return (
     <header className="site-header">
@@ -48,10 +52,10 @@ export function SiteHeader({ current }: { current?: string }) {
 export function MobileNav({ current = "home" }: { current?: string }) {
   return (
     <nav className="mobile-tabbar" aria-label="하단 메뉴">
-      <Link href="/" aria-current={current === "home" ? "page" : undefined}><span aria-hidden="true">⌂</span>홈</Link>
-      <Link href="/#apps" aria-current={current === "apps" ? "page" : undefined}><span aria-hidden="true">⌑</span>앱</Link>
-      <Link href="/support" aria-current={current === "support" ? "page" : undefined}><span aria-hidden="true">?</span>지원</Link>
-      <Link href="/#about" aria-current={current === "about" ? "page" : undefined}><span aria-hidden="true">ⓘ</span>정보</Link>
+      <Link href="/" aria-current={current === "home" ? "page" : undefined}><FamilyIcon name="home" />홈</Link>
+      <Link href="/#apps" aria-current={current === "apps" ? "page" : undefined}><FamilyIcon name="family" />앱</Link>
+      <Link href="/support" aria-current={current === "support" ? "page" : undefined}><FamilyIcon name="info" />지원</Link>
+      <Link href="/#about" aria-current={current === "about" ? "page" : undefined}><FamilyIcon name="settings" />정보</Link>
     </nav>
   );
 }
@@ -68,7 +72,7 @@ export function FamilyFooter() {
         <div><strong>지원</strong><a href={contactHref()}>문의 · 광고 · 제휴</a><Link href="/support">고객 지원</Link></div>
         <div><strong>정보</strong><Link href="/privacy">개인정보처리방침</Link><Link href="/terms">이용약관</Link><Link href="/licenses">오픈소스 라이선스</Link><a href="https://robom.kr">robom.kr</a></div>
       </div>
-      <div className="footer-meta" data-nosnippet><span>개발자 로봄</span><span>hello.robom@gmail.com</span><span>웹 v{SITE_VERSION}</span><span>© 2026 ROBOM</span></div>
+      <div className="footer-meta" data-nosnippet data-build-sha={SITE_BUILD_SHA}><span>개발자 로봄</span><span>hello.robom@gmail.com</span><span>웹 v{SITE_VERSION}</span><span>build {SITE_BUILD_SHA.slice(0, 7)}</span><span>© 2026 ROBOM</span></div>
     </footer>
   );
 }

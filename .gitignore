@@ -8,6 +8,7 @@ build/
 out/
 .vercel/
 coverage/
+site/screenshots/
 *.tsbuildinfo
 
 # env / secrets

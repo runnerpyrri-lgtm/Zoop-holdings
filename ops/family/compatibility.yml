@@ -27,11 +27,11 @@ apps:
     deployed_sha: pending
   calendarbom:
     family_spec: 1.0.0
-    generated_commit: pending
+    generated_commit: 0f4cf38673783aab9962cae3f25e51b0e3bedb68
     build: pass
     visual: pass
-    analytics: pending
-    deployed_sha: c4630a39207dae341a5955b7aef4ccac56e2deab
+    analytics: pass
+    deployed_sha: e19725134b0bc5ee15245e24e20f2a8fb435a7b5
   certbom:
     family_spec: 1.0.0
     generated_commit: pending

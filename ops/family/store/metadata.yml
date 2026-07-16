@@ -1,0 +1,47 @@
+# 다섯 독립 앱의 스토어 설명·카테고리·고유 native 가치를 관리하는 정본이다.
+apps:
+  outbom:
+    name: 야외봄
+    subtitle: 지금 나가도 되는지 먼저 알려주는 야외 활동 판단
+    category: weather
+    native_value: foreground-location-and-condition-reminder
+    android_app_id: kr.robom.outbom
+    ios_bundle_id: kr.robom.outbom
+    support_url: https://robom.kr/support
+    privacy_url: https://robom.kr/privacy/outbom
+  homebom:
+    name: 청약봄
+    subtitle: 공식 청약 접수·발표·계약 일정을 놓치지 않게
+    category: lifestyle
+    native_value: saved-notice-local-reminder-and-official-deep-link
+    android_app_id: kr.robom.homebom
+    ios_bundle_id: kr.robom.homebom
+    support_url: https://robom.kr/support
+    privacy_url: https://robom.kr/privacy/homebom
+  runningbom:
+    name: 러닝봄
+    subtitle: 대회를 빠르게 찾고 접수 시작을 챙기는 러닝 일정
+    category: sports
+    native_value: saved-race-local-reminder-and-calendar-link
+    android_app_id: kr.robom.runningbom
+    ios_bundle_id: kr.robom.runningbom
+    support_url: https://robom.kr/support
+    privacy_url: https://robom.kr/privacy/runningbom
+  calendarbom:
+    name: 캘린더봄
+    subtitle: 큰 달력에서 쉽게 저장하는 가족 일정과 알람
+    category: productivity
+    native_value: reliable-local-notification-and-device-calendar
+    android_app_id: kr.robom.calendarbom
+    ios_bundle_id: kr.robom.calendarbom
+    support_url: https://robom.kr/support
+    privacy_url: https://robom.kr/privacy/calendarbom
+  certbom:
+    name: 자격증봄
+    subtitle: 시험 발견부터 접수·시험일·준비물까지 한 번에
+    category: education
+    native_value: saved-exam-local-reminder-and-offline-catalog
+    android_app_id: kr.robom.certbom
+    ios_bundle_id: kr.robom.certbom
+    support_url: https://robom.kr/support
+    privacy_url: https://robom.kr/privacy/certbom

@@ -1,0 +1,31 @@
+# 스토어 Data Safety·App Privacy 답변 전 실제 코드와 함께 재검증할 최소 권한 매트릭스다.
+common:
+  guest_first: true
+  account_required: false
+  tracking: false
+  personalized_ads: false
+  analytics_default: off
+  delete_account_required_when_auth_live: true
+apps:
+  outbom:
+    location: foreground-optional
+    notifications: optional
+    sensitive_content_sync: none
+  homebom:
+    location: none
+    notifications: optional
+    sensitive_content_sync: none
+  runningbom:
+    location: none
+    notifications: optional
+    sensitive_content_sync: none
+  calendarbom:
+    location: none
+    notifications: optional
+    calendar: optional-explicit-action
+    sensitive_content_sync: local-only-default
+  certbom:
+    location: none
+    notifications: optional
+    calendar: optional-explicit-action
+    sensitive_content_sync: none
