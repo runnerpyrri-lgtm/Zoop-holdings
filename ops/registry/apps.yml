@@ -6,6 +6,7 @@ apps:
     english_name: OutBom
     repo: robom-labs/outbom
     version: 0.25.1
+    data_version: runtime-weather-v1
     version_source: https://raw.githubusercontent.com/robom-labs/outbom/main/package.json
     web_url: https://robom-labs.github.io/outbom/
     healthcheck_url: https://robom-labs.github.io/outbom/
@@ -24,6 +25,10 @@ apps:
     mobile_status: pwa
     family_spec_version: 1.0.0
     last_verified_at: "2026-07-16T13:42:23+09:00"
+    last_deployed_sha: 0addaa70cd5fa8e197682c6e43b28962ba620f65
+    last_data_sync_at: "2026-07-16T13:42:23+09:00"
+    freshness_status: runtime
+    freshness_slo_hours: 48
     stack: Next.js 16 + React 19
     test: pnpm typecheck && pnpm test
     build: pnpm build
@@ -33,6 +38,7 @@ apps:
     english_name: HomeBom
     repo: robom-labs/homebom
     version: 0.14.1
+    data_version: official-notices-runtime-v1
     version_source: https://raw.githubusercontent.com/robom-labs/homebom/main/apps/web/package.json
     web_url: https://robom-labs.github.io/homebom/
     healthcheck_url: https://robom-labs.github.io/homebom/
@@ -51,6 +57,10 @@ apps:
     mobile_status: pwa
     family_spec_version: 1.0.0
     last_verified_at: "2026-07-16T13:42:23+09:00"
+    last_deployed_sha: 40151b53b77e40c03ad61815c65cc1f7a2b23278
+    last_data_sync_at: "2026-07-16T13:42:23+09:00"
+    freshness_status: runtime
+    freshness_slo_hours: 48
     stack: Vite + React
     test: pnpm typecheck && pnpm test
     build: pnpm build
@@ -60,6 +70,7 @@ apps:
     english_name: RunningBom
     repo: robom-labs/runningbom
     version: 0.17.2
+    data_version: 2026.07.12-race-data-10
     version_source: https://raw.githubusercontent.com/robom-labs/runningbom/main/package.json
     web_url: https://robom-labs.github.io/runningbom/
     healthcheck_url: https://robom-labs.github.io/runningbom/
@@ -78,6 +89,10 @@ apps:
     mobile_status: pwa
     family_spec_version: 1.0.0
     last_verified_at: "2026-07-16T13:42:23+09:00"
+    last_deployed_sha: 94667c20dcf0cfde1ef27437fcb23b329316067d
+    last_data_sync_at: "2026-07-12T00:00:00+09:00"
+    freshness_status: fresh
+    freshness_slo_hours: 168
     stack: static HTML + CSS + JavaScript
     test: npm test
     build: none
@@ -87,6 +102,7 @@ apps:
     english_name: CalendarBom
     repo: robom-labs/calendarbom
     version: 0.5.1
+    data_version: local-schema-v3
     version_source: https://raw.githubusercontent.com/robom-labs/calendarbom/main/package.json
     web_url: https://robom-labs.github.io/calendarbom/
     healthcheck_url: https://robom-labs.github.io/calendarbom/
@@ -105,6 +121,10 @@ apps:
     mobile_status: pwa
     family_spec_version: 1.0.0
     last_verified_at: "2026-07-16T13:42:23+09:00"
+    last_deployed_sha: 997f13ef4221723658bc5d8827d4dde8be9d2a19
+    last_data_sync_at: "2026-07-16T13:42:23+09:00"
+    freshness_status: local-only
+    freshness_slo_hours: 720
     stack: static HTML + CSS + JavaScript
     test: npm test && npm run test:e2e
     build: none
@@ -113,7 +133,8 @@ apps:
     name: 자격증봄
     english_name: CertBom
     repo: robom-labs/certbom
-    version: 0.6.0
+    version: 0.6.2
+    data_version: 2026.07.16-v3
     version_source: https://raw.githubusercontent.com/robom-labs/certbom/main/package.json
     web_url: https://certbom.vercel.app/
     healthcheck_url: https://certbom.vercel.app/
@@ -131,7 +152,11 @@ apps:
     stable_install_url: https://robom.kr/get/certbom
     mobile_status: pwa
     family_spec_version: 1.0.0
-    last_verified_at: "2026-07-16T13:42:23+09:00"
+    last_verified_at: "2026-07-16T18:13:31+09:00"
+    last_deployed_sha: ceff17921012bad6fb956d21260821368266e9c9
+    last_data_sync_at: "2026-07-16T15:00:00+09:00"
+    freshness_status: last-known-good
+    freshness_slo_hours: 48
     stack: Vite + React
     test: pnpm typecheck && pnpm test && pnpm test:e2e
     build: pnpm build

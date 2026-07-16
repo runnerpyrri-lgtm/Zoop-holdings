@@ -1,5 +1,13 @@
 # 2026-07-16 로봄 5앱 패밀리 기준선 감사
 
+## 18시 재감사 갱신
+
+실행 시점 최신 main은 robom `f071855`, 야외봄 `0addaa7`, 청약봄 `40151b5`, 러닝봄 `94667c2`, 캘린더봄 `997f13e`, 자격증봄 `ceff179`다. first-party inventory는 각각 222, 117, 147, 41, 80, 106개 파일이며 빌드 산출물·vendor·node_modules는 제외했다.
+
+이번 재감사에서 자격증봄 홈 요약 3개가 비상호작용 요소였던 P0와 공통 회차 첫 시험 임의 이동, 상세 출처 손실, 준비물 체크 식별자 문제를 실제 Production에서 재현하고 0.6.1로 먼저 복구했다. 이어 0.6.2에서 Q-Net source schema·anomaly gate·400일 시간 이동·일일 workflow를 추가했다.
+
+나머지 네 앱의 최신 main release gate를 다시 실행했다. 야외봄 120 unit·native export, 청약봄 122 unit·11 E2E·native export, 러닝봄 37 unit·native export, 캘린더봄 33 unit·Chromium·WebKit E2E·native typecheck가 통과했다. 중앙 HTTP watchdog은 다섯 앱의 version·manifest·service worker·build marker와 자격증봄 source heartbeat를 PASS로 확인했다.
+
 ## 감사 범위와 기준
 
 - 기준은 각 저장소의 최신 `main`, 실제 운영 URL, PWA manifest/service worker, release workflow다.

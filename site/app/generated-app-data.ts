@@ -6,6 +6,7 @@ export const generatedAppMeta = [
     "englishName": "OutBom",
     "repo": "robom-labs/outbom",
     "version": "0.25.1",
+    "dataVersion": "runtime-weather-v1",
     "webUrl": "https://robom-labs.github.io/outbom/",
     "healthcheckUrl": "https://robom-labs.github.io/outbom/",
     "deployProvider": "github-pages",
@@ -22,7 +23,10 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/outbom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-16T13:42:23+09:00"
+    "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
+    "lastDeployedSha": "0addaa70cd5fa8e197682c6e43b28962ba620f65",
+    "lastDataSyncAt": "2026-07-16T13:42:23+09:00",
+    "freshnessStatus": "runtime"
   },
   {
     "id": "homebom",
@@ -30,6 +34,7 @@ export const generatedAppMeta = [
     "englishName": "HomeBom",
     "repo": "robom-labs/homebom",
     "version": "0.14.1",
+    "dataVersion": "official-notices-runtime-v1",
     "webUrl": "https://robom-labs.github.io/homebom/",
     "healthcheckUrl": "https://robom-labs.github.io/homebom/",
     "deployProvider": "github-pages",
@@ -46,7 +51,10 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/homebom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-16T13:42:23+09:00"
+    "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
+    "lastDeployedSha": "40151b53b77e40c03ad61815c65cc1f7a2b23278",
+    "lastDataSyncAt": "2026-07-16T13:42:23+09:00",
+    "freshnessStatus": "runtime"
   },
   {
     "id": "runningbom",
@@ -54,6 +62,7 @@ export const generatedAppMeta = [
     "englishName": "RunningBom",
     "repo": "robom-labs/runningbom",
     "version": "0.17.2",
+    "dataVersion": "2026.07.12-race-data-10",
     "webUrl": "https://robom-labs.github.io/runningbom/",
     "healthcheckUrl": "https://robom-labs.github.io/runningbom/",
     "deployProvider": "github-pages+vercel",
@@ -70,7 +79,10 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/runningbom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-16T13:42:23+09:00"
+    "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
+    "lastDeployedSha": "94667c20dcf0cfde1ef27437fcb23b329316067d",
+    "lastDataSyncAt": "2026-07-12T00:00:00+09:00",
+    "freshnessStatus": "fresh"
   },
   {
     "id": "calendarbom",
@@ -78,6 +90,7 @@ export const generatedAppMeta = [
     "englishName": "CalendarBom",
     "repo": "robom-labs/calendarbom",
     "version": "0.5.1",
+    "dataVersion": "local-schema-v3",
     "webUrl": "https://robom-labs.github.io/calendarbom/",
     "healthcheckUrl": "https://robom-labs.github.io/calendarbom/",
     "deployProvider": "github-pages",
@@ -94,14 +107,18 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/calendarbom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-16T13:42:23+09:00"
+    "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
+    "lastDeployedSha": "997f13ef4221723658bc5d8827d4dde8be9d2a19",
+    "lastDataSyncAt": "2026-07-16T13:42:23+09:00",
+    "freshnessStatus": "local-only"
   },
   {
     "id": "certbom",
     "name": "자격증봄",
     "englishName": "CertBom",
     "repo": "robom-labs/certbom",
-    "version": "0.6.0",
+    "version": "0.6.2",
+    "dataVersion": "2026.07.16-v3",
     "webUrl": "https://certbom.vercel.app/",
     "healthcheckUrl": "https://certbom.vercel.app/",
     "deployProvider": "vercel",
@@ -118,6 +135,9 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/certbom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-16T13:42:23+09:00"
+    "lastVerifiedAt": "2026-07-16T18:13:31+09:00",
+    "lastDeployedSha": "ceff17921012bad6fb956d21260821368266e9c9",
+    "lastDataSyncAt": "2026-07-16T15:00:00+09:00",
+    "freshnessStatus": "last-known-good"
   }
 ] as const;

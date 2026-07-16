@@ -30,3 +30,9 @@
 | Kakao·Google·Apple 실제 OAuth·sync | 계정 소유자+향후 backend | provider schema·`.env.example` | credential 전 안전 fallback | provider 미연결 표시 | BLOCKED_EXTERNAL | NOT_APPLICABLE | BLOCKED_EXTERNAL | BLOCKED_EXTERNAL |
 | 중앙 AI 증분 컨텍스트 | robom | `ops/family/ai`, `build-ai-context.mjs` | 16KiB 제한·diff 입력 | 앱 runtime 무의존 | PASS | NOT_APPLICABLE | PASS | PASS |
 | 기존 개인 Pages redirect | 계정 소유자 | state·migration 기록 | HTTP 확인 | 구 주소 404, 정본 정상 | BLOCKED_EXTERNAL | NOT_APPLICABLE | BLOCKED_EXTERNAL | BLOCKED_EXTERNAL |
+| 자격증봄 홈 세 요약 button·인라인 목록 | certbom | `HomeScreen.tsx`, route state | 68 E2E·Production Chromium/WebKit | https://certbom.vercel.app | PASS | PASS | PASS | PASS |
+| 자격증봄 준비물 전체·migration | certbom | `DetailScreen.tsx`, `storage.ts`, core model | unit·E2E·새로고침 smoke | https://certbom.vercel.app | PASS | PASS | PASS | PASS |
+| Q-Net schema·anomaly gate·400일 시간 이동 | certbom | `scripts/source-operations*.mjs`, source registry | 7 ops tests·CI `29486344245` | source workflow `29486354724` | PASS | NOT_APPLICABLE | PASS | PASS |
+| Q-Net 실제 API last-known-good | certbom | source workflow·runbook | key 미등록 fallback | issue #7 | BLOCKED_EXTERNAL | NOT_APPLICABLE | BLOCKED_EXTERNAL | BLOCKED_EXTERNAL |
+| 여섯 운영 표면·source heartbeat watchdog | robom | `operations-watchdog.mjs`, workflow | unit·실운영 HTTP PASS | 5앱 URL·source run | PASS | NOT_APPLICABLE | PASS | PASS |
+| 타 공급자 dual scheduler | 계정 소유자+운영 backend | runbook·fallback 계약 | credential 전 미실행 | provider 없음 | BLOCKED_EXTERNAL | NOT_APPLICABLE | BLOCKED_EXTERNAL | BLOCKED_EXTERNAL |

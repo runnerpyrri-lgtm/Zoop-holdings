@@ -4,12 +4,12 @@
 
 | 제품 | 운영 URL | 버전·cache | 운영 식별 | release evidence | 상태 |
 |---|---|---|---|---|---|
-| robom.kr | https://robom.kr | 2.1.2 · `robom-site-v2.1.2` | 운영 build marker를 audited main과 대조 | Sites production·GitHub Pages | PASS |
+| robom.kr | https://robom.kr | 2.1.3 · `robom-site-v2.1.3` | 운영 build marker를 audited main과 대조 | GitHub Pages release gate | PASS |
 | 야외봄 | https://robom-labs.github.io/outbom/ | 0.25.1 · `outbom-v0.25.1` | `0addaa7` | CI `29470524005`, Pages `29470523936` | PASS |
 | 청약봄 | https://robom-labs.github.io/homebom/ | 0.14.1 · `zzc-v0.14.1` | `40151b5` | CI `29470478807`, Pages `29470478355` | PASS |
 | 러닝봄 | https://robom-labs.github.io/runningbom/ · https://runningbom.vercel.app | 0.17.2 · `pushrun-v0.17.2` | 양쪽 `94667c2` | Family `29471774936`, Pages `29471774773`, Vercel `dpl_ARJt647BMB4swPzkZTY1byZ6yHwh` | PASS |
 | 캘린더봄 | https://robom-labs.github.io/calendarbom/ | 0.5.1 · `calendarbom-pwa-v0.5.1` | `997f13e` | release `29470479461` | PASS |
-| 자격증봄 | https://certbom.vercel.app | 0.6.0 · `certbom-0.6.0` | `69478f8` | CI `29467843024` | PASS |
+| 자격증봄 | https://certbom.vercel.app | 0.6.2 · `certbom-0.6.2` | `ceff179` | CI `29486344245`, source `29486354724`, Vercel deployment `5470818759` | PASS |
 
 모든 운영 URL, manifest, service worker와 최신 app/build marker는 HTTP 200으로 확인했다. 중앙 Pages의 기존 `/robom/calendarbom/`은 localStorage를 읽거나 지우지 않는 독립 주소 안내와 구형 자기 cache 정리를 제공한다.
 
@@ -42,6 +42,8 @@
 - 중앙 Gitleaks run과 각 release gate가 성공했다. reusable family workflow는 `@main`이 아니라 검증된 full commit SHA에 고정되어 있다.
 - workflow는 기본 `contents: read`와 배포 job의 Pages·contents write만 사용한다. private growth workflow도 `contents: read`이고 secret이 없으면 가짜 보고서를 만들지 않는다.
 - central family source나 GitHub raw가 장애여도 앱은 lock된 로컬 생성물로 독립 실행·빌드한다.
+- 중앙 `Family operations watchdog`은 하루 두 번 다섯 앱의 HTTP·manifest·service worker·version·build SHA와 자격증봄 source workflow 36시간 heartbeat를 확인한다.
+- 자격증봄 source workflow는 0건·대량 삭제·날짜 역전·31일 초과 과거 이동·첫 스냅샷을 자동 공개하지 않으며, 외부 key 부재는 이슈 #7 한 건으로 중복 없이 승격했다.
 
 ## 복구
 
@@ -56,4 +58,6 @@
 | Google Play 5개·App Store 5개 제출 | 계약·signing·listing·review가 계정 소유자 단계 | BLOCKED_EXTERNAL |
 | OAuth 실제 연결 | Kakao·Google·Apple credential과 redirect 등록 필요 | BLOCKED_EXTERNAL |
 | analytics 실제 report | 비공개 집계 endpoint credential 필요 | BLOCKED_EXTERNAL |
+| Q-Net 실제 API 자동 갱신 | `QNET_SERVICE_KEY`와 첫 baseline 대조 필요 | BLOCKED_EXTERNAL |
+| 다른 공급자의 보조 scheduler | Vercel·Cloudflare·Supabase cron credential/endpoint 필요 | BLOCKED_EXTERNAL |
 | HomeBom·RunningBom 구 개인 Pages redirect | 이전 개인 계정 주소에 배포 가능한 별도 repo/alias 필요 | BLOCKED_EXTERNAL |

@@ -21,6 +21,7 @@ const meta = apps.map((app) => ({
   englishName: app.english_name,
   repo: app.repo,
   version: app.version,
+  dataVersion: app.data_version,
   webUrl: app.web_url,
   healthcheckUrl: app.healthcheck_url,
   deployProvider: app.deploy_provider,
@@ -38,6 +39,9 @@ const meta = apps.map((app) => ({
   mobileStatus: app.mobile_status,
   familySpecVersion: app.family_spec_version,
   lastVerifiedAt: app.last_verified_at,
+  lastDeployedSha: app.last_deployed_sha,
+  lastDataSyncAt: app.last_data_sync_at,
+  freshnessStatus: app.freshness_status,
 }));
 
 outputs.set(

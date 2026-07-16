@@ -41,10 +41,11 @@ export async function readRegistry(url = new URL("../../registry/apps.yml", impo
 
 export function validateRegistryShape(apps) {
   const required = [
-    "id", "name", "english_name", "repo", "version", "version_source", "web_url", "healthcheck_url",
+    "id", "name", "english_name", "repo", "version", "data_version", "version_source", "web_url", "healthcheck_url",
     "deploy_provider", "base_path", "privacy_url", "support_url", "android_app_id", "ios_bundle_id",
     "google_play_url", "google_play_status", "app_store_url", "app_store_status", "pwa_install_url",
-    "stable_install_url", "mobile_status", "family_spec_version", "last_verified_at", "test", "build",
+    "stable_install_url", "mobile_status", "family_spec_version", "last_verified_at", "last_deployed_sha",
+    "last_data_sync_at", "freshness_status", "freshness_slo_hours", "test", "build",
   ];
   const errors = [];
   const ids = apps.map((app) => app.id);
@@ -56,6 +57,10 @@ export function validateRegistryShape(apps) {
     if (app.stable_install_url !== `https://robom.kr/get/${app.id}`) errors.push(`${app.id}: 안정 설치 URL이 정본 패턴과 다릅니다.`);
     if (!/^kr\.robom\.[a-z]+$/.test(app.android_app_id ?? "")) errors.push(`${app.id}: Android 앱 ID 형식이 잘못됐습니다.`);
     if (app.ios_bundle_id !== app.android_app_id) errors.push(`${app.id}: iOS와 Android 식별자가 확정 후보와 다릅니다.`);
+    if (!/^[0-9a-f]{40}$/.test(app.last_deployed_sha ?? "")) errors.push(`${app.id}: last_deployed_sha는 40자 commit SHA여야 합니다.`);
+    if (!Number.isFinite(Number(app.freshness_slo_hours)) || Number(app.freshness_slo_hours) <= 0) {
+      errors.push(`${app.id}: freshness_slo_hours는 양수여야 합니다.`);
+    }
     for (const [statusField, urlField, allowed] of [
       ["google_play_status", "google_play_url", ["planned", "internal", "live"]],
       ["app_store_status", "app_store_url", ["planned", "testflight", "live"]],

@@ -15,3 +15,5 @@
 | R11 | 브라우저 종료 후 예약 알림 불가 | 사용자 이탈 | 동작 범위 고지, Web Push RFC | 열림 |
 | R12 | 수동 예비 워크플로에 API 키 없음 | 수동 자동화 실패 | 구독 기반 루틴을 기본 경로로 유지 | 완화됨 |
 | R13 | 개인 계정에서 조직으로 이전 후 Pages·Vercel·Actions 연결 끊김 | 배포 중단 | 이전 전후 배포 상태와 권한을 앱별로 확인 | 이전중 |
+| R14 | Q-Net 운영 key 부재로 API 자동 동기화 미활성 | 자격증 일정 갱신 지연 | 공고 last-known-good 유지, anomaly gate, 단일 이슈 #7 | 외부차단 |
+| R15 | GitHub schedule 단일 공급자 지연·비활성 | source 갱신 누락 | certbom source workflow와 robom 별도 watchdog heartbeat, 수동 dispatch | 완화중 |

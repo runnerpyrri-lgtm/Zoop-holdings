@@ -2,6 +2,7 @@
 
 ## 현재 상태
 
+- 2026-07-16: 로봄 웹 2.1.3에서 자격증봄 0.6.2 정본과 data version·배포 SHA·freshness SLO를 동기화하고, 다섯 앱 운영 URL·PWA·build marker와 자격증봄 source heartbeat를 하루 두 번 감시하는 watchdog을 추가했다.
 - 2026-07-16: 로봄 웹 2.1.2에서 다섯 앱 설치 허브, 안정 QR, 단일 registry 생성물, 패밀리 1.0.0 계약, PWA 업데이트와 모바일 WCAG A/AA 검사를 운영 release gate에 반영했다.
 - 2026-07-16: Sites와 GitHub Pages에 2.1.2를 배포하고 운영 build marker를 main과 대조했으며, 6개 운영 표면·108 viewport·12개 200% 확대·5개 QR decode·6개 old-cache profile을 최종 검증했다.
 - 2026-07-16: 자격증봄 0.4.1을 다섯 번째 운영 앱으로 등록하고, 로봄 웹 2.0.0의 앱 카드·상세·개인정보·검색 경로와 모바일 바로가기를 배포 대상으로 반영했다.

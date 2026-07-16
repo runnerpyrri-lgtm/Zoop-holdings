@@ -4,6 +4,8 @@
 
 `robom.kr`과 다섯 앱을 실제 운영 주소에서 Chromium·WebKit으로 다시 렌더링했다. 6개 표면 × 9개 viewport × 2개 브라우저의 108개 렌더와 12개 200% 글자 확대 검사가 통과했다. 가로 스크롤·겹침·핵심 문구 잘림·하단 메뉴 가림·48px 미만 주 행동·콘솔 오류는 0건이었다.
 
+자격증봄 0.6.2 배포 뒤 390×844 Chromium·WebKit에서 홈 요약 button 3개, 각 48px 이상, 인라인 결과, 공통 회차 펼침, 준비물 4개 체크·새로고침 복원, 가로 overflow 0과 console error 0을 별도 재검증했다.
+
 ## 화면 범위
 
 - viewport는 320×568, 360×800, 375×667, 390×844, 412×915, 430×932, 768×1024, 1024×768, 1440×1000이다.
@@ -57,3 +59,4 @@
 | console error·unhandled page error | 0건 | PASS |
 | LCP 2.5s·INP 200ms·CLS 0.1 목표 | 모든 lab 표본 목표 이내 | PASS |
 | 70대 캘린더봄 실제 사용자 과업 테스트 | 참여자와 실제 기기가 필요한 별도 검증 | BLOCKED_EXTERNAL |
+| 자격증봄 요약 button·준비물 Production 직접 클릭 | Chromium·WebKit 모두 통과 | PASS |
