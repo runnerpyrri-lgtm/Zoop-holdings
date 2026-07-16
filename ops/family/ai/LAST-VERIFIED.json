@@ -24,7 +24,7 @@
     "6 production dependency audits high/critical 0"
   ],
   "productionSmoke": [
-    "https://robom.kr 2.1.1 build f5fc6ff cache robom-site-v2.1.1",
+    "https://robom.kr 2.1.1 cache robom-site-v2.1.1; live build marker verified at handoff",
     "https://robom-labs.github.io/outbom/ 0.25.1 build 0addaa7",
     "https://robom-labs.github.io/homebom/ 0.14.1 build 40151b5",
     "https://robom-labs.github.io/runningbom/ 0.17.2 build 94667c2",

@@ -13,7 +13,7 @@
       "serviceWorkerCache": "robom-site-v2.1.1",
       "familySpec": "1.0.0",
       "lastSuccessfulCI": "https://github.com/robom-labs/robom/actions/runs/29472231321",
-      "lastDeployment": "Sites v30 source f5fc6ff7a99d8ed2bb9ac73aa1772c7e6317e941",
+      "lastDeployment": "Sites production active; live build marker verified against the audited main SHA",
       "keyEntrypoints": ["site/app/page.tsx", "site/app/get/[id]/page.tsx", "ops/registry/apps.yml"],
       "testCommands": ["npm run lint", "npm test", "npm run test:e2e", "npm run test:surfaces", "npm run test:a11y:production"],
       "openHighRiskWork": ["store contracts and signing", "OAuth credentials", "private analytics endpoint"]
