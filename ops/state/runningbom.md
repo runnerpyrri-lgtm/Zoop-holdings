@@ -9,7 +9,7 @@
 - 현재 배포: https://robom-labs.github.io/runningbom/.
 - 보조 배포: https://runningbom.vercel.app/.
 - 기존 배포: https://runnerpyrri-lgtm.github.io/pushrun/.
-- 운영 main: `f593e7c5a2ab835f9d5104570e33aaaf2f1d08f9`.
+- 운영 main: `94667c20dcf0cfde1ef27437fcb23b329316067d`.
 - PWA 캐시: `pushrun-v0.17.2`.
 
 ## Next
@@ -23,6 +23,6 @@
 - [x] 접수 중 우선 화면, 마감 임박 바로가기, 의미가 포함된 카운트다운과 단일 공식 접수처 CTA를 운영 반영했다.
 - [x] Vercel 보조 배포 프로젝트와 production alias의 HTTP 200 응답을 확인했다.
 - [x] 패밀리 공통 하단 내비게이션과 설정 정보 구조를 반영하고 0.12.0의 접수 행동 교정이 유지되는지 재검증했다.
-- [x] Vercel 보조 배포를 정적 미러로 재연결하고 0.17.2·동일 캐시·HTTP 200을 확인했다.
+- [x] Vercel 보조 배포를 정적 미러로 재연결하고 0.17.2·동일 캐시·운영 SHA `94667c2`·HTTP 200을 확인했다.
 - [x] 패밀리 1.0 셸·5앱 설정·모바일 대비·CLS 안정화와 Android·iPhone 알림 기반을 0.17.2에 배포했다.
 - [ ] GitHub 계정 이전으로 404가 된 기존 개인 계정 Pages 주소는 해당 계정의 별도 redirect 저장소를 만들 수 있을 때 안내 페이지로 전환한다.

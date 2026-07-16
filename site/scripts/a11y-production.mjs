@@ -16,13 +16,17 @@ const targets = [
 for (const [browserName, browserType] of [["chromium", chromium], ["webkit", webkit]]) {
   const browser = await browserType.launch();
   try {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     for (const url of targets) {
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
-      await page.waitForTimeout(1_000);
-      await page.addScriptTag({ content: axeSource });
-      const violations = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } })).violations.map(({ id, impact, nodes }) => ({ id, impact, targets: nodes.map((node) => node.target) })));
-      assert.deepEqual(violations, [], `${browserName} ${url}: ${JSON.stringify(violations)}`);
+      const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+      try {
+        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+        await page.waitForTimeout(1_500);
+        await page.addScriptTag({ content: axeSource });
+        const violations = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } })).violations.map(({ id, impact, nodes }) => ({ id, impact, targets: nodes.map((node) => node.target) })));
+        assert.deepEqual(violations, [], `${browserName} ${url}: ${JSON.stringify(violations)}`);
+      } finally {
+        await page.close();
+      }
     }
   } finally {
     await browser.close();

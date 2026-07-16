@@ -1,8 +1,36 @@
 {
-  "generatedAt": "pending",
-  "sourceCommit": "pending",
-  "files": {},
-  "tests": [],
-  "productionSmoke": [],
-  "nextDiffBase": "f97eb0a6cd3ed49eed54bdace74542ad6da4532e"
+  "generatedAt": "2026-07-16T13:42:23+09:00",
+  "sourceCommit": "151d94e27ced444c42305757a687c0f5319b46c5",
+  "files": {
+    "ops/registry/apps.yml": "sha256:9c1bdbde5c39d89e46a63819cb091e5d571221611cb6b4a256f791a070253d2f",
+    "ops/family/family-version.json": "sha256:fb14fa9ab0217c345f35c99635514ce33f2ef028307889617a569095341d969a",
+    "ops/family/brand/bom.svg": "sha256:8ff1c9f79520440a566eeeccd660760679b7d1faf16f3b26b46b59da8a866beb",
+    "ops/family/compatibility.yml": "sha256:f9da50708391bc9b3b3dc50a1a8821b10d0a87dae32e71a546b0fbae00653b98",
+    "site/package.json": "sha256:52321d448d6dd58d756ca7419c1c56bbd7dcd851adff52f78645dfb6199d83dc",
+    "site/public/sw.js": "sha256:a1496dd7f0ec6cf83fdc0b388dc680e7fa12a983ff66e8c623375faaa433bcd5",
+    "site/public/install/qr/manifest.json": "sha256:ddd31517153d2927f451722f344b85316dcbcd7f7e550eae51f4e2f0387fa515"
+  },
+  "tests": [
+    "robom lint+build+rendered HTML+Chromium/WebKit E2E",
+    "6 surfaces x 9 viewports x 2 browsers plus 200 percent zoom",
+    "6 surfaces x 2 browsers axe WCAG A/AA",
+    "5 live QR PNG decode",
+    "6 old-cache migration profiles",
+    "OutBom 120 unit+typecheck+build",
+    "HomeBom 122 unit+typecheck+build+CI E2E",
+    "RunningBom 37 unit+static+Vercel stamp",
+    "CalendarBom 33 unit+Chromium/WebKit full E2E",
+    "CertBom 30 unit+36 E2E+typecheck+lint+build",
+    "6 production dependency audits high/critical 0"
+  ],
+  "productionSmoke": [
+    "https://robom.kr 2.1.1 build 7299150 cache robom-site-v2.1.1",
+    "https://robom-labs.github.io/outbom/ 0.25.1 build 0addaa7",
+    "https://robom-labs.github.io/homebom/ 0.14.1 build 40151b5",
+    "https://robom-labs.github.io/runningbom/ 0.17.2 build 94667c2",
+    "https://runningbom.vercel.app/ 0.17.2 build 94667c2",
+    "https://robom-labs.github.io/calendarbom/ 0.5.1 build 997f13e",
+    "https://certbom.vercel.app/ 0.6.0 build 69478f8"
+  ],
+  "nextDiffBase": "151d94e27ced444c42305757a687c0f5319b46c5"
 }

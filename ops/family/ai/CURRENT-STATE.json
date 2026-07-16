@@ -1,6 +1,93 @@
 {
-  "generatedAt": "pending",
+  "generatedAt": "2026-07-16T13:42:23+09:00",
   "familySpecVersion": "1.0.0",
-  "sourceCommit": "pending",
-  "apps": []
+  "sourceCommit": "151d94e27ced444c42305757a687c0f5319b46c5",
+  "apps": [
+    {
+      "id": "robom",
+      "repo": "robom-labs/robom",
+      "mainSha": "151d94e27ced444c42305757a687c0f5319b46c5",
+      "version": "2.1.1",
+      "productionUrl": "https://robom.kr",
+      "deployProvider": "sites+github-pages",
+      "serviceWorkerCache": "robom-site-v2.1.1",
+      "familySpec": "1.0.0",
+      "lastSuccessfulCI": "https://github.com/robom-labs/robom/actions/runs/29471104695",
+      "lastDeployment": "Sites v29 source 72991508445a6013c0e3755d0a96cdb7a66cd103",
+      "keyEntrypoints": ["site/app/page.tsx", "site/app/get/[id]/page.tsx", "ops/registry/apps.yml"],
+      "testCommands": ["npm run lint", "npm test", "npm run test:e2e", "npm run test:surfaces", "npm run test:a11y:production"],
+      "openHighRiskWork": ["store contracts and signing", "OAuth credentials", "private analytics endpoint"]
+    },
+    {
+      "id": "outbom",
+      "repo": "robom-labs/outbom",
+      "mainSha": "0addaa70cd5fa8e197682c6e43b28962ba620f65",
+      "version": "0.25.1",
+      "productionUrl": "https://robom-labs.github.io/outbom/",
+      "deployProvider": "github-pages+vercel-compat",
+      "serviceWorkerCache": "outbom-v0.25.1",
+      "familySpec": "1.0.0",
+      "lastSuccessfulCI": "https://github.com/robom-labs/outbom/actions/runs/29470524005",
+      "keyEntrypoints": ["app/page.tsx", "lib/scoring.ts", "lib/family-analytics.ts", "public/sw.js"],
+      "testCommands": ["pnpm typecheck", "pnpm test", "pnpm build", "pnpm --dir apps/mobile check"],
+      "openHighRiskWork": ["signed store binaries", "server push credential"]
+    },
+    {
+      "id": "homebom",
+      "repo": "robom-labs/homebom",
+      "mainSha": "40151b53b77e40c03ad61815c65cc1f7a2b23278",
+      "version": "0.14.1",
+      "productionUrl": "https://robom-labs.github.io/homebom/",
+      "deployProvider": "github-pages",
+      "serviceWorkerCache": "zzc-v0.14.1",
+      "familySpec": "1.0.0",
+      "lastSuccessfulCI": "https://github.com/robom-labs/homebom/actions/runs/29470478807",
+      "keyEntrypoints": ["apps/web/src/App.tsx", "apps/web/src/screens/InfoScreen.tsx", "packages/core/src", "apps/web/public/sw.js"],
+      "testCommands": ["pnpm typecheck", "pnpm test", "pnpm build", "pnpm test:e2e"],
+      "openHighRiskWork": ["official API operation monitoring", "signed store binaries"]
+    },
+    {
+      "id": "runningbom",
+      "repo": "robom-labs/runningbom",
+      "mainSha": "94667c20dcf0cfde1ef27437fcb23b329316067d",
+      "version": "0.17.2",
+      "productionUrl": "https://robom-labs.github.io/runningbom/",
+      "deployProvider": "github-pages+vercel",
+      "serviceWorkerCache": "pushrun-v0.17.2",
+      "familySpec": "1.0.0",
+      "lastSuccessfulCI": "https://github.com/robom-labs/runningbom/actions/runs/29471774936",
+      "lastDeployment": "Vercel dpl_ARJt647BMB4swPzkZTY1byZ6yHwh",
+      "keyEntrypoints": ["outputs/pushrun-site/app.js", "outputs/pushrun-site/races.json", "scripts/build-vercel.mjs", "outputs/pushrun-site/sw.js"],
+      "testCommands": ["npm test", "npm --prefix apps/mobile run check", "npm --prefix apps/mobile run export:native"],
+      "openHighRiskWork": ["race source freshness", "signed store binaries"]
+    },
+    {
+      "id": "calendarbom",
+      "repo": "robom-labs/calendarbom",
+      "mainSha": "997f13ef4221723658bc5d8827d4dde8be9d2a19",
+      "version": "0.5.1",
+      "productionUrl": "https://robom-labs.github.io/calendarbom/",
+      "deployProvider": "github-pages",
+      "serviceWorkerCache": "calendarbom-pwa-v0.5.1",
+      "familySpec": "1.0.0",
+      "lastSuccessfulCI": "https://github.com/robom-labs/calendarbom/actions/runs/29470479461",
+      "keyEntrypoints": ["app/app.js", "app/schedule-core.js", "app/sw.js", "apps/mobile/App.tsx"],
+      "testCommands": ["npm test", "npm run test:e2e", "BROWSER=webkit node scripts/e2e.mjs", "npm --prefix apps/mobile run check"],
+      "openHighRiskWork": ["70s participant usability test", "signed native local notifications"]
+    },
+    {
+      "id": "certbom",
+      "repo": "robom-labs/certbom",
+      "mainSha": "69478f8d867ff0525d376f53f731a9d17a9dafb9",
+      "version": "0.6.0",
+      "productionUrl": "https://certbom.vercel.app/",
+      "deployProvider": "vercel",
+      "serviceWorkerCache": "certbom-0.6.0",
+      "familySpec": "1.0.0",
+      "lastSuccessfulCI": "https://github.com/robom-labs/certbom/actions/runs/29467843024",
+      "keyEntrypoints": ["apps/web/src/App.tsx", "packages/core/src", "packages/source-adapters/src", "apps/web/vite.config.ts"],
+      "testCommands": ["pnpm typecheck", "pnpm lint", "pnpm test", "pnpm build", "pnpm test:e2e"],
+      "openHighRiskWork": ["Q-Net production key", "signed store binaries", "OAuth credentials"]
+    }
+  ]
 }
