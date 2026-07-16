@@ -1,19 +1,19 @@
 {
   "generatedAt": "2026-07-16T13:42:23+09:00",
   "familySpecVersion": "1.0.0",
-  "sourceCommit": "151d94e27ced444c42305757a687c0f5319b46c5",
+  "sourceCommit": "2370ba62ab4c742eb0adf68927bd59a88edf8549",
   "apps": [
     {
       "id": "robom",
       "repo": "robom-labs/robom",
-      "mainSha": "151d94e27ced444c42305757a687c0f5319b46c5",
+      "mainSha": "2370ba62ab4c742eb0adf68927bd59a88edf8549",
       "version": "2.1.1",
       "productionUrl": "https://robom.kr",
       "deployProvider": "sites+github-pages",
       "serviceWorkerCache": "robom-site-v2.1.1",
       "familySpec": "1.0.0",
-      "lastSuccessfulCI": "https://github.com/robom-labs/robom/actions/runs/29471104695",
-      "lastDeployment": "Sites v29 source 72991508445a6013c0e3755d0a96cdb7a66cd103",
+      "lastSuccessfulCI": "https://github.com/robom-labs/robom/actions/runs/29472231321",
+      "lastDeployment": "Sites v30 source f5fc6ff7a99d8ed2bb9ac73aa1772c7e6317e941",
       "keyEntrypoints": ["site/app/page.tsx", "site/app/get/[id]/page.tsx", "ops/registry/apps.yml"],
       "testCommands": ["npm run lint", "npm test", "npm run test:e2e", "npm run test:surfaces", "npm run test:a11y:production"],
       "openHighRiskWork": ["store contracts and signing", "OAuth credentials", "private analytics endpoint"]

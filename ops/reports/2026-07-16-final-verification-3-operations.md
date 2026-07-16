@@ -4,7 +4,7 @@
 
 | 제품 | 운영 URL | 버전·cache | 운영 식별 | release evidence | 상태 |
 |---|---|---|---|---|---|
-| robom.kr | https://robom.kr | 2.1.1 · `robom-site-v2.1.1` | Sites source `72991508445a6013c0e3755d0a96cdb7a66cd103` → robom `151d94e` | Sites v29, Pages run `29471104695` | PASS |
+| robom.kr | https://robom.kr | 2.1.1 · `robom-site-v2.1.1` | Sites source `f5fc6ff7a99d8ed2bb9ac73aa1772c7e6317e941` → robom `2370ba6` | Sites v30, Pages run `29472231321` | PASS |
 | 야외봄 | https://robom-labs.github.io/outbom/ | 0.25.1 · `outbom-v0.25.1` | `0addaa7` | CI `29470524005`, Pages `29470523936` | PASS |
 | 청약봄 | https://robom-labs.github.io/homebom/ | 0.14.1 · `zzc-v0.14.1` | `40151b5` | CI `29470478807`, Pages `29470478355` | PASS |
 | 러닝봄 | https://robom-labs.github.io/runningbom/ · https://runningbom.vercel.app | 0.17.2 · `pushrun-v0.17.2` | 양쪽 `94667c2` | Family `29471774936`, Pages `29471774773`, Vercel `dpl_ARJt647BMB4swPzkZTY1byZ6yHwh` | PASS |
@@ -12,6 +12,8 @@
 | 자격증봄 | https://certbom.vercel.app | 0.6.0 · `certbom-0.6.0` | `69478f8` | CI `29467843024` | PASS |
 
 모든 운영 URL, manifest, service worker와 최신 app/build marker는 HTTP 200으로 확인했다. 중앙 Pages의 기존 `/robom/calendarbom/`은 localStorage를 읽거나 지우지 않는 독립 주소 안내와 구형 자기 cache 정리를 제공한다.
+
+이 감사 문서 자체를 반영하는 documentation-only successor는 앱 소스 변화 없이 Pages와 Sites v31로 한 번 더 승격하며, 최종 handoff에서 해당 배포 ID를 기록한다.
 
 ## 설치·PWA·store 분기
 
