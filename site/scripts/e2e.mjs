@@ -26,7 +26,12 @@ async function waitForServer(url) {
 }
 
 if (!externalBase) {
-  server = spawn("npm", ["run", "start", "--", "--port", "4193"], { cwd: new URL("..", import.meta.url), stdio: ["ignore", "pipe", "pipe"] });
+  server = spawn("npm", ["run", "start", "--", "--port", "4193"], {
+    cwd: new URL("..", import.meta.url),
+    detached: process.platform !== "win32",
+    stdio: "ignore",
+  });
+  server.unref();
   await waitForServer(baseUrl);
 }
 
@@ -127,5 +132,12 @@ try {
   console.log(`${browserName}: ${viewports.length} viewports · overflow 0 · touch 48px+ · console error 0`);
 } finally {
   await browser.close();
-  if (server) server.kill("SIGTERM");
+  if (server?.pid) {
+    try {
+      if (process.platform === "win32") server.kill("SIGTERM");
+      else process.kill(-server.pid, "SIGTERM");
+    } catch {
+      server.kill("SIGTERM");
+    }
+  }
 }
