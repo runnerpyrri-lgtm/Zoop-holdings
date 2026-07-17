@@ -1,8 +1,8 @@
 // 로봄 여섯 운영 표면과 자격증봄 데이터 workflow의 배포·PWA·heartbeat를 감시한다.
 import { readFile, writeFile } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import tls from "node:tls";
+import { siteDeploySha } from "../lib/deployment-sha.mjs";
 import { readRegistry } from "../lib/registry.mjs";
 
 function option(name, fallback = "") {
@@ -228,14 +228,7 @@ async function main() {
   const root = resolve(import.meta.dirname, "../../..");
   const apps = await readRegistry();
   const siteMetadata = JSON.parse(await readFile(resolve(root, "site/package.json"), "utf8"));
-  let currentSha = process.env.GITHUB_SHA ?? "";
-  if (!currentSha) {
-    try {
-      currentSha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
-    } catch {
-      currentSha = "";
-    }
-  }
+  const currentSha = siteDeploySha(root);
   const results = [await inspectApp({
     id: "robom",
     version: siteMetadata.version,

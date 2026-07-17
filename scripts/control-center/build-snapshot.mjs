@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { REPO_ROOT, readApps, readState, gitInfo, ghOpenPRs, ghRecentRuns, readDepartments, readAgents, parseYamlList, readText } from "./lib/sources.mjs";
 import { controlCenterFields } from "./lib/sources.mjs";
 import { readEvents, deriveRuns } from "./lib/events.mjs";
+import { siteDeploySha } from "../../ops/scripts/lib/deployment-sha.mjs";
 import { inspectApp } from "../../ops/scripts/family/operations-watchdog.mjs";
 
 const NOW = process.env.ROBOM_HQ_NOW || new Date().toISOString();
@@ -74,6 +75,7 @@ async function collectApp(app) {
 async function main() {
   const sitePackage = JSON.parse(readText(join(REPO_ROOT, "site/package.json")));
   const centralGit = gitInfo(REPO_ROOT);
+  const deployedSiteSha = siteDeploySha(REPO_ROOT);
   const apps = [{
     id: "robom",
     name: "로봄 본사",
@@ -83,7 +85,7 @@ async function main() {
     web_url: "https://robom.kr/",
     healthcheck_url: "https://robom.kr/",
     deploy_provider: "openai-sites",
-    last_deployed_sha: centralGit.sha || "",
+    last_deployed_sha: deployedSiteSha || centralGit.sha || "",
     last_verified_at: NOW,
     last_data_sync_at: NOW,
     freshness_status: "runtime",
