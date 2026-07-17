@@ -34,12 +34,17 @@ function runsByAgent() { const m = {}; (SNAP.runs || []).forEach((r) => { if (r.
 function activeRun(list) { return (list || []).find((r) => !["completed", "failed"].includes(r.status)) || null; }
 
 async function load() {
-  try { SNAP = await (await fetch("./snapshot.json", { cache: "no-store" })).json(); }
-  catch { document.getElementById("screen").innerHTML = `<div class="empty">스냅샷 없음 — <code>node scripts/control-center/build-snapshot.mjs</code> 실행</div>`; return; }
+  // 단일 HTML(바탕화면 더블클릭) 모드: 스냅샷이 페이지에 내장돼 있으면 그대로 쓴다.
+  if (window.__SNAP__) { SNAP = window.__SNAP__; }
+  else {
+    try { SNAP = await (await fetch("./snapshot.json", { cache: "no-store" })).json(); }
+    catch { document.getElementById("screen").innerHTML = `<div class="empty">스냅샷 없음 — <code>node scripts/control-center/build-snapshot.mjs</code> 실행</div>`; return; }
+  }
   renderKpis();
   const badgeEl = document.getElementById("modeBadge");
   const live = (SNAP.connections?.github || "").startsWith("connected");
-  badgeEl.textContent = live ? "LIVE" : "OFFLINE"; badgeEl.classList.toggle("demo", !live);
+  if (window.__PREVIEW__) { badgeEl.textContent = "PREVIEW"; badgeEl.classList.add("demo"); }
+  else { badgeEl.textContent = live ? "LIVE" : "OFFLINE"; badgeEl.classList.toggle("demo", !live); }
   document.getElementById("hqSub").textContent = `로봄 본부 · 앱 ${SNAP.company.apps.total} · 직원 ${SNAP.company.employees.registered}`;
   render(CURRENT);
 }
