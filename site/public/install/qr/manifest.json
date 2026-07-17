@@ -20,6 +20,10 @@
     {
       "id": "certbom",
       "destination": "https://robom.kr/get/certbom"
+    },
+    {
+      "id": "notebom",
+      "destination": "https://robom.kr/get/notebom"
     }
   ]
 }

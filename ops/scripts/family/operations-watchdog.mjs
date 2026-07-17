@@ -1,4 +1,4 @@
-// 로봄 여섯 운영 표면과 자격증봄 데이터 workflow의 배포·PWA·heartbeat를 감시한다.
+// 로봄 일곱 운영 표면과 자격증봄 데이터 workflow의 배포·PWA·heartbeat를 감시한다.
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import tls from "node:tls";

@@ -5,7 +5,7 @@
     "cmd": "#4f8fe0", "strat": "#9a6cf0", "dev": "#2fd08a", "qa": "#39b98a",
     "ops": "#f59a3c", "sec": "#e8b93c", "gold": "#e8b93c", "design": "#ff7fa3",
     "data": "#49c6e5", "support": "#8bd17c", "guest": "#d7a957", "out": "#48a7d4",
-    "home": "#4da35e", "run": "#e0574a", "cert": "#5b6ee0", "cal": "#2fd0bd"
+    "home": "#4da35e", "run": "#e0574a", "cert": "#5b6ee0", "cal": "#2fd0bd", "note": "#b33768"
   },
   "floors": [
     {
@@ -27,10 +27,10 @@
       "employees": ["builder", "inspector", "architect", "upgrader"]
     },
     {
-      "id": "2F", "name": "제품 본부", "headline": "다섯 앱을 독립적으로 운영", "purpose": "제품 기획팀과 앱 전담 셀이 사용자 문제, 데이터, 알림, 출시 우선순위를 관리합니다.",
+      "id": "2F", "name": "제품 본부", "headline": "여섯 앱을 독립적으로 운영", "purpose": "제품 기획팀과 앱 전담 셀이 사용자 문제, 데이터, 알림, 출시 우선순위를 관리합니다.",
       "access": "제품 임직원·사용자 조사 초청객", "teams": ["제품 기획팀", "앱 전담 셀"],
       "zones": ["PRODUCT PLANNING", "APP LAB NORTH", "APP LAB SOUTH", "USER RESEARCH"],
-      "employees": ["planner", "out", "home", "run", "cert", "cal"]
+      "employees": ["planner", "out", "home", "run", "cert", "cal", "note"]
     },
     {
       "id": "1F", "name": "로비·고객지원", "headline": "회사의 첫인상과 방문 동선", "purpose": "방문 등록, 고객 문의, 행사와 제품 소개를 처리하며 가장 활발하게 사람이 오가는 층입니다.",
@@ -45,14 +45,14 @@
       "employees": ["data-engineer"]
     }
   ],
-  "products": ["out", "home", "run", "cert", "cal"],
+  "products": ["out", "home", "run", "cert", "cal", "note"],
   "names": {
     "ceo-orchestrator": "비서실장 · 서아", "room-01": "총괄1팀 · 윤슬", "room-02": "총괄2팀 · 유나", "room-03": "총괄3팀 · 하린",
     "strategist": "전략팀 · 민재", "recorder": "기록팀 · 서윤", "builder": "개발팀 · 도윤", "planner": "기획팀 · 지아",
     "inspector": "QA팀 · 소은", "architect": "설계팀 · 준호", "upgrader": "R&D팀 · 예린", "designer": "디자인팀 · 나연",
     "growth-marketer": "홍보팀 · 채원", "release-manager": "릴리즈팀 · 수빈", "supervisor": "감독팀 · 민서",
     "data-engineer": "데이터팀 · 다온", "support-manager": "지원팀 · 아린",
-    "out": "야외봄", "home": "청약봄", "run": "러닝봄", "cert": "자격증봄", "cal": "캘린더봄"
+    "out": "야외봄", "home": "청약봄", "run": "러닝봄", "cert": "자격증봄", "cal": "캘린더봄", "note": "노트봄"
   },
   "zones": [
     { "x": 2, "y": 2, "w": 24, "h": 19, "color": "#e8b93c", "label": "👑 회장 집무실", "code": "CHAIRMAN OFFICE", "owner": "회장·비서실", "purpose": "결재, 경영 검토, 소규모 면담", "walls": true, "door": [25, 15], "props": [
@@ -182,7 +182,8 @@
     { "id": "home", "x": 26, "y": 5, "team": "home", "appearance": { "gender": "brand", "hair": "spark", "hairColor": "#4da35e", "skin": "#dcf4e2", "outfit": "brand", "accent": "#4da35e" } },
     { "id": "run", "x": 30, "y": 5, "team": "run", "appearance": { "gender": "brand", "hair": "spark", "hairColor": "#e0574a", "skin": "#ffe3dc", "outfit": "brand", "accent": "#e0574a" } },
     { "id": "cert", "x": 4, "y": 20, "team": "cert", "appearance": { "gender": "brand", "hair": "spark", "hairColor": "#5b6ee0", "skin": "#e4e8ff", "outfit": "brand", "accent": "#5b6ee0" } },
-    { "id": "cal", "x": 8, "y": 20, "team": "cal", "appearance": { "gender": "brand", "hair": "spark", "hairColor": "#2fd0bd", "skin": "#dcfffa", "outfit": "brand", "accent": "#2fd0bd" } }
+    { "id": "cal", "x": 8, "y": 20, "team": "cal", "appearance": { "gender": "brand", "hair": "spark", "hairColor": "#2fd0bd", "skin": "#dcfffa", "outfit": "brand", "accent": "#2fd0bd" } },
+    { "id": "note", "x": 12, "y": 20, "team": "note", "appearance": { "gender": "brand", "hair": "spark", "hairColor": "#b33768", "skin": "#fbe8f0", "outfit": "brand", "accent": "#b33768" } }
   ],
   "chair": { "id": "chairman", "name": "황준필 · 회장", "x": 9, "y": 7, "appearance": { "gender": "male", "hair": "sidepart", "hairColor": "#24201f", "skin": "#ddb08c", "outfit": "executive", "accent": "#e8b93c" } },
   "secretaries": [

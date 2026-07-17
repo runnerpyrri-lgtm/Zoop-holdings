@@ -1,6 +1,6 @@
 // 로봄 웹 표면을 Chromium·WebKit의 지정 viewport와 200% 글자 확대에서 공통 검증한다.
 import assert from "node:assert/strict";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, webkit } from "playwright";
@@ -11,7 +11,8 @@ const defaults = [
   { id: "homebom", url: "https://robom-labs.github.io/homebom/", expected: "청약봄", nav: ".nav__tab:visible", settings: ".nav__tab:nth-of-type(3):visible", family: "section:has(#family-apps) a.settings-row" },
   { id: "runningbom", url: "https://robom-labs.github.io/runningbom/", expected: "러닝봄", nav: ".mobile-tab:visible, .nav-pill:visible", settings: "[data-view='settings']:visible", family: "[data-family-app]" },
   { id: "calendarbom", url: "https://robom-labs.github.io/calendarbom/", expected: "캘린더봄", nav: ".mobile-tab:visible", settings: ".mobile-tab:nth-of-type(3):visible", family: "#familyAppsList > a" },
-  { id: "certbom", url: "https://certbom.vercel.app", expected: "자격증봄", nav: ".bottom-nav button:visible", settings: ".bottom-nav button:nth-of-type(5):visible", family: ".family-app-list a" }
+  { id: "certbom", url: "https://certbom.vercel.app", expected: "자격증봄", nav: ".bottom-nav button:visible", settings: ".bottom-nav button:nth-of-type(5):visible", family: ".family-app-list a" },
+  { id: "notebom", url: "https://robom-labs.github.io/notebom/", expected: "노트봄", nav: ".bottom-nav button:visible", settings: ".bottom-nav button:nth-of-type(3):visible", family: ".family-apps a" }
 ];
 const surfaces = process.env.FAMILY_SURFACES_JSON ? JSON.parse(process.env.FAMILY_SURFACES_JSON) : defaults;
 const familyAppCount = JSON.parse(await readFile(new URL("../public/family/apps.json", import.meta.url), "utf8")).apps.length;

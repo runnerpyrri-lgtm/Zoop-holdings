@@ -5,7 +5,7 @@ import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-const REPOS = ["outbom", "homebom", "runningbom", "calendarbom", "certbom"];
+const REPOS = ["outbom", "homebom", "runningbom", "calendarbom", "certbom", "notebom"];
 const results = [];
 
 function auditDir(label, dir) {

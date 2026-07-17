@@ -4,5 +4,5 @@
   "requiredAccessibleName": true,
   "decorativeSvgAriaHidden": true,
   "textFallbackRequired": true,
-  "prefixes": ["야외", "청약", "러닝", "캘린더", "자격증"]
+  "prefixes": ["야외", "청약", "러닝", "캘린더", "자격증", "노트"]
 }

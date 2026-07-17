@@ -5,12 +5,12 @@ import { AppGlyph, FamilyFooter, MobileNav, SiteHeader, Wordmark } from "./compo
 import { contactHref, familyApps } from "./app-data";
 
 export const metadata: Metadata = {
-  title: { absolute: "로봄 | 날씨·청약·러닝·달력·자격증, 놓치기 전에" },
-  description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하세요. 야외봄·청약봄·러닝봄·캘린더봄·자격증봄으로 바로 연결됩니다.",
+  title: { absolute: "로봄 | 날씨·청약·러닝·달력·자격증·음성 메모" },
+  description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험과 음성 메모를 한곳에서 확인하세요. 야외봄·청약봄·러닝봄·캘린더봄·자격증봄·노트봄으로 바로 연결됩니다.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "로봄 | 날씨·청약·러닝·달력·자격증, 놓치기 전에",
-    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하세요. 야외봄·청약봄·러닝봄·캘린더봄·자격증봄으로 바로 연결됩니다.",
+    title: "로봄 | 날씨·청약·러닝·달력·자격증·음성 메모",
+    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험과 음성 메모를 한곳에서 확인하세요. 야외봄·청약봄·러닝봄·캘린더봄·자격증봄·노트봄으로 바로 연결됩니다.",
     url: "/",
     siteName: "로봄",
     locale: "ko_KR",
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "로봄 | 날씨·청약·러닝·달력·자격증, 놓치기 전에",
-    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하세요.",
+    title: "로봄 | 날씨·청약·러닝·달력·자격증·음성 메모",
+    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험과 음성 메모를 한곳에서 확인하세요.",
     images: ["/og.png"],
   },
 };
@@ -34,7 +34,7 @@ export default function Home() {
           <div className="hero-intro">
             <p className="eyebrow"><span aria-hidden="true" /> ROBOM FAMILY</p>
             <h1 id="hero-title">오늘 필요한 앱을 고르고,<br /><em>휴대폰에서 바로 쓰세요.</em></h1>
-            <p className="hero-lead">날씨·청약·러닝 대회·가족 일정·자격증 시험에서 지금 해야 할 행동을 {familyApps.length}개의 독립 앱이 또렷하게 알려드립니다.</p>
+            <p className="hero-lead">날씨·청약·러닝 대회·가족 일정·자격증 시험·음성 메모에서 지금 해야 할 행동을 {familyApps.length}개의 독립 앱이 또렷하게 알려드립니다.</p>
           </div>
           <div className="quick-install-grid" aria-label={`로봄 ${familyApps.length}개 앱 설치 선택`}>
             {familyApps.map((app) => (
@@ -51,7 +51,7 @@ export default function Home() {
         <section className="apps-section" id="apps" aria-labelledby="apps-title">
           <div className="section-heading">
             <div><p className="eyebrow"><span aria-hidden="true" /> {familyApps.length} APPS, ONE FAMILY</p><h2 id="apps-title">마음은 하나로,<br />지키는 순간은 저마다 또렷하게.</h2></div>
-            <p>등록된 모든 앱은 같은 마음과 같은 약속으로 만들어졌습니다. 하늘과 기회, 출발선과 가족 일정, 그리고 시험 준비를 각자의 방식으로 지킵니다.</p>
+            <p>등록된 모든 앱은 같은 마음과 같은 약속으로 만들어졌습니다. 하늘과 기회, 출발선과 가족 일정, 시험 준비와 떠오른 말을 각자의 방식으로 지킵니다.</p>
           </div>
           <div className="app-card-grid">
             {familyApps.map((app) => (

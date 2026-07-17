@@ -15,11 +15,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://robom.kr"),
   title: {
-    default: "로봄 | 날씨·청약·러닝·달력·자격증, 놓치기 전에",
+    default: "로봄 | 날씨·청약·러닝·달력·자격증·음성 메모",
     template: "%s | 로봄",
   },
   description:
-    "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하고 로봄 패밀리 앱으로 바로 이동하세요.",
+    "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험과 음성 메모를 한곳에서 확인하고 로봄 패밀리 앱으로 바로 이동하세요.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     apple: [{ url: "/icons/robom-180.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
-    title: "로봄 | 날씨·청약·러닝·달력·자격증, 놓치기 전에",
-    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하고 로봄 패밀리 앱으로 바로 이동하세요.",
+    title: "로봄 | 날씨·청약·러닝·달력·자격증·음성 메모",
+    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험과 음성 메모를 한곳에서 확인하고 로봄 패밀리 앱으로 바로 이동하세요.",
     siteName: "로봄",
     url: "https://robom.kr/",
     locale: "ko_KR",
@@ -47,8 +47,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "로봄 | 날씨·청약·러닝·달력·자격증, 놓치기 전에",
-    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하세요.",
+    title: "로봄 | 날씨·청약·러닝·달력·자격증·음성 메모",
+    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험과 음성 메모를 한곳에서 확인하세요.",
     images: ["/og.png"],
   },
   verification: {
@@ -82,7 +82,7 @@ export default function RootLayout({
                 width: 512,
                 height: 512,
               },
-              description: "야외봄·청약봄·러닝봄·캘린더봄·자격증봄을 운영하는 생활 타이밍 앱 패밀리",
+              description: "야외봄·청약봄·러닝봄·캘린더봄·자격증봄·노트봄을 운영하는 생활 타이밍 앱 패밀리",
             }),
           }}
         />

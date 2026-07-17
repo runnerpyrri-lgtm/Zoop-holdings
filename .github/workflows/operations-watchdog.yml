@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 22
       - run: node --test ops/scripts/family/operations-watchdog.test.mjs
-      - name: 여섯 운영 표면과 source heartbeat 확인
+      - name: 일곱 운영 표면과 source heartbeat 확인
         id: watchdog
         continue-on-error: true
         env:

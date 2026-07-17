@@ -139,5 +139,33 @@ export const generatedAppMeta = [
     "lastDeployedSha": "faf1b94818c9044a2d2c1cac89540e45396edc69",
     "lastDataSyncAt": "2026-07-16T15:00:00+09:00",
     "freshnessStatus": "last-known-good"
+  },
+  {
+    "id": "notebom",
+    "name": "노트봄",
+    "englishName": "NoteBom",
+    "repo": "robom-labs/notebom",
+    "version": "0.1.0",
+    "dataVersion": "local-schema-v1",
+    "webUrl": "https://robom-labs.github.io/notebom/",
+    "healthcheckUrl": "https://robom-labs.github.io/notebom/",
+    "deployProvider": "github-pages",
+    "basePath": "/notebom/",
+    "privacyUrl": "https://robom.kr/privacy/notebom",
+    "supportUrl": "https://robom.kr/support",
+    "androidAppId": "kr.robom.notebom",
+    "iosBundleId": "kr.robom.notebom",
+    "googlePlayUrl": "",
+    "googlePlayStatus": "planned",
+    "appStoreUrl": "",
+    "appStoreStatus": "planned",
+    "pwaInstallUrl": "https://robom-labs.github.io/notebom/",
+    "stableInstallUrl": "https://robom.kr/get/notebom",
+    "mobileStatus": "pwa",
+    "familySpecVersion": "1.0.0",
+    "lastVerifiedAt": "2026-07-17T21:30:36+09:00",
+    "lastDeployedSha": "513a75a40406d07a4b832cd97e4e97df68ecd3e9",
+    "lastDataSyncAt": "2026-07-17T21:30:36+09:00",
+    "freshnessStatus": "local-only"
   }
 ] as const;

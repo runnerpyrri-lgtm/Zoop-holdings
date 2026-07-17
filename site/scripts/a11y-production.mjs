@@ -1,4 +1,4 @@
-// 여섯 운영 표면의 WCAG A·AA 위반을 Chromium과 WebKit에서 같은 기준으로 검사한다.
+// 일곱 운영 표면의 WCAG A·AA 위반을 Chromium과 WebKit에서 같은 기준으로 검사한다.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
@@ -11,6 +11,7 @@ const targets = [
   "https://robom-labs.github.io/runningbom/",
   "https://robom-labs.github.io/calendarbom/",
   "https://certbom.vercel.app/",
+  "https://robom-labs.github.io/notebom/",
 ];
 
 for (const [browserName, browserType] of [["chromium", chromium], ["webkit", webkit]]) {
@@ -33,4 +34,4 @@ for (const [browserName, browserType] of [["chromium", chromium], ["webkit", web
   }
 }
 
-console.log(`production accessibility: 6 surfaces × 2 browsers · WCAG A/AA violations 0`);
+console.log(`production accessibility: 7 surfaces × 2 browsers · WCAG A/AA violations 0`);

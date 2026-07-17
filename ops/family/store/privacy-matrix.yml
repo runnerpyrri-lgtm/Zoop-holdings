@@ -29,3 +29,8 @@ apps:
     notifications: optional
     calendar: optional-explicit-action
     sensitive_content_sync: none
+  notebom:
+    microphone: required-while-recording
+    speech_recognition: optional-user-selected-provider
+    calendar: optional-explicit-action
+    sensitive_content_sync: local-only-default

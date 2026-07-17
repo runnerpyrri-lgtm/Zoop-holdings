@@ -1,4 +1,4 @@
-# 다섯 독립 앱의 스토어 설명·카테고리·고유 native 가치를 관리하는 정본이다.
+# 여섯 독립 앱의 스토어 설명·카테고리·고유 native 가치를 관리하는 정본이다.
 apps:
   outbom:
     name: 야외봄
@@ -45,3 +45,12 @@ apps:
     ios_bundle_id: kr.robom.certbom
     support_url: https://robom.kr/support
     privacy_url: https://robom.kr/privacy/certbom
+  notebom:
+    name: 노트봄
+    subtitle: 원음을 먼저 보존하고 필요한 곳으로 직접 넘기는 음성 메모
+    category: productivity
+    native_value: background-recording-and-home-screen-widget
+    android_app_id: kr.robom.notebom
+    ios_bundle_id: kr.robom.notebom
+    support_url: https://robom.kr/support
+    privacy_url: https://robom.kr/privacy/notebom

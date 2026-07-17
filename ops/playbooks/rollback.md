@@ -15,7 +15,7 @@
 - 저장소: `robom-labs/robom`
 - GitHub Pages 보조 표면은 main push의 `Deploy robom site to Pages`가 재배포한다.
 - Sites 정본은 revert된 robom main을 Sites source mirror에 동기화하고 새 버전을 배포한다.
-- 확인: `https://robom.kr/`, 다섯 `/get/<app>`, QR decode, `/sw.js`, 이전 캘린더 경로.
+- 확인: `https://robom.kr/`, 여섯 `/get/<app>`, QR decode, `/sw.js`, 이전 캘린더 경로.
 
 ## 야외봄
 
@@ -49,6 +49,12 @@
 - 정본 배포: Vercel `https://certbom.vercel.app/`.
 - main revert 뒤 Vercel 자동 배포를 사용한다. 자동 배포가 없으면 직전 정상 deployment를 Promote하고 revert main 배포로 다시 고정한다.
 - 확인: 시험 catalog, 일정·준비물·관심 시험, 공식 출처, cache/data version.
+
+## 노트봄
+
+- 저장소: `robom-labs/notebom`.
+- 정본 배포: GitHub Pages `https://robom-labs.github.io/notebom/`.
+- 되돌린 뒤 원음 청크·중단 녹음 복구·전체 원음 백업/복원·음성 인식 고지·PWA cache version을 확인한다.
 
 ## 복구가 막힐 때
 
