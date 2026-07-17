@@ -2,14 +2,14 @@
 
 ## 현재 상태
 
-- 운영 웹 버전: 0.14.1.
+- 운영 웹 버전: 0.14.4.
 - 기존 이름: 줍줍콜.
 - 역할: 일반공급·무순위 청약 공고, 접수·발표·계약 일정과 관심 공고 알림 제공.
 - 목표 저장소: `robom-labs/homebom`.
 - 현재 배포: https://robom-labs.github.io/homebom/.
 - 기존 배포: https://runnerpyrri-lgtm.github.io/zoopzoopcall/.
-- 운영 main: `40151b53b77e40c03ad61815c65cc1f7a2b23278`.
-- PWA 캐시: `zzc-v0.14.1`.
+- 운영 main: `fb9aa0a8cdce9cd1e613285ba745f2d12c0ff23b`.
+- PWA 캐시: `zzc-v0.14.4`.
 
 ## Next
 

@@ -2,15 +2,15 @@
 
 ## 현재 상태
 
-- 운영 버전: 0.25.1.
+- 운영 버전: 0.25.2.
 - 기존 이름: 러닝콜.
 - 역할: 걷기·산책·러닝·등산·자전거의 야외활동 컨디션과 추천 시간 제공.
 - 목표 저장소: `robom-labs/outbom`.
 - 공식 배포: https://robom-labs.github.io/outbom/.
 - API·기존 PWA 호환 배포: https://outbom.robom.kr.
 - 호환 배포: https://runningcall.vercel.app.
-- 운영 main: `0addaa70cd5fa8e197682c6e43b28962ba620f65`.
-- PWA 캐시: `outbom-v0.25.1`.
+- 운영 main: `15f318a6d9622aca2da81206dc0917a4856bcdde`.
+- PWA 캐시: `outbom-v0.25.2`.
 
 ## Next
 
