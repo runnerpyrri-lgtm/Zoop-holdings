@@ -136,7 +136,7 @@ export const generatedAppMeta = [
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
     "lastVerifiedAt": "2026-07-17T07:00:00+09:00",
-    "lastDeployedSha": "5a3551e8b7751bc4680a8181041b2cdb6945f7e1",
+    "lastDeployedSha": "faf1b94818c9044a2d2c1cac89540e45396edc69",
     "lastDataSyncAt": "2026-07-16T15:00:00+09:00",
     "freshnessStatus": "last-known-good"
   }
