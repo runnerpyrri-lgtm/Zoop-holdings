@@ -51,9 +51,9 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/homebom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-17T19:56:38+09:00",
-    "lastDeployedSha": "a026f19037a639accd7d5ec6ad1330ada3e2754f",
-    "lastDataSyncAt": "2026-07-16T13:42:23+09:00",
+    "lastVerifiedAt": "2026-07-17T22:12:00+09:00",
+    "lastDeployedSha": "ea5a9ca366e6d0c48c2e6494fd286825ab4e65bf",
+    "lastDataSyncAt": "2026-07-17T21:05:01+09:00",
     "freshnessStatus": "runtime"
   },
   {
