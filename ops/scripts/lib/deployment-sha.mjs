@@ -16,6 +16,7 @@ export function siteDeploySha(root) {
     return execFileSync("git", ["log", "-1", "--format=%H", "--", ...SITE_DEPLOY_PATHS], {
       cwd: root,
       encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
     }).trim();
   } catch {
     return "";

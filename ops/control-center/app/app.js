@@ -195,6 +195,7 @@ $("#sideNav").innerHTML=navMarkup();
 $("#menuBtn").addEventListener("click",openMenu);$("#moreBtn").addEventListener("click",openMenu);$("#menuCloseBtn").addEventListener("click",closeMenu);$("#drawerScrim").addEventListener("click",closeMenu);
 $("#refreshBtn").addEventListener("click",load);
 $("#navSearch").addEventListener("input",e=>{const q=e.target.value.trim().toLowerCase();$$('[data-search]').forEach(x=>x.hidden=q&&!x.dataset.search.toLowerCase().includes(q));$$('.nav-group').forEach(g=>g.hidden=q&&![...g.querySelectorAll('[data-search]')].some(x=>!x.hidden));});
+$$('[data-dialog-close]').forEach(button=>button.addEventListener("click",()=>{const dialog=document.getElementById(button.dataset.dialogClose);if(dialog?.open)dialog.close("cancel");}));
 $("#recordForm").addEventListener("submit",e=>{if(e.submitter?.value==="cancel")return;e.preventDefault();saveRecord(e.currentTarget).catch(err=>showToast(err.message,"bad"));});
 
 const sig=$("#signaturePad"),sctx=sig.getContext("2d");let drawing=false,signed=false;

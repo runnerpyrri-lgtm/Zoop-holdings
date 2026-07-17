@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { extname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import {
   CompanyStoreError,
   createCompanyStore,
@@ -33,13 +33,16 @@ class HttpError extends Error {
   }
 }
 
-function buildSnapshot() {
-  const result = spawnSync(process.execPath, [join(REPO_ROOT, "scripts/control-center/build-snapshot.mjs")], {
-    encoding: "utf8",
+function buildSnapshotInBackground() {
+  const child = spawn(process.execPath, [join(REPO_ROOT, "scripts/control-center/build-snapshot.mjs")], {
     cwd: REPO_ROOT,
+    stdio: "inherit",
   });
-  if (result.stdout) process.stdout.write(result.stdout);
-  if (result.status !== 0 && result.stderr) process.stderr.write(result.stderr);
+  child.on("error", (error) => console.error("[robom-hq] 스냅샷 갱신 시작 실패", error));
+  child.on("exit", (code) => {
+    if (code !== 0) console.error(`[robom-hq] 스냅샷 갱신 실패 (${code})`);
+  });
+  child.unref();
 }
 
 function isLocalHostHeader(host = "") {
@@ -249,10 +252,6 @@ export function createControlCenterServer({
 
 export async function startControlCenter({ port = DEFAULT_PORT, openBrowser = true, refreshSnapshot = true } = {}) {
   if (!Number.isSafeInteger(port) || port < 0 || port > 65_535) throw new TypeError("ROBOM_HQ_PORT가 올바르지 않습니다.");
-  if (refreshSnapshot) {
-    console.log("[robom-hq] 스냅샷 생성 중...");
-    buildSnapshot();
-  }
   const server = createControlCenterServer();
   await new Promise((resolveListen, rejectListen) => {
     server.once("error", rejectListen);
@@ -265,6 +264,10 @@ export async function startControlCenter({ port = DEFAULT_PORT, openBrowser = tr
   const link = `http://${LOCAL_HOST}:${actualPort}/`;
   const officeLink = `${link}office.html`;
   console.log(`\n  로봄 본부 ROBOM Company OS 실행됨\n  → 경영 OS: ${link}\n  → 6층 오피스: ${officeLink}\n  (종료: Ctrl+C)\n`);
+  if (refreshSnapshot) {
+    console.log("[robom-hq] 기존 화면을 먼저 열고 스냅샷은 백그라운드에서 갱신합니다.");
+    buildSnapshotInBackground();
+  }
   if (openBrowser) {
     const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "cmd" : "xdg-open";
     const args = process.platform === "win32" ? ["/c", "start", "", link] : [link];
@@ -275,7 +278,7 @@ export async function startControlCenter({ port = DEFAULT_PORT, openBrowser = tr
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (isMain) {
-  startControlCenter().catch((error) => {
+  startControlCenter({ openBrowser: process.env.ROBOM_HQ_OPEN_BROWSER !== "0" }).catch((error) => {
     console.error("[robom-hq] 시작 실패", error);
     process.exitCode = 1;
   });

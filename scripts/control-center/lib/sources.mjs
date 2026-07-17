@@ -1,10 +1,12 @@
 // 로봄 본부(ROBOM Control Center) 데이터 수집 공용 라이브러리.
 // 외부 유료 API·상시 서버 없이, 저장소 파일 + git + GitHub 무료 REST만 읽는다(읽기 전용).
 import { readFileSync, existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
-export const REPO_ROOT = join(new URL("../../..", import.meta.url).pathname);
+export const repoRootFromModuleUrl = (moduleUrl) => resolve(dirname(fileURLToPath(moduleUrl)), "../../..");
+export const REPO_ROOT = repoRootFromModuleUrl(import.meta.url);
 
 export function readText(path) {
   try { return readFileSync(path, "utf8"); } catch { return null; }

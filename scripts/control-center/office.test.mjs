@@ -105,8 +105,12 @@ test("문은 방 경계에 있고 고체 비품은 방 안에 배치된다", () 
   }
 });
 
-test("업무 연출 없이 상호작용·모바일·접근성 계약을 제공한다", () => {
+test("기본 자동 업무 연출 없이 명시적인 전원 시연과 상호작용 계약을 제공한다", () => {
   assert.doesNotMatch(officeJs, /Math\.random\(\).*work/);
+  assert.match(officeHtml, /id="demoBtn"/);
+  assert.match(officeHtml, /aria-pressed="false">전원 업무 시연/);
+  assert.match(officeJs, /function setDemoMode/);
+  assert.match(officeJs, /실제 실행 기록이 아닌 화면 연출/);
   assert.match(officeJs, /screenToTile/);
   assert.match(officeJs, /pointers\.size===2/);
   assert.match(officeJs, /prefers-reduced-motion/);
