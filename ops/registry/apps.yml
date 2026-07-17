@@ -56,9 +56,9 @@ apps:
     stable_install_url: https://robom.kr/get/homebom
     mobile_status: pwa
     family_spec_version: 1.0.0
-    last_verified_at: "2026-07-17T19:56:38+09:00"
-    last_deployed_sha: a026f19037a639accd7d5ec6ad1330ada3e2754f
-    last_data_sync_at: "2026-07-16T13:42:23+09:00"
+    last_verified_at: "2026-07-17T22:12:00+09:00"
+    last_deployed_sha: ea5a9ca366e6d0c48c2e6494fd286825ab4e65bf
+    last_data_sync_at: "2026-07-17T21:05:01+09:00"
     freshness_status: runtime
     freshness_slo_hours: 48
     # 시간별 실공고 갱신 파이프라인의 missed-run heartbeat — watchdog이 x-verified-at 나이를 검사한다.
