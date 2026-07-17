@@ -5,6 +5,9 @@ export const SITE_DEPLOY_PATHS = [
   "site",
   "ops/registry/apps.yml",
   "ops/family",
+  "ops/scripts/check-app-registry.mjs",
+  "ops/scripts/lib",
+  "ops/scripts/family",
   ".github/workflows/deploy-site-pages.yml",
 ];
 
