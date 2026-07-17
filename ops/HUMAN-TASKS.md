@@ -7,7 +7,7 @@
 - [ ] Apple Developer Program 계약과 다섯 iOS Bundle ID 등록.
 - [ ] Google Play Console 계약과 다섯 Android App ID 등록.
 - [ ] 실제 signing fingerprint·Apple Team ID를 제공한 뒤 App Links·Universal Links 정본 파일 활성화.
-- [ ] 다섯 앱의 Data Safety·App Privacy·심사 메모를 법률 검토 후 제출.
+- [ ] registry 등록 앱의 Data Safety·App Privacy·심사 메모를 법률 검토 후 제출.
 
 ## 계정·분석 외부 인프라
 

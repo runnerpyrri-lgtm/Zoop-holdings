@@ -107,7 +107,7 @@ async function collectSurfaceText(app) {
   return { html, combined: parts.join("\n"), assetCount: seen.size };
 }
 
-async function inspectApp(app, now) {
+export async function inspectApp(app, now) {
   const errors = [];
   const warnings = [];
   let surface;

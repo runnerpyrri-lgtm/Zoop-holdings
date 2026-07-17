@@ -1,4 +1,4 @@
-// registry와 분리해 관리하는 다섯 앱의 고유 역할·마케팅 문구·대표 지표다.
+// registry와 분리해 관리하는 앱별 고유 역할·마케팅 문구·대표 지표다.
 export const appCopy = [
   {
     id: "outbom",

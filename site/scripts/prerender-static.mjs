@@ -6,26 +6,14 @@ import { resolve } from "node:path";
 
 const root = new URL("..", import.meta.url);
 const staticDir = resolve(root.pathname, "dist", "static");
+const appIds = JSON.parse(await readFile(new URL("../public/family/apps.json", import.meta.url), "utf8")).apps.map((app) => app.id);
 
 const routes = [
   "/",
-  "/apps/outbom",
-  "/apps/homebom",
-  "/apps/runningbom",
-  "/apps/calendarbom",
-  "/apps/certbom",
-  "/get/outbom",
-  "/get/homebom",
-  "/get/runningbom",
-  "/get/calendarbom",
-  "/get/certbom",
+  ...appIds.flatMap((id) => [`/apps/${id}`, `/get/${id}`]),
   "/support",
   "/privacy",
-  "/privacy/outbom",
-  "/privacy/homebom",
-  "/privacy/runningbom",
-  "/privacy/calendarbom",
-  "/privacy/certbom",
+  ...appIds.map((id) => `/privacy/${id}`),
   "/terms",
   "/licenses",
   "/open-source",

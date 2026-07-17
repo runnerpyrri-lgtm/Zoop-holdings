@@ -25,7 +25,7 @@
       "mobileStatus": "pwa",
       "familySpecVersion": "1.0.0",
       "lastVerifiedAt": "2026-07-17T07:00:00+09:00",
-      "lastDeployedSha": "7e0b15fe73ecbc913cd9446931a02cdaa6661e57",
+      "lastDeployedSha": "15f318a6d9622aca2da81206dc0917a4856bcdde",
       "lastDataSyncAt": "2026-07-16T13:42:23+09:00",
       "freshnessStatus": "runtime"
     },
@@ -66,7 +66,7 @@
       "dataVersion": "2026.07.16-race-data-11",
       "webUrl": "https://robom-labs.github.io/runningbom/",
       "healthcheckUrl": "https://robom-labs.github.io/runningbom/",
-      "deployProvider": "github-pages+vercel",
+      "deployProvider": "github-pages",
       "basePath": "/runningbom/",
       "privacyUrl": "https://robom.kr/privacy/runningbom",
       "supportUrl": "https://robom.kr/support",
@@ -109,7 +109,7 @@
       "mobileStatus": "pwa",
       "familySpecVersion": "1.0.0",
       "lastVerifiedAt": "2026-07-17T07:14:00+09:00",
-      "lastDeployedSha": "96a10b83d4143d93d21e91eeda28fd934d6f6fa3",
+      "lastDeployedSha": "431e80b0355dd8666fd8bd35d85c2e13f672ee34",
       "lastDataSyncAt": "2026-07-16T13:42:23+09:00",
       "freshnessStatus": "local-only"
     },

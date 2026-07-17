@@ -2,6 +2,7 @@
 
 ## 현재 상태
 
+- 2026-07-17: 로봄 웹 2.1.7 — Company OS 1.2.0 정본·호환성·CI 검사를 도입하고 앱 수 고정값과 mutable Action 참조를 제거했다. 내부 관제가 본사와 registry 앱의 canonical Production 버전·build marker를 함께 검증하도록 수정했다.
 - 2026-07-16: 로봄 웹 2.1.4 — 1회차 전수 감사에서 모바일(≤760px) 설치 그리드를 압축 행 5개로 재배치해 390×844·412×915·430×932 첫 viewport에 다섯 앱이 전부 노출되도록 수정(이전에는 자격증봄이 스크롤 전 완전 미노출). E2E에 모바일 fold 검증 추가. 360×800은 다섯째 카드 상단 노출, 375×667 이하는 4카드+짧은 스크롤(물리 한계, 정직 기록). robom.kr Sites 재배포는 Sites credential 보유 환경(Codex/소유자) 단계.
 - 2026-07-16: 로봄 웹 2.1.3에서 자격증봄 0.6.2 정본과 data version·배포 SHA·freshness SLO를 동기화하고, 다섯 앱 운영 URL·PWA·build marker와 자격증봄 source heartbeat를 하루 두 번 감시하는 watchdog을 추가했다.
 - 2026-07-16: 로봄 웹 2.1.2에서 다섯 앱 설치 허브, 안정 QR, 단일 registry 생성물, 패밀리 1.0.0 계약, PWA 업데이트와 모바일 WCAG A/AA 검사를 운영 release gate에 반영했다.

@@ -1,4 +1,4 @@
-// 로봄의 다섯 앱을 하나의 제품 문법으로 소개하고 안정 경로로 연결하는 공식 패밀리 허브다.
+// 로봄의 registry 앱을 하나의 제품 문법으로 소개하고 안정 경로로 연결하는 공식 패밀리 허브다.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppGlyph, FamilyFooter, MobileNav, SiteHeader, Wordmark } from "./components";
@@ -34,9 +34,9 @@ export default function Home() {
           <div className="hero-intro">
             <p className="eyebrow"><span aria-hidden="true" /> ROBOM FAMILY</p>
             <h1 id="hero-title">오늘 필요한 앱을 고르고,<br /><em>휴대폰에서 바로 쓰세요.</em></h1>
-            <p className="hero-lead">날씨·청약·러닝 대회·가족 일정·자격증 시험에서 지금 해야 할 행동을 다섯 개의 독립 앱이 또렷하게 알려드립니다.</p>
+            <p className="hero-lead">날씨·청약·러닝 대회·가족 일정·자격증 시험에서 지금 해야 할 행동을 {familyApps.length}개의 독립 앱이 또렷하게 알려드립니다.</p>
           </div>
-          <div className="quick-install-grid" aria-label="로봄 다섯 앱 설치 선택">
+          <div className="quick-install-grid" aria-label={`로봄 ${familyApps.length}개 앱 설치 선택`}>
             {familyApps.map((app) => (
               <article className={`quick-install-card ${app.tone}`} key={app.id}>
                 <div className="quick-app-name"><AppGlyph app={app} /><Wordmark app={app} /></div>
@@ -45,13 +45,13 @@ export default function Home() {
               </article>
             ))}
           </div>
-          <p className="trust-copy">다섯 앱 모두 운영 중이며, 설치 QR은 바뀌지 않는 robom.kr/get 주소를 사용합니다. 스토어 출시 전에는 PWA 설치와 웹 사용을 안내합니다.</p>
+          <p className="trust-copy">등록된 {familyApps.length}개 앱 모두 운영 중이며, 설치 QR은 바뀌지 않는 robom.kr/get 주소를 사용합니다. 스토어 출시 전에는 PWA 설치와 웹 사용을 안내합니다.</p>
         </section>
 
         <section className="apps-section" id="apps" aria-labelledby="apps-title">
           <div className="section-heading">
-            <div><p className="eyebrow"><span aria-hidden="true" /> FIVE APPS, ONE FAMILY</p><h2 id="apps-title">마음은 하나로,<br />지키는 순간은 저마다 또렷하게.</h2></div>
-            <p>다섯 앱은 같은 마음과 같은 약속으로 만들어졌습니다. 하늘과 기회, 출발선과 가족 일정, 그리고 시험 준비를 각자의 방식으로 지킵니다.</p>
+            <div><p className="eyebrow"><span aria-hidden="true" /> {familyApps.length} APPS, ONE FAMILY</p><h2 id="apps-title">마음은 하나로,<br />지키는 순간은 저마다 또렷하게.</h2></div>
+            <p>등록된 모든 앱은 같은 마음과 같은 약속으로 만들어졌습니다. 하늘과 기회, 출발선과 가족 일정, 그리고 시험 준비를 각자의 방식으로 지킵니다.</p>
           </div>
           <div className="app-card-grid">
             {familyApps.map((app) => (

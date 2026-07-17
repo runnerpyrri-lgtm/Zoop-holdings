@@ -5,6 +5,23 @@
 
 ## [Unreleased]
 
+## [2.1.7] - 2026-07-17
+
+### Added
+
+- Company OS 1.2.0 정본·버전·호환성 계약과 CI 무결성 검사를 추가했다.
+- 본사와 registry 앱의 실제 Production 버전·build marker를 함께 판정하는 내부 관제 검사를 추가했다.
+
+### Changed
+
+- registry와 홈페이지·프리렌더·회귀 검사의 앱 수 고정값을 제거하고 등록부 기준 동적 처리로 전환했다.
+- 중앙 GitHub Actions의 변경 가능한 major tag를 검증한 commit SHA로 고정했다.
+- 야외봄·캘린더봄 canonical Pages 배포 SHA와 러닝봄 canonical provider를 실제 운영 상태에 맞췄다.
+
+### Fixed
+
+- 내부 관제가 `web_url`과 `deploy_provider`를 잘못 읽어 URL·배포 대상이 비는 문제와 중앙 사이트 장애를 제외한 채 녹색으로 표시할 수 있던 문제를 수정했다.
+
 ## [2.1.5] - 2026-07-17
 
 ### Fixed

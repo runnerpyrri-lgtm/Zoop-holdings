@@ -3,8 +3,9 @@ import { readRegistry, validateRegistryShape } from "./lib/registry.mjs";
 
 const apps = await readRegistry();
 const errors = validateRegistryShape(apps);
+const localOnly = process.argv.includes("--local");
 
-await Promise.all(apps.map(async (app) => {
+if (!localOnly) await Promise.all(apps.map(async (app) => {
   try {
     const sourceUrl = new URL(app.version_source);
     sourceUrl.searchParams.set("registry-check", Date.now().toString());
@@ -24,4 +25,5 @@ if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
 }
+console.log(`${apps.length} apps · ${localOnly ? "local contract" : "remote version"} PASS`);
 console.log(apps.map((app) => `${app.id}=${app.version} · ${app.stable_install_url}`).join("\n"));

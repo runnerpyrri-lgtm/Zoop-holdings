@@ -1,4 +1,4 @@
-# 로봄 다섯 앱의 버전·운영 URL·설치 목적지·스토어 상태를 관리하는 단일 정본이다.
+# 로봄 패밀리 앱의 버전·운영 URL·설치 목적지·스토어 상태를 동적으로 관리하는 단일 정본이다.
 
 apps:
   - id: outbom
@@ -25,7 +25,7 @@ apps:
     mobile_status: pwa
     family_spec_version: 1.0.0
     last_verified_at: "2026-07-17T07:00:00+09:00"
-    last_deployed_sha: 7e0b15fe73ecbc913cd9446931a02cdaa6661e57
+    last_deployed_sha: 15f318a6d9622aca2da81206dc0917a4856bcdde
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: runtime
     freshness_slo_hours: 48
@@ -77,7 +77,7 @@ apps:
     version_source: https://raw.githubusercontent.com/robom-labs/runningbom/main/package.json
     web_url: https://robom-labs.github.io/runningbom/
     healthcheck_url: https://robom-labs.github.io/runningbom/
-    deploy_provider: github-pages+vercel
+    deploy_provider: github-pages
     base_path: /runningbom/
     privacy_url: https://robom.kr/privacy/runningbom
     support_url: https://robom.kr/support
@@ -124,7 +124,7 @@ apps:
     mobile_status: pwa
     family_spec_version: 1.0.0
     last_verified_at: "2026-07-17T07:14:00+09:00"
-    last_deployed_sha: 96a10b83d4143d93d21e91eeda28fd934d6f6fa3
+    last_deployed_sha: 431e80b0355dd8666fd8bd35d85c2e13f672ee34
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: local-only
     freshness_slo_hours: 720

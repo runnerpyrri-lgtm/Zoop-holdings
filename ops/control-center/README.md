@@ -40,7 +40,7 @@ node scripts/control-center/build-snapshot.mjs   # ops/control-center/snapshots/
 
 ## 화면
 
-오늘의 로봄(회사 신호등·핵심 지표·진행 작업) · 조직도 · 직원 상황실(상태·타임라인) · 앱 관제(5앱 건강) · 승인함(사장 결정만) · 활동 로그 · 연결 상태.
+오늘의 로봄(회사 신호등·핵심 지표·진행 작업) · 조직도 · 직원 상황실(상태·타임라인) · 본사와 registry 앱의 Production 관제 · 승인함(사장 결정만) · 활동 로그 · 연결 상태.
 
 ## 안전 원칙 (Phase 1)
 

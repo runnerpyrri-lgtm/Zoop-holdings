@@ -1,0 +1,25 @@
+# Company OS 정본이 현재 로봄 허브와 호환되는 조건을 기계 검증한다.
+schema_version: 1
+prompt_version: 1.2.0
+registry_mode: dynamic
+authority_mode: bounded-by-explicit-request-safety-and-repository-rules
+read_only_mode: explicit-analysis-review-or-check
+deployment_mode: directive-and-repository-protocol
+github_action_refs: immutable-commit-sha
+canonical_master: ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md
+canonical_version: ops/company-os/VERSION
+canonical_compatibility: ops/company-os/COMPATIBILITY.yml
+registry_path: ops/registry/apps.yml
+required_protocols:
+  - AGENTS.md
+  - CLAUDE.md
+  - ops/ai-meetings/CODEX-HUB.md
+  - ops/ai-meetings/PROTOCOL.md
+  - ops/ai-meetings/COMPANY-MODE.md
+  - ops/ai-meetings/BOOTSTRAP-CODEX.md
+final_states:
+  - PASS
+  - FAIL
+  - BLOCKED_EXTERNAL
+  - BLOCKED_CEO
+  - NOT_APPLICABLE

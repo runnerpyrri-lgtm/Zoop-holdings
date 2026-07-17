@@ -1,8 +1,6 @@
 // 로봄 registry의 평면 앱 레코드를 외부 의존성 없이 안전하게 읽고 검증한다.
 import { readFile } from "node:fs/promises";
 
-export const APP_IDS = ["outbom", "homebom", "runningbom", "calendarbom", "certbom"];
-
 function stripInlineComment(value) {
   const trimmed = value.trim();
   if (!trimmed || trimmed.startsWith('"') || trimmed.startsWith("'")) return trimmed;
@@ -49,9 +47,10 @@ export function validateRegistryShape(apps) {
   ];
   const errors = [];
   const ids = apps.map((app) => app.id);
+  if (apps.length === 0) errors.push("registry에는 앱이 하나 이상 있어야 합니다.");
   if (new Set(ids).size !== ids.length) errors.push("registry 앱 ID가 중복됩니다.");
-  if (JSON.stringify(ids) !== JSON.stringify(APP_IDS)) errors.push(`registry 앱 순서가 정본과 다릅니다: ${ids.join(", ")}`);
   for (const app of apps) {
+    if (!/^[a-z][a-z0-9-]*$/.test(app.id ?? "")) errors.push(`${app.id || "unknown"}: 앱 ID 형식이 잘못됐습니다.`);
     for (const field of required) if (!(field in app)) errors.push(`${app.id}: ${field} 필드가 없습니다.`);
     if (!app.repo?.startsWith("robom-labs/")) errors.push(`${app.id}: repo는 robom-labs 조직이어야 합니다.`);
     if (app.stable_install_url !== `https://robom.kr/get/${app.id}`) errors.push(`${app.id}: 안정 설치 URL이 정본 패턴과 다릅니다.`);

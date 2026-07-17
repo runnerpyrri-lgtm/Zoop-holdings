@@ -8,7 +8,7 @@
 - `로봄 02 | 총괄 부서 2팀`
 - `로봄 03 | 총괄 부서 3팀`
 
-세 작업에 루트 `AGENTS.md`, `robom-company-hub` 스킬, 휴대 사용자 지침, 운영 프로토콜, 회사 모드, 각 방 프롬프트, 앱 등록부, 비공개 회의록 연결을 적용하고 사이드바에 고정한다.
+세 작업에 루트 `AGENTS.md`, Company OS 정본·버전·호환성, `robom-company-hub` 스킬, 휴대 사용자 지침, 운영 프로토콜, 회사 모드, 각 방 프롬프트, 앱 등록부, 비공개 회의록 연결을 적용하고 사이드바에 고정한다.
 
 ## 회사 PC 복붙용 실행 프롬프트
 
@@ -19,7 +19,7 @@
 
 먼저 `$skill-installer`를 사용해 공개 GitHub `robom-labs/robom`의 `main`에 있는 `.agents/skills/robom-company-hub`를 사용자 스킬로 설치해. 이미 같은 이름의 스킬이 있으면 삭제하거나 덮어쓰지 말고 GitHub `main`의 최신 스킬을 이번 실행에 직접 적용해.
 
-설치 여부와 관계없이 같은 turn에서 GitHub `robom-labs/robom`의 `AGENTS.md`, `ops/ai-meetings/CODEX-HUB.md`, `.agents/skills/robom-company-hub/SKILL.md`, `.agents/skills/robom-company-hub/references/portable-user-guidance.md`, `ops/ai-meetings/BOOTSTRAP-CODEX.md`를 완독하고 부트스트랩 절차를 즉시 실행해.
+설치 여부와 관계없이 같은 turn에서 GitHub `robom-labs/robom`의 `AGENTS.md`, `ops/ai-meetings/CODEX-HUB.md`, `ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md`, `ops/company-os/VERSION`, `ops/company-os/COMPATIBILITY.yml`, `.agents/skills/robom-company-hub/SKILL.md`, `.agents/skills/robom-company-hub/references/portable-user-guidance.md`, `ops/ai-meetings/BOOTSTRAP-CODEX.md`를 완독하고 부트스트랩 절차를 즉시 실행해.
 
 이 요청은 현재 Codex 호스트에서 기존 로봄 01·02·03 작업 검색, 보관 해제, 없는 작업 생성, 정확한 제목 설정, 각 팀 전체 지침과 비공개 회의록 초기화, 세 작업 고정, 마지막에 02팀 작업 열기를 명시적으로 승인한다.
 
@@ -45,6 +45,9 @@
 1. GitHub `robom-labs/robom`의 `main`에서 다음 파일을 완독한다.
    - `AGENTS.md`
    - `ops/ai-meetings/CODEX-HUB.md`
+   - `ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md`
+   - `ops/company-os/VERSION`
+   - `ops/company-os/COMPATIBILITY.yml`
    - `.agents/skills/robom-company-hub/SKILL.md`
    - `.agents/skills/robom-company-hub/references/portable-user-guidance.md`
    - `ops/ai-meetings/PROTOCOL.md`

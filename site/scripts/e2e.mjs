@@ -12,6 +12,7 @@ const outputDir = fileURLToPath(new URL(`../screenshots/family-final/${browserNa
 const externalBase = process.env.BASE_URL;
 const baseUrl = externalBase || "http://127.0.0.1:4193";
 const axeSource = await readFile(new URL("../node_modules/axe-core/axe.min.js", import.meta.url), "utf8");
+const familyAppCount = JSON.parse(await readFile(new URL("../public/family/apps.json", import.meta.url), "utf8")).apps.length;
 const viewports = [
   [320, 568], [360, 800], [375, 667], [390, 844], [412, 915], [430, 932], [768, 1024], [1024, 768], [1440, 1000],
 ];
@@ -58,7 +59,7 @@ try {
     });
     await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
     await page.locator(".quick-install-card").first().waitFor();
-    assert.equal(await page.locator(".quick-install-card").count(), 5, `${width}: 앱 카드 수`);
+    assert.equal(await page.locator(".quick-install-card").count(), familyAppCount, `${width}: 앱 카드 수`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), true, `${width}: 가로 스크롤`);
     const installLinks = page.locator(".quick-install-card > div:last-child a:first-child");
     for (let index = 0; index < await installLinks.count(); index += 1) {
@@ -69,13 +70,13 @@ try {
     assert.ok(firstCta && firstCta.y < Math.max(height, 620), `${width}: 첫 설치 CTA가 첫 화면 가까이에 있어야 함`);
     if (width >= 1024) {
       const lastCta = await installLinks.last().boundingBox();
-      assert.ok(lastCta && lastCta.y + lastCta.height <= height + 20, `${width}: 데스크톱 첫 viewport에 다섯 앱 행동 노출`);
+      assert.ok(lastCta && lastCta.y + lastCta.height <= height + 20, `${width}: 데스크톱 첫 viewport에 모든 앱 행동 노출`);
     }
     const lastCard = await page.locator(".quick-install-card").last().boundingBox();
     if (width >= 390 && width <= 430) {
-      assert.ok(lastCard && lastCard.y + lastCard.height <= height, `${width}: 모바일 첫 viewport에 다섯 앱 카드 전부 노출`);
+      assert.ok(lastCard && lastCard.y + lastCard.height <= height, `${width}: 모바일 첫 viewport에 모든 앱 카드 전부 노출`);
     } else if (width === 360) {
-      assert.ok(lastCard && lastCard.y <= height - 40, `${width}: 다섯째 앱 카드가 첫 화면에 걸쳐 보여야 함`);
+      assert.ok(lastCard && lastCard.y <= height - 40, `${width}: 마지막 앱 카드가 첫 화면에 걸쳐 보여야 함`);
     }
     const navLinks = page.locator(".mobile-tabbar a:visible");
     for (let index = 0; index < await navLinks.count(); index += 1) {

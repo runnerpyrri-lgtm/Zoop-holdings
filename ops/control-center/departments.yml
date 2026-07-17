@@ -16,7 +16,7 @@ departments:
     name: 포트폴리오 PM
     group: exec
     lead: strategist
-    duty: 다섯 앱 우선순위·집중/안정 구분·중복 조정·월간 로드맵
+    duty: 등록 앱 우선순위·집중/안정 구분·중복 조정·월간 로드맵
 
   # B. 제품 부문
   - id: hq-web

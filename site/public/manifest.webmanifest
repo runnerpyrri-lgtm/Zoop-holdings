@@ -17,7 +17,7 @@
     { "src": "./icons/robom-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [
-    { "src": "./og.png", "sizes": "1200x630", "type": "image/png", "form_factor": "wide", "label": "로봄 다섯 앱 설치 허브" }
+    { "src": "./og.png", "sizes": "1200x630", "type": "image/png", "form_factor": "wide", "label": "로봄 패밀리 앱 설치 허브" }
   ],
   "shortcuts": [
     { "name": "야외봄 설치", "short_name": "야외봄", "url": "./get/outbom", "icons": [{ "src": "./icons/outbom.svg", "sizes": "any", "type": "image/svg+xml" }] },

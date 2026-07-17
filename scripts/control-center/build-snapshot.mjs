@@ -3,19 +3,15 @@
 import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { REPO_ROOT, readApps, readState, gitInfo, ghOpenPRs, ghRecentRuns, readDepartments, readAgents, parseYamlList, readText } from "./lib/sources.mjs";
+import { controlCenterFields } from "./lib/sources.mjs";
 import { readEvents, deriveRuns } from "./lib/events.mjs";
+import { inspectApp } from "../../ops/scripts/family/operations-watchdog.mjs";
 
 const NOW = process.env.ROBOM_HQ_NOW || new Date().toISOString();
 const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || null;
 
 // 로컬 클론 위치 후보 (있으면 git 정보 수집)
-const LOCAL_DIRS = {
-  robom: REPO_ROOT,
-  outbom: "/workspace/outbom",
-  homebom: "/workspace/homebom",
-  runningbom: "/workspace/runningbom",
-  certbom: "/workspace/certbom",
-};
+const localDir = (id) => id === "robom" ? REPO_ROOT : `/workspace/${id}`;
 
 function todayKst(iso) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date(iso));
@@ -31,9 +27,9 @@ function appHealth(ci) {
 async function collectApp(app) {
   const id = app.id;
   const state = readState(REPO_ROOT, id);
-  const git = gitInfo(LOCAL_DIRS[id]);
+  const git = gitInfo(localDir(id));
   let openPrs = null, ci = null, github = "not_connected";
-  if (app.repo && !app.repo.includes("calbom")) {
+  if (app.repo) {
     try {
       [openPrs, ci] = await Promise.all([ghOpenPRs(app.repo, TOKEN), ghRecentRuns(app.repo, TOKEN)]);
       github = "connected";
@@ -41,7 +37,12 @@ async function collectApp(app) {
       github = "error";
     }
   }
-  const health = app.id === "calbom" ? "planned" : appHealth(ci);
+  let production = null;
+  if (app.healthcheck_url && app.web_url && app.version_source) {
+    production = await inspectApp(app, new Date(NOW));
+  }
+  const health = production?.status === "PASS" ? "ok" : production?.status === "STALE" ? "warn" : production?.status === "FAIL" ? "down" : appHealth(ci);
+  const fields = controlCenterFields(app);
   const todayDeploys = (ci || []).filter((r) => /deploy/i.test(r.name) && todayKst(r.createdAt) === todayKst(NOW));
   const todayFails = (ci || []).filter((r) => r.conclusion === "failure" && todayKst(r.createdAt) === todayKst(NOW));
   return {
@@ -49,11 +50,11 @@ async function collectApp(app) {
     name: app.name,
     accent: app.accent || null,
     repo: app.repo || null,
-    url: app.url || app.current_url || null,
+    url: fields.url,
     version: app.version || state.version || null,
     registered: app.registered !== false,
     stack: app.stack || null,
-    deployTarget: app.deploy || null,
+    deployTarget: fields.deployTarget,
     role: app.marketing_tone || null,
     tracked: state.tracked === true,
     nextActions: state.next || [],
@@ -63,6 +64,7 @@ async function collectApp(app) {
     openPrs: openPrs || [],
     ci: ci || [],
     health,
+    production,
     todayDeploys: todayDeploys.length,
     todayFails: todayFails.length,
     note: app.note || null,
@@ -70,7 +72,24 @@ async function collectApp(app) {
 }
 
 async function main() {
-  const apps = readApps(REPO_ROOT);
+  const sitePackage = JSON.parse(readText(join(REPO_ROOT, "site/package.json")));
+  const centralGit = gitInfo(REPO_ROOT);
+  const apps = [{
+    id: "robom",
+    name: "로봄 본사",
+    repo: "robom-labs/robom",
+    version: sitePackage.version,
+    version_source: "https://raw.githubusercontent.com/robom-labs/robom/main/site/package.json",
+    web_url: "https://robom.kr/",
+    healthcheck_url: "https://robom.kr/",
+    deploy_provider: "openai-sites",
+    last_deployed_sha: centralGit.sha || "",
+    last_verified_at: NOW,
+    last_data_sync_at: NOW,
+    freshness_status: "runtime",
+    freshness_slo_hours: 48,
+    registered: true,
+  }, ...readApps(REPO_ROOT)];
   const appData = [];
   for (const app of apps) appData.push(await collectApp(app)); // 순차: rate limit 보호
 
@@ -87,7 +106,7 @@ async function main() {
   // 회사 요약(연출 없이 실데이터 집계)
   const workingStatuses = new Set(["assigned", "investigating", "implementing", "verifying", "fixing", "deploying", "working"]);
   const working = runs.filter((r) => workingStatuses.has(r.status));
-  const liveApps = appData.filter((a) => a.id !== "calbom");
+  const liveApps = appData.filter((a) => a.health !== "planned");
   const okCount = liveApps.filter((a) => a.health === "ok").length;
   const warnCount = liveApps.filter((a) => a.health === "warn" || a.health === "unknown" || a.health === "running").length;
   const downCount = liveApps.filter((a) => a.health === "down").length;
@@ -95,7 +114,7 @@ async function main() {
 
   const company = {
     trafficLight,
-    apps: { total: appData.length, live: liveApps.length, ok: okCount, warn: warnCount, down: downCount, planned: appData.filter((a) => a.id === "calbom").length },
+    apps: { total: appData.length, live: liveApps.length, ok: okCount, warn: warnCount, down: downCount, planned: appData.filter((a) => a.health === "planned").length },
     employees: { registered: agents.length, working: working.length },
     tasks: {
       investigating: runs.filter((r) => r.status === "investigating").length,
@@ -111,7 +130,7 @@ async function main() {
 
   const connections = {
     github: TOKEN ? "connected" : "not_connected(토큰 없음 · 로컬 git만)",
-    localGit: Object.entries(LOCAL_DIRS).filter(([, d]) => existsSync(join(d, ".git"))).map(([id]) => id),
+    localGit: apps.map((app) => app.id).filter((id) => existsSync(join(localDir(id), ".git"))),
     events: events.length > 0 ? "connected" : "no_events(아직 작업 이벤트 없음)",
     claudeCode: "adapter_pending(훅으로 emit-event 연결 시 활성)",
     codex: "adapter_pending",

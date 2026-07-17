@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | 로봄",
   },
   description:
-    "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하고 로봄의 다섯 앱으로 바로 이동하세요.",
+    "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하고 로봄 패밀리 앱으로 바로 이동하세요.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "로봄 | 날씨·청약·러닝·달력·자격증, 놓치기 전에",
-    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하고 로봄의 다섯 앱으로 바로 이동하세요.",
+    description: "날씨, 청약, 러닝 대회, 가족 일정, 자격증 시험 준비를 한곳에서 확인하고 로봄 패밀리 앱으로 바로 이동하세요.",
     siteName: "로봄",
     url: "https://robom.kr/",
     locale: "ko_KR",

@@ -2,6 +2,7 @@
 
 ## 운영 원칙
 
+- `ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md`, `ops/company-os/VERSION`, `ops/company-os/COMPATIBILITY.yml`을 전사 실행 계약으로 읽되, 명시적 사용자 요청·안전·저장소 규칙의 경계 안에서 적용합니다.
 - 하루에 앱 하나, 목표 하나를 기본 단위로 삼습니다.
 - 04~05 회의실과 그 밖의 일반 기여는 `main` 직접 push를 금지하고 PR에서 검증합니다.
 - 01~03 총괄팀의 실행형 요청(수정·구현·적용·업데이트·업그레이드·배포·논스톱)은 별도 작업 환경에서 검증한 뒤 `main`에 직접 반영하고 기존 배포 파이프라인·운영 검증까지 진행합니다. 세부 절차는 `ops/ai-meetings/COMPANY-MODE.md`·`PROTOCOL.md`를 따릅니다.

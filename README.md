@@ -12,7 +12,7 @@
 | 캘린더봄 | CalendarBom | 큰 달력과 가족 일정 알람 | `robom-labs/calendarbom` |
 | 자격증봄 | CertBom | 자격증 시험 탐색과 일정·준비물 안내 | `robom-labs/certbom` |
 
-다섯 앱은 모두 독립 저장소에서 개발·검증·배포합니다. 본사 저장소는 `ops/registry/apps.yml`과 `ops/family/`의 패밀리 규격, 설치 허브, 운영 상태만 관리합니다.
+`ops/registry/apps.yml`에 등록된 앱은 모두 독립 저장소에서 개발·검증·배포합니다. 본사 저장소는 동적 앱 등록부와 `ops/family/`의 패밀리 규격, 설치 허브, 운영 상태만 관리합니다.
 
 ## 이 저장소가 담당하는 것
 

@@ -5,10 +5,13 @@
 ## 자동 적용 순서
 
 1. `ops/ai-meetings/CODEX-HUB.md`에서 휴대 허브 전체 구성을 확인한다.
-2. 로봄 01·02·03, 총괄팀, 회사 모드, 새 PC 복원 요청이면 `.agents/skills/robom-company-hub/SKILL.md`를 적용한다.
-3. `README.md`, `ops/registry/apps.yml`, 필요한 `ops/state/*.md`에서 회사와 앱 상태를 확인한다.
-4. 회의 작업이면 `ops/ai-meetings/PROTOCOL.md`, `ops/ai-meetings/COMPANY-MODE.md`, 해당 방 프롬프트를 따른다.
-5. 홈페이지 작업이면 `site/README.md`와 `site/.openai/hosting.json`을 확인한다.
+2. `ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md`, `ops/company-os/VERSION`, `ops/company-os/COMPATIBILITY.yml`에서 전사 실행·승인·완료 계약을 확인한다.
+3. 로봄 01·02·03, 총괄팀, 회사 모드, 새 PC 복원 요청이면 `.agents/skills/robom-company-hub/SKILL.md`를 적용한다.
+4. `README.md`, `ops/registry/apps.yml`, 필요한 `ops/state/*.md`에서 회사와 앱 상태를 확인한다.
+5. 회의 작업이면 `ops/ai-meetings/PROTOCOL.md`, `ops/ai-meetings/COMPANY-MODE.md`, 해당 방 프롬프트를 따른다.
+6. 홈페이지 작업이면 `site/README.md`와 `site/.openai/hosting.json`을 확인한다.
+
+Company OS는 명시적 사용자 요청, 안전 정책, 더 가까운 저장소 규칙의 경계 안에서 적용한다. 분석·리뷰·점검만 요청한 경우에는 제품과 설정을 읽기 전용으로 유지한다.
 
 ## 저장소 경계
 
@@ -16,6 +19,7 @@
 - 야외봄 변경은 `robom-labs/outbom`에서 작업한다.
 - 청약봄 변경은 `robom-labs/homebom`에서 작업한다.
 - 러닝봄 변경은 `robom-labs/runningbom`에서 작업한다.
+- 캘린더봄 변경은 `robom-labs/calendarbom`에서 작업한다.
 - 자격증봄 변경은 `robom-labs/certbom`에서 작업한다.
 - `robom`에 앱 코드를 복사하거나 미러링하지 않는다.
 - 코드·설정·회의 기록은 GitHub를 정본으로 사용하고 영구 로컬 코드 폴더를 기준으로 삼지 않는다.

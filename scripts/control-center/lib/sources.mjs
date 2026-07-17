@@ -61,6 +61,13 @@ export function readApps(root = REPO_ROOT) {
   return all;
 }
 
+export function controlCenterFields(app) {
+  return {
+    url: app.web_url || app.url || app.current_url || null,
+    deployTarget: app.deploy_provider || app.deploy || null,
+  };
+}
+
 // ── ops/state/<id>.md 파서 (인수인계 장부) ──
 export function readState(root, id) {
   const text = readText(join(root, `ops/state/${id}.md`));

@@ -14,6 +14,7 @@ const defaults = [
   { id: "certbom", url: "https://certbom.vercel.app", expected: "자격증봄", nav: ".bottom-nav button:visible", settings: ".bottom-nav button:nth-of-type(5):visible", family: ".family-app-list a" }
 ];
 const surfaces = process.env.FAMILY_SURFACES_JSON ? JSON.parse(process.env.FAMILY_SURFACES_JSON) : defaults;
+const familyAppCount = JSON.parse(await readFile(new URL("../public/family/apps.json", import.meta.url), "utf8")).apps.length;
 const browserName = process.env.BROWSER === "webkit" ? "webkit" : "chromium";
 const browserType = browserName === "webkit" ? webkit : chromium;
 const viewports = [[320, 568], [360, 800], [375, 667], [390, 844], [412, 915], [430, 932], [768, 1024], [1024, 768], [1440, 1000]];
@@ -58,7 +59,7 @@ try {
       if (width === 390 && surface.settings && surface.family) {
         await page.locator(surface.settings).first().click();
         await page.locator(surface.family).first().waitFor({ state: "attached", timeout: 5_000 });
-        assert.equal(await page.locator(surface.family).count(), 5, `${surface.id}: 설정의 다섯 앱`);
+        assert.equal(await page.locator(surface.family).count(), familyAppCount, `${surface.id}: 설정의 패밀리 앱`);
       }
       assert.deepEqual(errors, [], `${surface.id} ${width}: console 오류`);
       results.push({ id: surface.id, width, height, ...(await page.evaluate(() => window.__familyVitals)) });

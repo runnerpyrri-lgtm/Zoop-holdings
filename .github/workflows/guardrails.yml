@@ -13,7 +13,10 @@ jobs:
   portfolio-structure:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
       - name: 본사에 앱 소스 사본이 없는지 확인
         run: |
           if [ -d apps ]; then
@@ -21,7 +24,11 @@ jobs:
             [ -z "$extra" ] || { echo "::error::robom에는 앱 소스 사본을 둘 수 없습니다. 발견: $extra"; exit 1; }
           fi
           test -f ops/registry/apps.yml || { echo "::error::앱 registry가 없습니다."; exit 1; }
-          ruby -e 'require "yaml"; data=YAML.load_file("ops/registry/apps.yml"); apps=data.fetch("apps"); abort "독립 앱 5개가 필요합니다" unless apps.size == 5; apps.each { |app| %w[id name repo version web_url stable_install_url test build].each { |key| abort "#{app["id"]}: #{key} 누락" unless app.key?(key) }; abort "조직 불일치: #{app["repo"]}" unless app["repo"].start_with?("robom-labs/") }; puts apps.map { |app| "#{app["name"]}=#{app["repo"]}" }.join("\n")'
+          node ops/scripts/check-app-registry.mjs --local
+      - name: Company OS와 동적 registry 회귀 검사
+        run: |
+          node --test ops/scripts/lib/company-os.test.mjs
+          node ops/scripts/check-company-os.mjs
 
   site:
     if: github.event_name == 'pull_request'
@@ -30,8 +37,8 @@ jobs:
       run:
         working-directory: site
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -48,13 +55,13 @@ jobs:
   version-single-source:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - run: bash ops/scripts/check-version-single-source.sh
 
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
       - name: 비밀정보 검사

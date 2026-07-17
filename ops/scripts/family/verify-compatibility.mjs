@@ -1,4 +1,4 @@
-// compatibility matrix가 registry의 다섯 앱과 현재 패밀리 규격을 모두 추적하는지 검사한다.
+// compatibility matrix가 registry의 모든 앱과 현재 패밀리 규격을 추적하는지 검사한다.
 import { readFile } from "node:fs/promises";
 import { readRegistry } from "../lib/registry.mjs";
 
