@@ -53,11 +53,36 @@ test("업무 상태는 구분 가능한 SD 표정 프리셋에 연결된다", ()
 });
 
 test("대기업형 오피스 필수 공간과 비품이 모두 존재한다", () => {
-  assert.equal(map.zones.length, 12);
+  assert.equal(map.zones.length, 24);
   const codes = new Set(map.zones.map((zone) => zone.code));
-  for (const code of ["BOARD ROOM", "ENGINEERING", "OPERATIONS", "DESIGN LAB", "RECEPTION", "NOC", "STORAGE"]) assert.ok(codes.has(code), code);
+  for (const code of ["CHAIRMAN OFFICE", "EXEC BOARDROOM", "ENGINEERING", "QA DEVICE LAB", "GRAND LOBBY", "DATA CENTER", "NOC", "BACKUP VAULT", "FACILITIES"]) assert.ok(codes.has(code), code);
   const props = new Set(map.zones.flatMap((zone) => zone.props.map((prop) => prop.type)));
   for (const type of ["projector", "projectorScreen", "whiteboard", "serverRack", "storageRack", "receptionDesk", "phoneBooth", "coffeeMachine"]) assert.ok(props.has(type), type);
+});
+
+test("각 층은 목적과 두 업무 축을 가지며 최상층 회장실은 가장 크다", () => {
+  for (const floor of map.floors) {
+    assert.ok(floor.headline);
+    assert.ok(floor.purpose);
+    assert.ok(floor.access);
+    assert.equal(floor.teams.length, 2);
+    assert.equal(floor.zones.length, 4);
+  }
+  const chairman = map.zones.find((zone) => zone.code === "CHAIRMAN OFFICE");
+  const ordinaryMax = Math.max(...map.zones.filter((zone) => zone.code !== "CHAIRMAN OFFICE").map((zone) => zone.w * zone.h));
+  assert.ok(chairman.w * chairman.h > ordinaryMax);
+});
+
+test("방문객은 층별 목적·담당·이동 경로를 가지고 1층을 가장 붐비게 한다", () => {
+  assert.ok(map.visitors.length >= 10);
+  assert.ok(map.visitors.filter((visitor) => visitor.floor === "1F").length >= 6);
+  for (const visitor of map.visitors) {
+    assert.ok(visitor.purpose);
+    assert.ok(visitor.host);
+    assert.ok(visitor.route.length >= 4);
+  }
+  assert.match(officeJs, /visitor:true,route:v\.route/);
+  assert.match(officeJs, /ch\.visitor/);
 });
 
 test("오피스는 경영부터 시스템까지 6개 층으로 탐색된다", () => {
@@ -91,5 +116,10 @@ test("업무 연출 없이 상호작용·모바일·접근성 계약을 제공�
   assert.match(officeJs, /blocked:"block"/);
   assert.match(officeJs, /!\["blocked","needs_check","approval_pending","deploying"\]\.includes\(r\.status\)/);
   assert.match(officeHtml, /aria-live="polite"/);
-  assert.match(officeHtml, /직원 작업 상세/);
+  assert.match(officeHtml, /직원과 공간 상세/);
+  assert.match(officeJs, /현재 업무/);
+  assert.match(officeJs, /function assignedTaskFor/);
+  assert.match(officeJs, /지시된 업무/);
+  assert.match(officeJs, /\/api\/company-state/);
+  assert.match(officeJs, /function renderZonePanel/);
 });

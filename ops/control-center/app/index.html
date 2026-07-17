@@ -27,15 +27,12 @@
 
       <aside class="sidebar" id="sidebar" aria-label="로봄 본부 메뉴">
         <div class="sidebar-head">
-          <span>회사 전체 메뉴</span>
+          <span>회장 업무 메뉴</span>
           <button class="icon-button mobile-only" id="menuCloseBtn" type="button" aria-label="메뉴 닫기">×</button>
         </div>
-        <label class="nav-search"><span aria-hidden="true">⌕</span><input id="navSearch" type="search" placeholder="메뉴·앱·직원 검색" autocomplete="off" /></label>
+        <label class="nav-search"><span aria-hidden="true">⌕</span><input id="navSearch" type="search" placeholder="메뉴 검색" autocomplete="off" /></label>
         <nav id="sideNav"></nav>
-        <div class="sidebar-foot">
-          <a class="office-link" href="./office.html"><span aria-hidden="true">🏢</span><span><b>오피스 게임</b><small>층별 회사 둘러보기</small></span></a>
-          <div class="sync-note" id="syncNote">마지막 동기화 확인 중</div>
-        </div>
+        <div class="sidebar-foot"><div class="sync-note" id="syncNote">마지막 동기화 확인 중</div></div>
       </aside>
 
       <main id="screen" class="screen" tabindex="-1" aria-live="polite">
@@ -46,7 +43,7 @@
         <button class="tab active" type="button" data-screen="chair"><span aria-hidden="true">⌂</span>오늘</button>
         <a class="tab" href="./office.html"><span aria-hidden="true">🏢</span>오피스</a>
         <button class="tab" type="button" data-screen="portfolio"><span aria-hidden="true">▦</span>앱</button>
-        <button class="tab" type="button" data-screen="approvals"><span aria-hidden="true">✓</span>결재</button>
+        <button class="tab" type="button" data-screen="tasks"><span aria-hidden="true">☷</span>업무</button>
         <button class="tab" type="button" id="moreBtn"><span aria-hidden="true">☰</span>전체</button>
       </nav>
     </div>
@@ -58,6 +55,7 @@
         <input type="hidden" name="collection" id="recordCollection" />
         <label>제목<input name="title" id="recordTitle" required maxlength="120" /></label>
         <label>관련 앱<select name="appId" id="recordApp"><option value="">회사 전체</option></select></label>
+        <label id="recordAssigneeWrap" hidden>담당 직원<select name="assignedTo" id="recordAssignee"><option value="">담당 미정</option></select></label>
         <label>내용<textarea name="body" id="recordBody" rows="5" maxlength="4000" placeholder="확인된 사실과 원하는 결과를 적어 주세요."></textarea></label>
         <label>우선순위<select name="priority"><option value="normal">보통</option><option value="high">중요</option><option value="urgent">긴급</option><option value="low">낮음</option></select></label>
         <div class="modal-actions"><button class="button ghost" value="cancel">취소</button><button class="button primary" id="recordSubmit" value="default">저장</button></div>
