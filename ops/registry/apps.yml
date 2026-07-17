@@ -57,7 +57,7 @@ apps:
     mobile_status: pwa
     family_spec_version: 1.0.0
     last_verified_at: "2026-07-17T19:56:38+09:00"
-    last_deployed_sha: fb9aa0a8cdce9cd1e613285ba745f2d12c0ff23b
+    last_deployed_sha: a026f19037a639accd7d5ec6ad1330ada3e2754f
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: runtime
     freshness_slo_hours: 48
