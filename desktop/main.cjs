@@ -40,10 +40,11 @@ function prepareDataDirs() {
   const snapDir = join(dataRoot, "snapshots");
   mkdirSync(runtimeDir, { recursive: true });
   mkdirSync(snapDir, { recursive: true });
-  // 첫 실행: 스냅샷이 아직 없으면 payload의 예시 스냅샷으로 화면을 먼저 연다(정직한 미리보기 표시).
+  // 예시 스냅샷은 payload 최신본으로 항상 새로 덮어쓴다(옛 버전의 5개 앱 예시가 남아 6개가 안 보이던 버그 방지).
+  // example.json은 사용자 데이터가 아니라 첫 화면 fallback이므로 덮어써도 안전하다.
   const example = join(payloadDir, "ops/control-center/snapshots/example.json");
   const target = join(snapDir, "example.json");
-  if (existsSync(example) && !existsSync(target)) copyFileSync(example, target);
+  if (existsSync(example)) { try { copyFileSync(example, target); } catch (e) { /* 읽기 전용 등 예외 무시 */ } }
   process.env.ROBOM_HQ_RUNTIME_DIR = runtimeDir;
   process.env.ROBOM_HQ_SNAP_DIR = snapDir;
   // 완전 자동: 서버가 codex-runner를 직접 실행·감시하게 한다(회장이 터미널을 열지 않아도 됨).
@@ -87,10 +88,10 @@ async function apiPost(path, body) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1320,
-    height: 880,
+    width: 1120,
+    height: 760,
     minWidth: 360,
-    minHeight: 600,
+    minHeight: 560,
     title: "ROBOM HQ",
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });

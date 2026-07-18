@@ -45,7 +45,8 @@ async function collectApp(app) {
   }
   let production = null;
   if (app.healthcheck_url && app.web_url && app.version_source) {
-    production = await inspectApp(app, new Date(NOW));
+    try { production = await inspectApp(app, new Date(NOW)); }
+    catch (e) { production = null; } // 운영 점검 실패가 앱 자체를 목록에서 떨어뜨리지 않게 한다
   }
   const health = production?.status === "PASS" ? "ok" : production?.status === "STALE" ? "warn" : production?.status === "FAIL" ? "down" : appHealth(ci);
   const fields = controlCenterFields(app);
@@ -98,7 +99,22 @@ async function main() {
     registered: true,
   }, ...readApps(REPO_ROOT)];
   const appData = [];
-  for (const app of apps) appData.push(await collectApp(app)); // 순차: rate limit 보호
+  // 순차 수집(rate limit 보호). 한 앱 수집이 실패해도 목록에서 빠지지 않도록 최소 항목으로 보존한다.
+  for (const app of apps) {
+    try {
+      appData.push(await collectApp(app));
+    } catch (error) {
+      console.error(`[robom-hq] ${app.id} 수집 실패 — 최소 항목으로 보존:`, error.message);
+      appData.push({
+        id: app.id, name: app.name, accent: app.accent || null, repo: app.repo || null,
+        url: app.web_url || app.url || null, version: app.version || null, registered: app.registered !== false,
+        stack: app.stack || null, deployTarget: app.deploy_provider || null, role: app.marketing_tone || null,
+        tracked: false, nextActions: [], blocked: null, git: { available: false }, github: "error",
+        openPrs: [], ci: [], health: "unknown", production: null, todayDeploys: 0, todayFails: 0,
+        note: app.note || null, collectError: true,
+      });
+    }
+  }
 
   const departments = readDepartments(REPO_ROOT);
   const agents = readAgents(REPO_ROOT);

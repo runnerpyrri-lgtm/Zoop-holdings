@@ -31,12 +31,33 @@ const REMOTE_TOKEN = String(process.env.ROBOM_HQ_REMOTE_TOKEN || "").trim();
 const REMOTE_ENABLED = REMOTE_TOKEN.length >= 12;
 const WATCHDOG_MINUTES = Number(process.env.ROBOM_HQ_WATCH_MINUTES ?? 10);
 const MANAGE_RUNNER = process.env.ROBOM_HQ_MANAGE_RUNNER === "1"; // 데스크톱·자동시작에서 러너를 HQ가 직접 관리
-// 하루 자동 점검 시각(서울 기준 시). 점검은 로컬·무료라 자주 돌려도 안전하다(기본 4번). 최대 12번으로 제한.
-const REVIEW_HOURS = (() => {
-  const raw = String(process.env.ROBOM_HQ_REVIEW_HOURS || "6,11,16,21");
-  const hours = [...new Set(raw.split(",").map((n) => parseInt(n, 10)).filter((h) => Number.isInteger(h) && h >= 0 && h <= 23))].sort((a, b) => a - b);
-  return hours.length ? hours.slice(0, 12) : [6, 18];
-})();
+// 자동 점검 주기(분). 회장이 프로그램에서 직접 조절한다. 점검은 로컬·무료라 자주 돌려도 안전.
+// 최대 빈도 = 감시기 간격(10분). 0 = 자동 점검 끔. 저장 위치: runtime/review-schedule.json
+export const REVIEW_MIN_MINUTES = Math.max(5, WATCHDOG_MINUTES); // 10분 미만으로는 못 내려간다(감시기 granularity)
+const REVIEW_MAX_MINUTES = 1440; // 하루 1번
+const REVIEW_DEFAULT_MINUTES = Number(process.env.ROBOM_HQ_REVIEW_MINUTES || 120); // 기본 2시간마다
+const REVIEW_SCHEDULE_FILE = join(DEFAULT_COMPANY_RUNTIME_DIR, "review-schedule.json");
+export function normalizeReviewMinutes(value, fallback = REVIEW_DEFAULT_MINUTES) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  if (n <= 0) return 0; // 끔
+  return Math.min(REVIEW_MAX_MINUTES, Math.max(REVIEW_MIN_MINUTES, Math.round(n)));
+}
+export function readReviewEveryMinutes() {
+  try {
+    if (existsSync(REVIEW_SCHEDULE_FILE)) {
+      const v = JSON.parse(readFileSync(REVIEW_SCHEDULE_FILE, "utf8"));
+      if (v && v.everyMinutes !== undefined) return normalizeReviewMinutes(v.everyMinutes);
+    }
+  } catch { /* 손상 시 기본값 */ }
+  return normalizeReviewMinutes(REVIEW_DEFAULT_MINUTES);
+}
+export function writeReviewEveryMinutes(value) {
+  const everyMinutes = normalizeReviewMinutes(value);
+  mkdirSync(DEFAULT_COMPANY_RUNTIME_DIR, { recursive: true, mode: 0o700 });
+  writeFileSync(REVIEW_SCHEDULE_FILE, JSON.stringify({ everyMinutes, updatedAt: new Date().toISOString() }, null, 2), { mode: 0o600 });
+  return everyMinutes;
+}
 const AUTO_REVIEW = process.env.ROBOM_HQ_AUTO_REVIEW !== "0"; // 매일 자동 개선 제안(끄려면 0)
 // 첨부 이미지 매직바이트 → 확장자
 const IMAGE_SIGNATURES = [
@@ -166,30 +187,23 @@ function seoulDate(now = new Date()) {
   try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(now); }
   catch { return now.toISOString().slice(0, 10); }
 }
-function seoulHour(now = new Date()) {
-  try { return Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Seoul", hour: "numeric", hourCycle: "h23" }).format(now)); }
-  catch { return now.getUTCHours(); }
-}
-// 예약된 점검 시각(REVIEW_HOURS) 중 지금까지 지난 가장 최근 시각을 이번 슬롯으로 삼는다.
-// 예: [6,11,16,21]에서 14시면 "11". 첫 예약 시각(06시) 전이면 null(점검 안 함).
-export function currentReviewSlot(now = new Date(), hours = REVIEW_HOURS) {
-  const h = seoulHour(now);
-  const passed = hours.filter((x) => h >= x);
-  return passed.length ? String(passed[passed.length - 1]) : null;
-}
-// 아침 6시·저녁 6시에 실제 스냅샷 신호로 종합 점검해 개선 제안을 결재(approvals)에 올린다.
-// 같은 슬롯에서 중복 상신하지 않도록 마커(날짜-슬롯)로 방지한다. 감시기가 10분마다 호출하므로
-// 06:00·18:00 직후 첫 호출에서 한 번씩만 실행된다.
+// 설정된 주기(분)마다 실제 스냅샷 신호로 종합 점검해 개선 제안을 결재(approvals)에 올린다.
+// 감시기가 10분마다 호출하며, 마지막 점검 이후 everyMinutes가 지났을 때만 실행한다(마커로 관리).
 async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNAP_DIR, force = false, now = new Date() } = {}) {
   if (!AUTO_REVIEW && !force) return { skipped: "disabled" };
-  const slot = currentReviewSlot(now);
-  if (!force && !slot) return { skipped: "off-hours" };
-  const marker = `${seoulDate(now)}-${slot || "manual"}`;
-  try {
-    if (!force && existsSync(REVIEW_MARKER) && JSON.parse(readFileSync(REVIEW_MARKER, "utf8")).slot === marker) {
-      return { skipped: "already-done" };
-    }
-  } catch { /* 마커 손상 시 진행 */ }
+  const everyMinutes = readReviewEveryMinutes();
+  if (!force && everyMinutes <= 0) return { skipped: "off" };
+  if (!force) {
+    try {
+      if (existsSync(REVIEW_MARKER)) {
+        const last = JSON.parse(readFileSync(REVIEW_MARKER, "utf8"));
+        const lastAt = Date.parse(last.at || last.checkedAt || "");
+        if (Number.isFinite(lastAt) && (now.getTime() - lastAt) < everyMinutes * 60_000) {
+          return { skipped: "not-due", nextInMs: everyMinutes * 60_000 - (now.getTime() - lastAt) };
+        }
+      }
+    } catch { /* 마커 손상 시 진행 */ }
+  }
   const snapshot = readSnapshotValue(snapDir);
   if (!snapshot) return { skipped: "no-snapshot" };
   const state = await store.getState();
@@ -207,7 +221,7 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
   }
   try {
     mkdirSync(DEFAULT_COMPANY_RUNTIME_DIR, { recursive: true, mode: 0o700 });
-    writeFileSync(REVIEW_MARKER, JSON.stringify({ slot: marker, date: seoulDate(now), created: created.length, at: new Date().toISOString() }), { mode: 0o600 });
+    writeFileSync(REVIEW_MARKER, JSON.stringify({ at: new Date().toISOString(), everyMinutes: readReviewEveryMinutes(), created: created.length }), { mode: 0o600 });
   } catch { /* 마커 기록 실패 무시 */ }
   return { created: created.length };
 }
@@ -228,7 +242,19 @@ async function handleApi(req, res, path, store, maxBodyBytes, snapDir) {
     recoverStaleLeases();
     const summary = queueSummary();
     if (summary.runner) summary.runner.managed = MANAGE_RUNNER; // 러너 자동 관리 여부는 서버가 정본
-    sendJson(res, 200, { ok: true, ...summary, remote: REMOTE_ENABLED ? "token" : "local-only", reviewHours: AUTO_REVIEW ? REVIEW_HOURS : [] });
+    sendJson(res, 200, { ok: true, ...summary, remote: REMOTE_ENABLED ? "token" : "local-only", reviewEveryMinutes: AUTO_REVIEW ? readReviewEveryMinutes() : 0, reviewMinMinutes: REVIEW_MIN_MINUTES });
+    return;
+  }
+
+  // 자동 점검 주기 설정: 회장이 프로그램에서 직접 조절(적용 즉시 반영)
+  if (path === "/api/review-schedule") {
+    if (req.method !== "POST") { sendText(res, 405, "method not allowed", { Allow: "POST" }); return; }
+    const body = await readJsonBody(req, maxBodyBytes);
+    if (body.everyMinutes === undefined || (typeof body.everyMinutes !== "number" && typeof body.everyMinutes !== "string")) {
+      throw new HttpError("everyMinutes(분) 값이 필요합니다.", 400, "INVALID_SCHEDULE");
+    }
+    const everyMinutes = writeReviewEveryMinutes(body.everyMinutes);
+    sendJson(res, 200, { ok: true, everyMinutes, minMinutes: REVIEW_MIN_MINUTES });
     return;
   }
 
@@ -503,7 +529,10 @@ export async function startControlCenter({ port = DEFAULT_PORT, openBrowser = tr
       const timer = setInterval(() => { buildSnapshotInBackground(); runDailyReviewIfDue().catch(() => {}); }, WATCHDOG_MINUTES * 60_000);
       timer.unref?.();
     }
-    if (AUTO_REVIEW) console.log(`[robom-hq] 하루 ${REVIEW_HOURS.length}번(${REVIEW_HOURS.map((h) => `${h}시`).join("·")}) 종합 점검 — 개선 제안을 '오늘' 화면 결재로 올립니다(시각 조정: ROBOM_HQ_REVIEW_HOURS, 끄기: ROBOM_HQ_AUTO_REVIEW=0).`);
+    if (AUTO_REVIEW) {
+      const m = readReviewEveryMinutes();
+      console.log(`[robom-hq] 자동 점검 주기: ${m > 0 ? `${m}분마다` : "꺼짐"} — 프로그램 설정에서 조절(최소 ${REVIEW_MIN_MINUTES}분). 개선 제안을 '오늘' 화면 결재로 올립니다.`);
+    }
     // 완전 자동: HQ가 codex-runner를 직접 실행·감시(터미널 불필요). 데스크톱/자동시작에서 켜진다.
     if (MANAGE_RUNNER) {
       try {

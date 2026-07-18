@@ -72,7 +72,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="1.7.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="1.8.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -185,7 +185,24 @@ function stateSignature(){
 }
 function title(k,t,d,a=""){return `<header class="page-head"><div><small>${esc(k)}</small><h1>${esc(t)}</h1>${d?`<p>${esc(d)}</p>`:""}</div>${a?`<div class="head-actions">${a}</div>`:""}</header>`;}
 function kpi(v,l,tone="",note="",go=""){const inner=`<b>${esc(v)}</b><span>${esc(l)}</span>${note?`<small>${esc(note)}</small>`:`<small class="kpi-go">${go?"눌러서 보기 →":""}</small>`}`;return go?`<a class="kpi ${tone} clickable" href="${attr(go)}" aria-label="${attr(l)} 자세히">${inner}</a>`:`<div class="kpi ${tone}">${inner}</div>`;}
-function reviewLabel(){const rh=(HQ?.reviewHours)||[];return rh.length?`하루 ${rh.length}번(${rh.map(h=>h+"시").join("·")})`:"하루 여러 번";}
+function reviewMinutesLabel(m){if(m===undefined||m===null)return "자동 점검";if(m<=0)return "자동 점검 꺼짐";if(m<60)return `${m}분마다`;if(m%60===0)return `${m/60}시간마다`;return `${Math.round(m/6)/10}시간마다`;}
+function reviewLabel(){return reviewMinutesLabel(HQ?.reviewEveryMinutes);}
+function reviewIntervalSelect(){
+  const min=HQ?.reviewMinMinutes||10;
+  const presets=[[10,"가장 자주 · 10분마다"],[30,"30분마다"],[60,"1시간마다"],[120,"2시간마다"],[240,"4시간마다"],[720,"12시간마다 (하루 2번)"],[1440,"하루 1번"],[0,"자동 점검 끔"]].filter(([v])=>v===0||v>=min);
+  const cur=HQ?.reviewEveryMinutes??120;
+  let opts=presets.map(([v,l])=>`<option value="${v}" ${v===cur?"selected":""}>${esc(l)}</option>`).join("");
+  if(cur>0&&!presets.some(([v])=>v===cur))opts=`<option value="${cur}" selected>현재: ${esc(reviewMinutesLabel(cur))}</option>`+opts;
+  return `<select id="reviewInterval" aria-label="자동 점검 주기">${opts}</select>`;
+}
+async function saveReviewSchedule(){
+  if(preview){showToast("본부(앱) 실행 중일 때만 조절할 수 있어요.","warn");return;}
+  const v=Number($("#reviewInterval")?.value??120);
+  const data=await fetchJson("/api/review-schedule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({everyMinutes:v})});
+  try{HQ=await fetchJson("/api/hq-status");}catch{}
+  showToast(data.everyMinutes>0?`점검 주기를 ${reviewMinutesLabel(data.everyMinutes)}로 바꿨습니다 — 바로 적용됩니다.`:"자동 점검을 껐습니다.","good");
+  updateChrome();renderScreen();
+}
 function panel(l,body,extra="",cls=""){return `<section class="panel ${cls}"><div class="panel-title"><span>${esc(l)}</span>${extra}</div>${body}</section>`;}
 function empty(main,sub=""){return `<div class="empty-state">${icon("spark")}<b>${esc(main)}</b>${sub?`<p>${esc(sub)}</p>`:""}</div>`;}
 function button(label,action,kind="ghost",extra="",ic=""){return `<button class="button ${kind}" type="button" data-action="${action}" ${extra}>${ic?icon(ic):""}${label}</button>`;}
@@ -384,7 +401,9 @@ function recBody(){
       <article><div><h3>프로그램 버전</h3><p>ROBOM HQ v${esc(APP_VERSION)} — 상단 금색 버전 칩과 동일하면 최신 설치본입니다.</p></div>${tonePill("gold",`v${APP_VERSION}`)}</article>
       <article><div><h3>휴대폰 연결</h3><p>${HQ?.remote==="token"?"토큰 인증으로 사설망 접속 허용됨":"이 컴퓨터 전용(127.0.0.1) — docs/hq/REMOTE-ACCESS.md"}</p></div>${tonePill(HQ?.remote==="token"?"accent":"good",HQ?.remote==="token"?"원격 허용":"비공개")}</article>
       <article><div><h3>추가 운영비</h3><p>유료 API·상시 유료 서버 없이 로컬 Node.js와 GitHub 무료 범위만 사용.</p></div>${tonePill("good","0원")}</article>
-      <article><div><h3>자동 점검</h3><p>${reviewLabel()} 6개 앱을 점검해 개선 제안을 결재로 상신합니다.</p></div>${tonePill("accent",`하루 ${(HQ?.reviewHours||[]).length||"—"}회`)}</article>
+      <article class="col"><div style="width:100%"><h3>자동 점검 주기</h3><p>얼마나 자주 6개 앱을 점검할지 정합니다. 점검은 무료라 자주 해도 부담 없어요(최소 ${HQ?.reviewMinMinutes||10}분).</p>
+        <div class="sched-row">${reviewIntervalSelect()}${button("적용","apply-review-schedule","gold")}<span class="sched-now">${tonePill(HQ?.reviewEveryMinutes>0?"accent":"neutral",reviewMinutesLabel(HQ?.reviewEveryMinutes))}</span></div>
+      </div></article>
       <article><div><h3>회장이 직접 할 일</h3><p>${(SNAP.operations?.humanTasks||[]).slice(0,3).map(esc).join(" · ")||"현재 없음"}</p></div></article>
       <article><div><h3>부가기능 · 로봄 오피스</h3><p>살아있는 6층 오피스(실제 이벤트 연동)</p></div><a class="button ghost" href="./office.html">오피스 보기</a></article>
     </div>`;
@@ -530,6 +549,7 @@ document.addEventListener("click",async e=>{
     else if(a==="new-record")openRecord(action.dataset.collection);
     else if(a==="save-memo")await saveMemo();
     else if(a==="delete-memo")await deleteMemo(action.dataset.id);
+    else if(a==="apply-review-schedule")await saveReviewSchedule();
     else if(a==="patch-record")await patchRecord(action.dataset.collection,action.dataset.id,action.dataset.status);
     else if(a==="approve-proposal")await approveProposal(action.dataset.id);
     else if(a==="pause-all")await setControl({paused:true},"모든 자동작업을 일시정지했습니다.");
