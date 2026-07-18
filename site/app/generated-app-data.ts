@@ -163,8 +163,8 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/notebom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-19T02:13:32+09:00",
-    "lastDeployedSha": "8fe64af4dd98814b3d925f3c2d8b6cd3fdf5a169",
+    "lastVerifiedAt": "2026-07-19T02:49:20+09:00",
+    "lastDeployedSha": "a6a83be4369a9da3e90de50d2624931816959b0d",
     "lastDataSyncAt": "2026-07-17T23:59:39+09:00",
     "freshnessStatus": "local-only"
   }
