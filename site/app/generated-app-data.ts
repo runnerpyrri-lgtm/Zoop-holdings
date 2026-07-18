@@ -80,7 +80,7 @@ export const generatedAppMeta = [
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
     "lastVerifiedAt": "2026-07-19T08:55:00+09:00",
-    "lastDeployedSha": "e47aab2512118b341f993787fa5fbf6c12fbccc1",
+    "lastDeployedSha": "c82ce46d7a860dccc916319ddb38d58337451b17",
     "lastDataSyncAt": "2026-07-12T00:00:00+09:00",
     "freshnessStatus": "fresh"
   },
