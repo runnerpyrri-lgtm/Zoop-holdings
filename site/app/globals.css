@@ -260,6 +260,13 @@ em { font-style: normal; }
   .info-page, .legal-page { padding: 65px 20px 90px; }.info-page > h1, .legal-page > h1 { font-size: 47px; }.info-lead { font-size: 16px; }.contact-grid { grid-template-columns: 1fr; }.contact-grid > a { min-height: auto; padding: 22px; }.support-list small { max-width: 250px; }
 }
 
+@media (min-width: 391px) and (max-width: 430px) {
+  /* CI 글꼴 차이에도 여섯 앱 선택지가 첫 화면 안에 유지되도록 소개 행만 한 단계 압축한다. */
+  .quick-install-grid { gap: 6px; }
+  .quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { padding: 7px 10px; }
+  .quick-install-card > p { display: none; }
+}
+
 @media (max-width: 390px) {
   .site-header { padding-inline: 16px; }.family-hero { padding-inline: 16px; }.hero-actions { display: grid; }.preview-head { align-items: flex-start; }.preview-head .live-badge { max-width: 86px; text-align: center; }
   /* 좁은 화면에서도 여섯 앱 행이 첫 viewport 안팎에 이어지도록 세로 간격을 한 단계 더 압축한다. */
