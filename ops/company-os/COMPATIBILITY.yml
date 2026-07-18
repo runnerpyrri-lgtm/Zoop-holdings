@@ -1,6 +1,6 @@
 # Company OS 정본이 현재 로봄 허브와 호환되는 조건을 기계 검증한다.
 schema_version: 1
-prompt_version: 1.2.0
+prompt_version: 1.3.0
 registry_mode: dynamic
 authority_mode: bounded-by-explicit-request-safety-and-repository-rules
 read_only_mode: explicit-analysis-review-or-check
