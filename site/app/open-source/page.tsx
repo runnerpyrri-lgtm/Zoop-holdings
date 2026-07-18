@@ -2,6 +2,10 @@
 // 같은 내용의 중복 노출을 막기 위해 canonical은 /licenses를 가리킨다.
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "오픈소스 라이선스", alternates: { canonical: "/licenses" } };
+export const metadata: Metadata = {
+  title: "오픈소스 안내",
+  description: "기존 오픈소스 안내 주소에서 로봄 패밀리의 정식 라이선스 페이지를 안내합니다.",
+  alternates: { canonical: "/licenses" },
+};
 
 export { default } from "../licenses/page";

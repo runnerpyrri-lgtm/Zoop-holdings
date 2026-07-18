@@ -4,7 +4,11 @@ import Link from "next/link";
 import { PageShell } from "../components";
 import { contactHref, familyApps, SITE_VERSION } from "../app-data";
 
-export const metadata: Metadata = { title: "고객 지원", alternates: { canonical: "/support" } };
+export const metadata: Metadata = {
+  title: "고객 지원",
+  description: "로봄 패밀리 앱 사용, 오류, 데이터, 알림, 광고와 제휴 문의를 한곳에서 안내합니다.",
+  alternates: { canonical: "/support" },
+};
 
 export default function SupportPage() {
   return (

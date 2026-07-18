@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { AppPrivacyPage } from "../app-privacy";
 
-export const metadata: Metadata = { title: "러닝봄 개인정보처리방침", alternates: { canonical: "/privacy/runningbom" } };
+export const metadata: Metadata = {
+  title: "러닝봄 개인정보처리방침",
+  description: "러닝봄의 대회 알림·권한 안내·동기화 정보 기기 저장과 공식 접수 사이트 이동 범위를 설명합니다.",
+  alternates: { canonical: "/privacy/runningbom" },
+};
 
 export default function RunningBomPrivacy() {
   return <AppPrivacyPage app={{

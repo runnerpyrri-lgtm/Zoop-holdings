@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { AppGlyph, PageShell, Wordmark } from "../../components";
 import { familyApps, getFamilyApp } from "../../app-data";
 import { InstallActions } from "./install-actions";
+import { installLandingStructuredData } from "../../structured-data";
 
 export const dynamicParams = false;
 
@@ -49,7 +50,7 @@ export default async function InstallLanding({ params }: { params: Promise<{ id:
         </div>
         <section className="install-trust" aria-labelledby="install-trust-title"><h2 id="install-trust-title">설치 전에 확인하세요.</h2><div><article><b>공식 안정 주소</b><p>QR은 항상 robom.kr의 앱별 설치 경로를 가리킵니다.</p></article><article><b>웹 사용 보장</b><p>스토어 출시 전이나 설치가 어려울 때도 웹으로 계속 사용할 수 있습니다.</p></article><article><b>선택권 유지</b><p>강제 리다이렉트 없이 사용자가 목적지를 확인하고 선택합니다.</p></article></div></section>
         <section className="family-menu" aria-labelledby="install-family-title"><div><p>다른 로봄 앱</p><h2 id="install-family-title">다른 순간도 휴대폰에서 챙겨보세요.</h2></div><div>{otherApps.map((item) => <Link href={item.installPath} prefetch={false} key={item.id}><AppGlyph app={item} /><span><Wordmark app={item} /><small>{item.mobileValue}</small></span><b>설치 →</b></Link>)}</div></section>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "SoftwareApplication", name: app.name, applicationCategory: "LifestyleApplication", operatingSystem: "Web, Android, iOS", url: app.stableInstallUrl, softwareVersion: app.version, offers: { "@type": "Offer", price: "0", priceCurrency: "KRW" } }) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(installLandingStructuredData(app)) }} />
       </section>
     </PageShell>
   );

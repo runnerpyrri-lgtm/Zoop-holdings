@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { AppPrivacyPage } from "../app-privacy";
 
-export const metadata: Metadata = { title: "야외봄 개인정보처리방침", alternates: { canonical: "/privacy/outbom" } };
+export const metadata: Metadata = {
+  title: "야외봄 개인정보처리방침",
+  description: "야외봄의 위치·활동·알림 기기 저장과 날씨·위치 검색 서비스로 전달될 수 있는 정보 범위를 설명합니다.",
+  alternates: { canonical: "/privacy/outbom" },
+};
 
 export default function OutBomPrivacy() {
   return <AppPrivacyPage app={{

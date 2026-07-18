@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { chromium, webkit } from "playwright";
 
 const axeSource = await readFile(new URL("../node_modules/axe-core/axe.min.js", import.meta.url), "utf8");
-const targets = [
+const defaults = [
   "https://robom.kr/",
   "https://robom-labs.github.io/outbom/",
   "https://robom-labs.github.io/homebom/",
@@ -13,6 +13,7 @@ const targets = [
   "https://certbom.vercel.app/",
   "https://robom-labs.github.io/notebom/",
 ];
+const targets = process.env.A11Y_TARGETS_JSON ? JSON.parse(process.env.A11Y_TARGETS_JSON) : defaults;
 
 for (const [browserName, browserType] of [["chromium", chromium], ["webkit", webkit]]) {
   const browser = await browserType.launch();
@@ -34,4 +35,4 @@ for (const [browserName, browserType] of [["chromium", chromium], ["webkit", web
   }
 }
 
-console.log(`production accessibility: 7 surfaces × 2 browsers · WCAG A/AA violations 0`);
+console.log(`production accessibility: ${targets.length} surfaces × 2 browsers · WCAG A/AA violations 0`);

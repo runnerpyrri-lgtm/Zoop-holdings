@@ -2,7 +2,11 @@
 import type { Metadata } from "next";
 import { AppPrivacyPage } from "../app-privacy";
 
-export const metadata: Metadata = { title: "노트봄 개인정보처리방침", alternates: { canonical: "/privacy/notebom" } };
+export const metadata: Metadata = {
+  title: "노트봄 개인정보처리방침",
+  description: "노트봄의 원음·자동 텍스트·수정본 기기 저장과 사용자가 선택한 외부 음성 인식·공유 범위를 설명합니다.",
+  alternates: { canonical: "/privacy/notebom" },
+};
 
 export default function NoteBomPrivacy() {
   return <AppPrivacyPage app={{

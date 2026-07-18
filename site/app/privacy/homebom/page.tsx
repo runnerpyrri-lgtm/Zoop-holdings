@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { AppPrivacyPage } from "../app-privacy";
 
-export const metadata: Metadata = { title: "청약봄 개인정보처리방침", alternates: { canonical: "/privacy/homebom" } };
+export const metadata: Metadata = {
+  title: "청약봄 개인정보처리방침",
+  description: "청약봄의 관심 공고·알림·발송 기록 기기 저장과 청약홈 공개 API 조회 범위를 설명합니다.",
+  alternates: { canonical: "/privacy/homebom" },
+};
 
 export default function HomeBomPrivacy() {
   return <AppPrivacyPage app={{

@@ -1,6 +1,13 @@
 // 로봄 패밀리가 사용하는 오픈소스와 저장소별 라이선스 확인 경로를 안내한다.
+import type { Metadata } from "next";
 import { PageShell } from "../components";
 import { familyApps } from "../app-data";
+
+export const metadata: Metadata = {
+  title: "오픈소스 라이선스",
+  description: "로봄 패밀리 앱의 공개 GitHub 저장소와 오픈소스 의존성 라이선스 확인 경로를 안내합니다.",
+  alternates: { canonical: "/licenses" },
+};
 
 const REPOSITORIES = {
   outbom: "https://github.com/robom-labs/outbom",

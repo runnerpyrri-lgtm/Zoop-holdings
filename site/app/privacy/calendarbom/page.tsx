@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { AppPrivacyPage } from "../app-privacy";
 
-export const metadata: Metadata = { title: "캘린더봄 개인정보처리방침", alternates: { canonical: "/privacy/calendarbom" } };
+export const metadata: Metadata = {
+  title: "캘린더봄 개인정보처리방침",
+  description: "캘린더봄의 일정·사람·복용 확인·알람 정보 기기 저장과 사용자가 직접 내보내는 백업 범위를 설명합니다.",
+  alternates: { canonical: "/privacy/calendarbom" },
+};
 
 export default function CalendarBomPrivacy() {
   return <AppPrivacyPage app={{

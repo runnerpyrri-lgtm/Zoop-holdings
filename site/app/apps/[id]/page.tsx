@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppGlyph, PageShell, Wordmark } from "../../components";
 import { contactHref, familyApps, getFamilyApp } from "../../app-data";
+import { appLandingStructuredData } from "../../structured-data";
 
 export const dynamicParams = false;
 
@@ -52,14 +53,7 @@ export default async function AppLanding({ params }: { params: Promise<{ id: str
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "로봄", item: "https://robom.kr/" },
-                { "@type": "ListItem", position: 2, name: app.name, item: `https://robom.kr${app.hubPath}` },
-              ],
-            }),
+            __html: JSON.stringify(appLandingStructuredData(app)),
           }}
         />
       </section>

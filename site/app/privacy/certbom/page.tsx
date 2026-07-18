@@ -2,7 +2,11 @@
 import type { Metadata } from "next";
 import { AppPrivacyPage } from "../app-privacy";
 
-export const metadata: Metadata = { title: "자격증봄 개인정보처리방침", alternates: { canonical: "/privacy/certbom" } };
+export const metadata: Metadata = {
+  title: "자격증봄 개인정보처리방침",
+  description: "자격증봄의 관심 시험·준비물·추천 답변 기기 저장과 공식 시행기관 사이트 이동 범위를 설명합니다.",
+  alternates: { canonical: "/privacy/certbom" },
+};
 
 export default function CertBomPrivacy() {
   return <AppPrivacyPage app={{
