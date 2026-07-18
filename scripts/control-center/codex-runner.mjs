@@ -121,6 +121,9 @@ async function main() {
   const once = process.argv.includes("--once");
   const codex = detectCodexCli();
   console.log(`[codex-runner] Codex CLI: ${codex.connected ? `연결됨 (${codex.version})` : `미연결 — ${codex.reason}`}`);
+  console.log(`[codex-runner] 대기열 위치: ${RUNTIME}`);
+  console.log(`[codex-runner]   (ROBOM HQ.app에서 넣은 요청을 보려면, 앱과 같은 데이터 폴더를 가리키게`);
+  console.log(`[codex-runner]    ROBOM_HQ_RUNTIME_DIR 환경변수로 지정하고 실행하세요 — docs/hq/CODEX-RUNNER.md 참고)`);
   writeRunnerStatus({ state: "starting", codex: codex.connected ? "connected" : "not_connected", codexDetail: codex.version || codex.reason }, { runtimeDir: RUNTIME });
   if (once) { console.log("[codex-runner]", JSON.stringify(await runOne({ codex }))); return; }
   console.log(`[codex-runner] 상주 모드 · ${POLL_MS / 1000}초 폴링 (Ctrl+C 종료)`);

@@ -21,10 +21,17 @@
 
 터미널에서:
 ```
+git clone https://github.com/robom-labs/robom.git ~/robom-labs/robom   # 처음 1회: 코드 받기
+cd ~/robom-labs/robom
 codex login          # 구독 계정으로 로그인 (API 키 아님)
-node scripts/control-center/codex-runner.mjs   # 저장소 폴더에서 실행
+
+# ROBOM HQ.app에서 넣은 요청을 이 러너가 보게, 앱과 같은 데이터 폴더를 가리킨다
+export ROBOM_HQ_RUNTIME_DIR="$HOME/Library/Application Support/ROBOM HQ/runtime"
+node scripts/control-center/codex-runner.mjs   # 상주 실행(Ctrl+C로 종료)
 ```
 연결 전에는 요청이 대기열에 안전 보관되고 화면에 "Codex 미연결"로 정직하게 표시된다.
+러너를 켜면 첫 줄에 "대기열 위치: ..."가 뜬다 — 이 경로가 위 `Application Support/ROBOM HQ/runtime`인지 확인.
+(윈도우는 `$env:ROBOM_HQ_RUNTIME_DIR = "$env:APPDATA\ROBOM HQ\runtime"`. 자세한 내용: `docs/hq/CODEX-RUNNER.md`)
 
 ## 휴대폰에서 보기
 
@@ -35,4 +42,4 @@ node scripts/control-center/codex-runner.mjs   # 저장소 폴더에서 실행
 
 - 화면이 안 뜸 → 앱 완전 종료 후 다시 실행.
 - 급하게 다 멈추고 싶다 → 오늘/Codex 탭의 **모든 자동작업 일시정지** (또는 트레이 메뉴).
-- 데이터 위치: 맥 `~/Library/Application Support/robom-hq/`, 윈도우 `%APPDATA%/robom-hq/`.
+- 데이터 위치: 맥 `~/Library/Application Support/ROBOM HQ/`, 윈도우 `%APPDATA%/ROBOM HQ/`.

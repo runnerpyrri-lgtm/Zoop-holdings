@@ -8,7 +8,7 @@
 ## 어떻게
 
 - 화면: 기록·설정 → 백업 → [지금 백업]. JSON 내보내기는 [내보내기].
-- 데스크톱 앱 데이터 위치: 맥 `~/Library/Application Support/robom-hq/runtime/`, 윈 `%APPDATA%/robom-hq/runtime/`. 저장소 실행은 `ops/control-center/runtime/`(.gitignore).
+- 데스크톱 앱 데이터 위치: 맥 `~/Library/Application Support/ROBOM HQ/runtime/`, 윈 `%APPDATA%/ROBOM HQ/runtime/`. 저장소 실행은 `ops/control-center/runtime/`(.gitignore).
 - 복구: 백업 JSON의 `eventStreams.<collection>` 배열을 `runtime/records/<collection>.jsonl.local`에 줄 단위로 되살린다(append-only라 순서 보존이 곧 상태 보존).
 
 ## 원칙

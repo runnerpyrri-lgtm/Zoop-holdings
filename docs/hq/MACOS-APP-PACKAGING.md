@@ -12,7 +12,7 @@
 ROBOM HQ.app
 ├─ Electron 셸 (desktop/main.cjs — 창·트레이·자동시작·단일 인스턴스)
 ├─ resources/payload/  ← 저장소 부분집합 미러(서버·화면·정본·오피스)
-└─ 데이터는 번들 밖: ~/Library/Application Support/robom-hq/{runtime,snapshots}
+└─ 데이터는 번들 밖: ~/Library/Application Support/ROBOM HQ/{runtime,snapshots}
 ```
 
 payload는 `desktop/scripts/prepare-payload.mjs`가 생성(내부 데이터 절대 미포함, 방어적 제거 포함).
