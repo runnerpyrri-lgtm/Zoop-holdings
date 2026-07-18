@@ -89,7 +89,7 @@ export const generatedAppMeta = [
     "name": "캘린더봄",
     "englishName": "CalendarBom",
     "repo": "robom-labs/calendarbom",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "dataVersion": "local-schema-v3",
     "webUrl": "https://robom-labs.github.io/calendarbom/",
     "healthcheckUrl": "https://robom-labs.github.io/calendarbom/",
@@ -107,7 +107,7 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/calendarbom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-18T12:12:02+09:00",
+    "lastVerifiedAt": "2026-07-18T14:17:25+09:00",
     "lastDeployedSha": "2ea90677ec7cb4e8488b2aa405573d9cdf93e8f7",
     "lastDataSyncAt": "2026-07-16T13:42:23+09:00",
     "freshnessStatus": "local-only"
