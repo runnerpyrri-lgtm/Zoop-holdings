@@ -61,7 +61,7 @@ export const generatedAppMeta = [
     "name": "러닝봄",
     "englishName": "RunningBom",
     "repo": "robom-labs/runningbom",
-    "version": "0.17.7",
+    "version": "0.17.8",
     "dataVersion": "2026.07.16-race-data-11",
     "webUrl": "https://robom-labs.github.io/runningbom/",
     "healthcheckUrl": "https://robom-labs.github.io/runningbom/",
@@ -79,7 +79,7 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/runningbom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-18T23:54:33+09:00",
+    "lastVerifiedAt": "2026-07-19T01:20:00+09:00",
     "lastDeployedSha": "b8d050006d2c0ed320735744b40f37d9c08f8222",
     "lastDataSyncAt": "2026-07-12T00:00:00+09:00",
     "freshnessStatus": "fresh"
