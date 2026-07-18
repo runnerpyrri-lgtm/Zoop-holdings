@@ -24,7 +24,7 @@ apps:
     build: pass
     visual: pass
     analytics: pass
-    deployed_sha: 25fc33e4f23272787d72fd0a9cebcbaa4a182056
+    deployed_sha: b51b1a0e2c1af348343dc6b5933713838c6b6c13
   calendarbom:
     family_spec: 1.0.0
     generated_commit: fe655b865edb5ad2c037e117143684c6dae9f5eb
