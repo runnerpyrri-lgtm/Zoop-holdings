@@ -62,7 +62,7 @@
       "name": "러닝봄",
       "englishName": "RunningBom",
       "repo": "robom-labs/runningbom",
-      "version": "0.17.5",
+      "version": "0.17.6",
       "dataVersion": "2026.07.16-race-data-11",
       "webUrl": "https://robom-labs.github.io/runningbom/",
       "healthcheckUrl": "https://robom-labs.github.io/runningbom/",
@@ -80,7 +80,7 @@
       "stableInstallUrl": "https://robom.kr/get/runningbom",
       "mobileStatus": "pwa",
       "familySpecVersion": "1.0.0",
-      "lastVerifiedAt": "2026-07-18T23:22:02+09:00",
+      "lastVerifiedAt": "2026-07-18T23:35:27+09:00",
       "lastDeployedSha": "435e8457bdc2be957b988f0d17b69d4bd489e559",
       "lastDataSyncAt": "2026-07-12T00:00:00+09:00",
       "freshnessStatus": "fresh"
