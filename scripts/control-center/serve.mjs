@@ -2,28 +2,42 @@
 // 기본은 127.0.0.1 로컬 전용. ROBOM_HQ_REMOTE_TOKEN(12자 이상)을 설정한 경우에만
 // 같은 네트워크(권장: Tailscale 사설망)의 휴대폰이 토큰 인증으로 접속할 수 있다.
 import { createServer } from "node:http";
-import { timingSafeEqual } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { randomUUID, timingSafeEqual } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { extname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
 import {
   CompanyStoreError,
+  DEFAULT_COMPANY_RUNTIME_DIR,
   createCompanyStore,
 } from "./lib/company-store.mjs";
 import {
   cancelPendingTask, enqueueTask, queueSummary, recoverStaleLeases, writeControl,
 } from "./lib/task-queue.mjs";
+import { generateProposals } from "./lib/propose-improvements.mjs";
 import { REPO_ROOT } from "./lib/sources.mjs";
 
 const DEFAULT_PORT = Number(process.env.ROBOM_HQ_PORT || 4321);
 export const LOCAL_HOST = "127.0.0.1";
 export const MAX_REQUEST_BYTES = 32 * 1024;
+export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 이미지 첨부 상한 10MB
 const APP_DIR = join(REPO_ROOT, "ops/control-center/app");
 const SNAP_DIR = process.env.ROBOM_HQ_SNAP_DIR || join(REPO_ROOT, "ops/control-center/snapshots");
+const ATTACH_DIR = join(DEFAULT_COMPANY_RUNTIME_DIR, "attachments");
+const REVIEW_MARKER = join(DEFAULT_COMPANY_RUNTIME_DIR, "last-auto-review.json");
 const REMOTE_TOKEN = String(process.env.ROBOM_HQ_REMOTE_TOKEN || "").trim();
 const REMOTE_ENABLED = REMOTE_TOKEN.length >= 12;
 const WATCHDOG_MINUTES = Number(process.env.ROBOM_HQ_WATCH_MINUTES ?? 10);
+const AUTO_REVIEW = process.env.ROBOM_HQ_AUTO_REVIEW !== "0"; // 매일 자동 개선 제안(끄려면 0)
+// 첨부 이미지 매직바이트 → 확장자
+const IMAGE_SIGNATURES = [
+  { ext: "png", bytes: [0x89, 0x50, 0x4e, 0x47] },
+  { ext: "jpg", bytes: [0xff, 0xd8, 0xff] },
+  { ext: "webp", bytes: [0x52, 0x49, 0x46, 0x46] },
+  { ext: "gif", bytes: [0x47, 0x49, 0x46, 0x38] },
+];
+const ATTACHMENT_ID = /^att_[a-z0-9]{6,40}\.(png|jpg|webp|gif)$/;
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -140,6 +154,41 @@ function readSnapshotValue(snapDir) {
   } catch { return null; }
 }
 
+function seoulDate(now = new Date()) {
+  try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(now); }
+  catch { return now.toISOString().slice(0, 10); }
+}
+// 매일 1회: 실제 스냅샷 신호로 개선 제안을 만들어 결재(approvals)에 올린다. 하루에 한 번만(마커로 방지).
+async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNAP_DIR, force = false } = {}) {
+  if (!AUTO_REVIEW && !force) return { skipped: "disabled" };
+  const today = seoulDate();
+  try {
+    if (!force && existsSync(REVIEW_MARKER) && JSON.parse(readFileSync(REVIEW_MARKER, "utf8")).date === today) {
+      return { skipped: "already-today" };
+    }
+  } catch { /* 마커 손상 시 진행 */ }
+  const snapshot = readSnapshotValue(snapDir);
+  if (!snapshot) return { skipped: "no-snapshot" };
+  const state = await store.getState();
+  const existing = (state.records.approvals || []).filter((a) => !["approved", "rejected", "dismissed", "archived"].includes(a.status));
+  const proposals = generateProposals(snapshot, existing, { limit: 5 });
+  const created = [];
+  for (const p of proposals) {
+    try {
+      const rec = await store.createRecord("approvals", {
+        title: p.title, appId: p.appId, body: p.body, recommendation: p.recommendation,
+        priority: p.priority, requestedBy: "auto-review", proposalKey: p.key, status: "pending",
+      });
+      created.push(rec.id);
+    } catch { /* 개별 실패는 건너뛴다 */ }
+  }
+  try {
+    mkdirSync(DEFAULT_COMPANY_RUNTIME_DIR, { recursive: true, mode: 0o700 });
+    writeFileSync(REVIEW_MARKER, JSON.stringify({ date: today, created: created.length, at: new Date().toISOString() }), { mode: 0o600 });
+  } catch { /* 마커 기록 실패 무시 */ }
+  return { created: created.length };
+}
+
 async function handleApi(req, res, path, store, maxBodyBytes, snapDir) {
   if (path === "/api/company-state") {
     if (req.method !== "GET") {
@@ -185,6 +234,60 @@ async function handleApi(req, res, path, store, maxBodyBytes, snapDir) {
       throw new HttpError(`작업 패킷 생성 실패: ${error.message}`, 500, "PACKET_FAILED");
     }
     sendJson(res, 201, { ok: true, record, packet, state: await store.getState() });
+    return;
+  }
+
+  // 이미지 첨부 업로드/조회: 내부 runtime에만 저장(공개·커밋 금지). EXIF는 클라이언트가 canvas 재인코딩으로 제거.
+  if (path === "/api/attachments") {
+    if (req.method !== "POST") { sendText(res, 405, "method not allowed", { Allow: "POST" }); return; }
+    const body = await readJsonBody(req, MAX_ATTACHMENT_BYTES);
+    if (typeof body.dataBase64 !== "string") throw new HttpError("dataBase64가 필요합니다.", 400, "INVALID_ATTACHMENT");
+    let buf;
+    try { buf = Buffer.from(body.dataBase64, "base64"); } catch { throw new HttpError("base64 디코딩 실패", 400, "INVALID_ATTACHMENT"); }
+    if (!buf.length || buf.length > MAX_ATTACHMENT_BYTES) throw new HttpError("이미지 크기가 허용 범위를 벗어났습니다.", 413, "ATTACHMENT_TOO_LARGE");
+    const sig = IMAGE_SIGNATURES.find((s) => s.bytes.every((b, i) => buf[i] === b));
+    if (!sig) throw new HttpError("이미지 파일만 첨부할 수 있습니다.", 415, "NOT_IMAGE");
+    mkdirSync(ATTACH_DIR, { recursive: true, mode: 0o700 });
+    const id = `att_${randomUUID().replaceAll("-", "").slice(0, 24)}.${sig.ext}`;
+    writeFileSync(join(ATTACH_DIR, id), buf, { mode: 0o600 });
+    sendJson(res, 201, { ok: true, id });
+    return;
+  }
+  const attachMatch = path.match(/^\/api\/attachments\/([^/]+)$/);
+  if (attachMatch) {
+    if (req.method !== "GET" && req.method !== "HEAD") { sendText(res, 405, "method not allowed", { Allow: "GET" }); return; }
+    const id = decodeURIComponent(attachMatch[1]);
+    if (!ATTACHMENT_ID.test(id)) throw new HttpError("잘못된 첨부 id입니다.", 400, "INVALID_ID");
+    const file = join(ATTACH_DIR, id);
+    if (!existsSync(file)) { sendText(res, 404, "not found"); return; }
+    const buf = readFileSync(file);
+    const ext = id.split(".").pop();
+    res.writeHead(200, { "Content-Type": ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : ext === "gif" ? "image/gif" : "image/jpeg", "Content-Length": buf.length, "Cache-Control": "private, max-age=86400", "X-Content-Type-Options": "nosniff" });
+    res.end(req.method === "HEAD" ? undefined : buf);
+    return;
+  }
+
+  // 자동 개선 제안 승인 → 업무로 전환 + Codex 대기열 등록
+  const approveMatch = path.match(/^\/api\/approve-proposal\/([^/]+)$/);
+  if (approveMatch) {
+    if (req.method !== "POST") { sendText(res, 405, "method not allowed", { Allow: "POST" }); return; }
+    const id = decodeURIComponent(approveMatch[1]);
+    const state = await store.getState();
+    const approval = (state.records.approvals || []).find((r) => r.id === id);
+    if (!approval) throw new HttpError("제안을 찾을 수 없습니다.", 404, "NOT_FOUND");
+    await store.updateStatus("approvals", id, { status: "approved" });
+    const task = await store.createRecord("tasks", {
+      title: approval.title,
+      appId: approval.appId || "",
+      problem: approval.body || "",
+      desiredOutcome: approval.recommendation || "",
+      priority: approval.priority || "normal",
+      autonomy: "implement_and_review",
+      status: "queued",
+    });
+    try { enqueueTask(task, { snapshot: readSnapshotValue(snapDir) }); }
+    catch (error) { await store.updateStatus("tasks", task.id, { status: "blocked" }); }
+    sendJson(res, 200, { ok: true, task, state: await store.getState() });
     return;
   }
 
@@ -368,11 +471,14 @@ export async function startControlCenter({ port = DEFAULT_PORT, openBrowser = tr
   if (refreshSnapshot) {
     console.log("[robom-hq] 기존 화면을 먼저 열고 스냅샷은 백그라운드에서 갱신합니다.");
     buildSnapshotInBackground();
-    // 결정론적 감시기: Codex 없이 주기적으로 실데이터 스냅샷을 갱신한다(0이면 끔).
+    // 결정론적 감시기: Codex 없이 주기적으로 실데이터 스냅샷을 갱신하고, 하루 1회 개선 제안을 올린다.
+    const reviewSoon = () => setTimeout(() => runDailyReviewIfDue().catch((e) => console.error("[robom-hq] 자동 점검 실패", e)), 12_000);
+    reviewSoon();
     if (Number.isFinite(WATCHDOG_MINUTES) && WATCHDOG_MINUTES > 0) {
-      const timer = setInterval(buildSnapshotInBackground, WATCHDOG_MINUTES * 60_000);
+      const timer = setInterval(() => { buildSnapshotInBackground(); runDailyReviewIfDue().catch(() => {}); }, WATCHDOG_MINUTES * 60_000);
       timer.unref?.();
     }
+    if (AUTO_REVIEW) console.log("[robom-hq] 매일 자동 점검 활성 — 개선 제안을 '오늘' 화면 결재로 올립니다(끄려면 ROBOM_HQ_AUTO_REVIEW=0).");
   }
   if (openBrowser) {
     const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "cmd" : "xdg-open";

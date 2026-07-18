@@ -49,15 +49,15 @@ const COMMON_FIELDS = [
 const COLLECTION_FIELDS = Object.freeze({
   meetings: new Set([...COMMON_FIELDS, "agenda", "participants", "scheduledAt", "outcome"]),
   decisions: new Set([...COMMON_FIELDS, "recommendation", "rationale", "options", "decidedAt"]),
-  approvals: new Set([...COMMON_FIELDS, "requestedBy", "recommendation", "impact", "reversible", "decidedAt"]),
+  approvals: new Set([...COMMON_FIELDS, "requestedBy", "recommendation", "impact", "reversible", "decidedAt", "proposalKey"]),
   requests: new Set([...COMMON_FIELDS, "requestedBy", "desiredOutcome", "urgency"]),
   reviews: new Set([...COMMON_FIELDS, "target", "url", "viewport", "finding", "severity"]),
-  tasks: new Set([...COMMON_FIELDS, "assignedTo", "targetRepo", "acceptanceCriteria", "startedAt", "completedAt", "problem", "desiredOutcome", "mustPreserve", "autonomy"]),
+  tasks: new Set([...COMMON_FIELDS, "assignedTo", "targetRepo", "acceptanceCriteria", "startedAt", "completedAt", "problem", "desiredOutcome", "mustPreserve", "autonomy", "attachments"]),
   notes: new Set([...COMMON_FIELDS, "body", "topic"]),
   incidents: new Set([...COMMON_FIELDS, "impact", "cause", "mitigation", "severity", "detectedAt", "resolvedAt"]),
   feedback: new Set([...COMMON_FIELDS, "category", "channel", "userImpact", "appVersion"]),
 });
-const ARRAY_FIELDS = new Set(["tags", "relatedIds", "participants", "options", "acceptanceCriteria"]);
+const ARRAY_FIELDS = new Set(["tags", "relatedIds", "participants", "options", "acceptanceCriteria", "attachments"]);
 const BOOLEAN_FIELDS = new Set(["reversible"]);
 const DATE_FIELDS = new Set(["dueAt", "scheduledAt", "decidedAt", "startedAt", "completedAt", "detectedAt", "resolvedAt"]);
 const LONG_TEXT_FIELDS = new Set([

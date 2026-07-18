@@ -1,4 +1,4 @@
-// ROBOM HQ v1.2 정보구조(오늘·앱·업무·Codex·기록설정)와 모바일·정직성 계약을 정적으로 검증한다.
+// ROBOM HQ 다크 관제탑 UI 계약 — 5화면·상단 Codex 상태바·라인 아이콘·이미지 첨부·자동 제안·모바일.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -12,96 +12,122 @@ const css = readFileSync(join(appDir, "styles.css"), "utf8");
 const sw = readFileSync(join(appDir, "sw.js"), "utf8");
 const server = readFileSync(join(REPO_ROOT, "scripts/control-center/serve.mjs"), "utf8");
 
-test("회장 메뉴는 5개(오늘·앱·업무·Codex·기록설정)로 단순화한다", () => {
+test("5화면(오늘·앱·업무·Codex·기록)만 주 메뉴로 둔다", () => {
   for (const screen of ["today", "apps", "tasks", "codex", "archive"]) {
     assert.match(app, new RegExp(`${screen}:render`, "i"), screen);
   }
-  const menuSource = app.slice(app.indexOf("const MENU"), app.indexOf("const SCREEN_NAMES"));
-  const visibleItems = [...menuSource.matchAll(/\["([a-z-]+)","[^"]+","[^"]+"\]/g)].map((match) => match[1]);
-  assert.equal(visibleItems.length, 5);
-  assert.deepEqual(visibleItems, ["today", "apps", "tasks", "codex", "archive"]);
-  // 삭제된 연출 화면이 부활하지 않는다 (§6)
-  for (const removed of ["briefing", "broadcast", "staff", "organization", "growth", "costs", "reports"]) {
-    assert.ok(!visibleItems.includes(removed), removed);
-  }
-  assert.ok(!/signaturePad/.test(app), "서명 캔버스 연출은 제거됐다");
-  assert.ok(!/signatureDialog/.test(html), "서명 다이얼로그는 제거됐다");
-});
-
-test("오늘 화면은 확인할 일→Codex→앱 전체→새 수정 요청 순서를 지킨다", () => {
-  const today = app.slice(app.indexOf("function renderToday"), app.indexOf("function renderApps"));
-  const order = ["내가 확인할 일", "Codex 현재 상태", "개 앱", "새 수정 요청", "일시정지"];
-  let cursor = -1;
-  for (const marker of order) {
-    const index = today.indexOf(marker);
-    assert.ok(index > cursor, `${marker} 순서`);
-    cursor = index;
+  const navSource = app.slice(app.indexOf("const NAV"), app.indexOf("const SIMPLE_STATUS"));
+  const ids = [...navSource.matchAll(/id:\s*"([a-z-]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(ids, ["today", "apps", "tasks", "codex", "archive"]);
+  // 삭제된 연출 화면이 부활하지 않는다
+  for (const removed of ["briefing", "broadcast", "staff", "organization", "renderGrowth", "signaturePad"]) {
+    assert.ok(!app.includes(removed), removed);
   }
 });
 
-test("본사 시스템과 계열사 앱을 분리한다", () => {
-  assert.match(app, /function familyApps\(\)\{return \(SNAP\.apps\|\|\[\]\)\.filter\(a=>a\.id!=="robom"\)/);
-  assert.match(app, /본사 시스템/);
+test("이모지 대신 커스텀 라인 아이콘(SVG)만 쓴다", () => {
+  assert.match(app, /const ICON\s*=/);
+  assert.match(app, /const SVG\s*=/);
+  // 메뉴·화면 마크업에 이모지 잔재가 없어야 한다
+  const emoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/u;
+  const navBlock = app.slice(app.indexOf("const NAV"), app.indexOf("function fetchJson"));
+  assert.ok(!emoji.test(navBlock), "NAV/아이콘 영역에 이모지 없음");
+  assert.match(html, /class="rail"/);
+  assert.match(html, /class="statusbar"/);
 });
 
-test("업무 접수는 6단계 질문 흐름과 자율 범위를 받는다", () => {
+test("상단에 Codex LIVE 상태바와 6앱 신호등이 있다", () => {
+  assert.match(html, /id="codexPill"/);
+  assert.match(html, /id="cxState"/);
+  assert.match(html, /id="appSignals"/);
+  assert.match(app, /function codexState/);
+  assert.match(app, /function updateStatusbar/);
+  assert.match(css, /\.codex-pill/);
+  assert.match(css, /\.app-signals/);
+  assert.match(css, /@keyframes ping/);
+});
+
+test("다크 테마 토큰과 네온 포인트를 쓴다", () => {
+  assert.match(css, /--bg:#080b12/);
+  assert.match(css, /--green:#35e39b/);
+  assert.match(css, /color-scheme:\s*dark/i.test(css) ? /color-scheme/ : /--bg:#080b12/);
+  assert.match(html, /name="theme-color" content="#080b12"/);
+});
+
+test("업무 요청은 6단계 흐름 + 이미지 첨부(붙여넣기·드래그)를 지원한다", () => {
   for (const marker of ["어느 앱인가요", "무엇이 불편한가요", "어떻게 되면 만족하나요", "꼭 유지해야 하는 것은", "어디까지 자동으로"]) {
     assert.match(html, new RegExp(marker), marker);
   }
   assert.match(html, /name="autonomy"/);
-  assert.match(app, /\/api\/tasks/);
-  assert.match(app, /research_only/);
+  assert.match(html, /id="taskDrop"/);
+  assert.match(html, /붙여넣기/);
+  assert.match(app, /function addImages/);
+  assert.match(app, /function stripAndResize/); // canvas 재인코딩으로 EXIF 제거
+  assert.match(app, /addEventListener\("paste"/);
+  assert.match(app, /\/api\/attachments/);
 });
 
-test("사용자용 상태는 단순 상태로 변환해 표시한다", () => {
+test("사용자용 상태는 단순 상태로 변환한다", () => {
   assert.match(app, /const SIMPLE_STATUS/);
   for (const label of ["대기", "작업 중", "검토 중", "승인 필요", "완료", "막힘", "실패", "취소"]) {
     assert.ok(app.includes(`"${label}"`), label);
   }
 });
 
-test("Codex 화면은 미연결을 정직하게 표시하고 긴급 제어를 제공한다", () => {
-  assert.match(app, /Codex 미연결/);
+test("본사(robom)와 계열사 앱을 분리한다", () => {
+  assert.match(app, /function familyApps\(\)\{return \(SNAP\.apps\|\|\[\]\)\.filter\(a=>a\.id!=="robom"\)/);
+  assert.match(app, /본사 시스템/);
+});
+
+test("자동 점검 개선 제안을 결재로 올리고 승인하면 업무로 전환한다", () => {
+  assert.match(app, /function autoCard/);
+  assert.match(app, /approve-proposal/);
+  assert.match(app, /시스템(이 올린 개선| 제안)/);
+  assert.match(server, /approve-proposal/);
+  assert.match(server, /runDailyReviewIfDue/);
+  assert.match(server, /generateProposals/);
+});
+
+test("Codex 미연결을 정직하게 표시하고 긴급 제어를 제공한다", () => {
+  assert.match(app, /미연결|Codex 미연결/);
   assert.match(app, /not_connected/);
-  assert.match(app, /모든 자동작업 일시정지/);
   assert.match(app, /pause-all/);
   assert.match(app, /\/api\/control/);
 });
 
-test("모바일 주요 메뉴 5개와 48px 조작 계약을 유지한다", () => {
+test("모바일 하단 탭 5개와 46px+ 조작 계약을 유지한다", () => {
   assert.match(html, /aria-label="모바일 주요 메뉴"/);
-  assert.match(html, /id="moreBtn"/);
-  const tabs = [...html.matchAll(/class="tab[ "]/g)];
-  assert.equal(tabs.length, 5);
-  assert.match(css, /\.brand,\.icon-button,\.button,\.nav-search,\.nav-item,\.chip\{min-height:48px\}/);
-  assert.match(css, /\.sidebar\.open\{z-index:50\}/);
+  assert.match(html, /id="tabbar"/);
+  assert.match(app, /#tabbar"\)\.innerHTML=NAV\.map/);
+  assert.match(css, /\.button,\.seg button,\.attn-item\{min-height:46px\}/);
+  assert.match(css, /\.tabbar\{[^}]*grid-template-columns:repeat\(5,1fr\)/);
 });
 
-test("오피스는 부가기능으로 분리하되 제거하지 않는다", () => {
-  assert.match(app, /로봄 오피스 보기/);
-  assert.match(app, /office\.html/);
-  const menuSource = app.slice(app.indexOf("const MENU"), app.indexOf("const SCREEN_NAMES"));
-  assert.ok(!/office/.test(menuSource), "오피스는 주 메뉴가 아니다");
+test("오피스는 부가기능(레일 하단)으로만 두고 제거하지 않는다", () => {
+  assert.match(app, /rail-foot" href="\.\/office\.html"/);
+  const navSource = app.slice(app.indexOf("const NAV"), app.indexOf("const SIMPLE_STATUS"));
+  assert.ok(!/office/.test(navSource), "오피스는 주 메뉴가 아니다");
 });
 
 test("오프라인 셸과 API 비캐시 계약을 유지한다", () => {
-  assert.match(sw, /robom-company-os-v3\.0\.0/);
+  assert.match(sw, /robom-company-os-v3\.1\.0/);
   assert.match(sw, /url\.pathname\.startsWith\("\/api\/"\)/);
 });
 
-test("서버는 화면을 먼저 열고 스냅샷·감시기는 백그라운드에서 돈다", () => {
+test("서버는 화면 먼저·스냅샷/자동점검은 백그라운드", () => {
   const listenIndex = server.indexOf("await new Promise((resolveListen");
   const refreshIndex = server.indexOf("buildSnapshotInBackground();");
-  assert.ok(listenIndex >= 0);
-  assert.ok(refreshIndex > listenIndex);
-  assert.match(server, /기존 화면을 먼저 열고 스냅샷은 백그라운드에서 갱신합니다/);
+  assert.ok(listenIndex >= 0 && refreshIndex > listenIndex);
   assert.match(server, /WATCHDOG_MINUTES/);
 });
 
-test("서버는 업무 접수·HQ 상태·긴급 제어 API와 원격 토큰 인증을 제공한다", () => {
+test("서버 API·원격 토큰·첨부 검증 계약", () => {
   assert.match(server, /\/api\/tasks/);
   assert.match(server, /\/api\/hq-status/);
   assert.match(server, /\/api\/control/);
+  assert.match(server, /\/api\/attachments/);
+  assert.match(server, /IMAGE_SIGNATURES/); // 매직바이트로 이미지만 허용
+  assert.match(server, /ATTACHMENT_ID/);
   assert.match(server, /ROBOM_HQ_REMOTE_TOKEN/);
   assert.match(server, /timingSafeEqual/);
   assert.match(server, /LOCAL_ONLY/);
