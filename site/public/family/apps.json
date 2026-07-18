@@ -80,8 +80,8 @@
       "stableInstallUrl": "https://robom.kr/get/runningbom",
       "mobileStatus": "pwa",
       "familySpecVersion": "1.0.0",
-      "lastVerifiedAt": "2026-07-18T14:24:41+09:00",
-      "lastDeployedSha": "1aeb95e34cd9b1542e151f3cc3f79f634223af0c",
+      "lastVerifiedAt": "2026-07-18T20:09:54+09:00",
+      "lastDeployedSha": "25fc33e4f23272787d72fd0a9cebcbaa4a182056",
       "lastDataSyncAt": "2026-07-12T00:00:00+09:00",
       "freshnessStatus": "fresh"
     },
