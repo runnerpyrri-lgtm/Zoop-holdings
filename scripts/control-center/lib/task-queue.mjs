@@ -75,11 +75,20 @@ export function enqueueTask(record, { runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR, 
 function readPacket(file) {
   try { return JSON.parse(readFileSync(file, "utf8")); } catch { return null; }
 }
+const PRIORITY_RANK = { urgent: 0, high: 1, normal: 2, low: 3 };
+function priorityRank(packet) {
+  const rank = PRIORITY_RANK[packet?.priority];
+  return rank === undefined ? PRIORITY_RANK.normal : rank;
+}
 function listState(runtimeDir, state) {
   const dir = stateDir(runtimeDir, state);
   if (!existsSync(dir)) return [];
   return readdirSync(dir).filter((name) => name.endsWith(".json")).sort()
-    .map((name) => readPacket(join(dir, name))).filter(Boolean);
+    .map((name) => readPacket(join(dir, name))).filter(Boolean)
+    // 긴급 요청이 먼저: priority → created_at → task_id 순서로 안정 정렬
+    .sort((a, b) => priorityRank(a) - priorityRank(b)
+      || String(a.created_at || "").localeCompare(String(b.created_at || ""))
+      || String(a.task_id || "").localeCompare(String(b.task_id || "")));
 }
 export function listQueue(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR) {
   return Object.fromEntries(QUEUE_STATES.map((state) => [state, listState(runtimeDir, state)]));

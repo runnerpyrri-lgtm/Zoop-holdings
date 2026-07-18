@@ -1,9 +1,10 @@
-// ROBOM HQ 다크 관제탑 UI 계약 — 5화면·상단 Codex 상태바·라인 아이콘·이미지 첨부·자동 제안·모바일.
+// ROBOM HQ v1.4 임원 관제탑 UI 계약 — 해시 라우터·라벨 사이드바·⌘K 팔레트·결재 문서(도장)·
+// 6앱 매트릭스·표적 폴링(스크롤 보존)·이미지 첨부·모바일 탭.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { REPO_ROOT } from "./lib/sources.mjs";
+import { REPO_ROOT, readApps } from "./lib/sources.mjs";
 
 const appDir = join(REPO_ROOT, "ops/control-center/app");
 const html = readFileSync(join(appDir, "index.html"), "utf8");
@@ -12,46 +13,81 @@ const css = readFileSync(join(appDir, "styles.css"), "utf8");
 const sw = readFileSync(join(appDir, "sw.js"), "utf8");
 const server = readFileSync(join(REPO_ROOT, "scripts/control-center/serve.mjs"), "utf8");
 
-test("5화면(오늘·앱·업무·Codex·기록)만 주 메뉴로 둔다", () => {
-  for (const screen of ["today", "apps", "tasks", "codex", "archive"]) {
-    assert.match(app, new RegExp(`${screen}:render`, "i"), screen);
-  }
-  const navSource = app.slice(app.indexOf("const NAV"), app.indexOf("const SIMPLE_STATUS"));
+test("주 메뉴는 5화면(오늘·앱·업무·자동화·기록)이고 해시 라우터로 딥링크된다", () => {
+  const navSource = app.slice(app.indexOf("const NAV"), app.indexOf("const REC_SECTIONS"));
   const ids = [...navSource.matchAll(/id:\s*"([a-z-]+)"/g)].map((m) => m[1]);
-  assert.deepEqual(ids, ["today", "apps", "tasks", "codex", "archive"]);
-  // 삭제된 연출 화면이 부활하지 않는다
-  for (const removed of ["briefing", "broadcast", "staff", "organization", "renderGrowth", "signaturePad"]) {
+  assert.deepEqual(ids, ["today", "apps", "tasks", "automation", "records"]);
+  // Codex 기술 명칭 화면은 '자동화'로 개편, 삭제된 연출 화면 부활 금지
+  assert.ok(!/id:\s*"codex"/.test(navSource), "codex 메뉴 없음");
+  for (const removed of ["briefing", "broadcast", "renderGrowth", "signaturePad", "ARCHIVE_TAB"]) {
     assert.ok(!app.includes(removed), removed);
   }
+  assert.match(app, /function parseHash/);
+  assert.match(app, /addEventListener\("hashchange"/);
+  assert.match(app, /#\/apps\//); // 앱 상세 딥링크
+  assert.match(app, /#\/records\//); // 기록 섹션 딥링크
 });
 
-test("이모지 대신 커스텀 라인 아이콘(SVG)만 쓴다", () => {
-  assert.match(app, /const ICON\s*=/);
-  assert.match(app, /const SVG\s*=/);
-  // 메뉴·화면 마크업에 이모지 잔재가 없어야 한다
-  const emoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/u;
-  const navBlock = app.slice(app.indexOf("const NAV"), app.indexOf("function fetchJson"));
-  assert.ok(!emoji.test(navBlock), "NAV/아이콘 영역에 이모지 없음");
-  assert.match(html, /class="rail"/);
-  assert.match(html, /class="statusbar"/);
+test("셸: 커맨드바 + 아이콘·라벨이 항상 보이는 사이드바 + 금색 버전 칩", () => {
+  assert.match(html, /class="cmdbar"/);
+  assert.match(html, /class="sidenav"/);
+  assert.match(html, /class="ver-chip" id="appVersion"/);
+  assert.match(html, /class="skip-link"/);
+  assert.match(app, /nav-item[^"]*" href="\$\{n\.hash\}/); // 시맨틱 링크 내비
+  assert.match(app, /<span>\$\{esc\(n\.name\)\}<\/span>/); // 라벨 항상 표시
+  assert.match(css, /\.nav-item span\{/);
+  assert.match(css, /--gold/);
 });
 
-test("상단에 Codex LIVE 상태바와 6앱 신호등이 있다", () => {
+test("상단에 Codex 상태·앱 신호·전사 건강 요약이 있다", () => {
   assert.match(html, /id="codexPill"/);
   assert.match(html, /id="cxState"/);
   assert.match(html, /id="appSignals"/);
+  assert.match(html, /id="cbHealth"/);
   assert.match(app, /function codexState/);
-  assert.match(app, /function updateStatusbar/);
+  assert.match(app, /function healthSummary/);
+  assert.match(app, /function updateChrome/);
   assert.match(css, /\.codex-pill/);
-  assert.match(css, /\.app-signals/);
   assert.match(css, /@keyframes ping/);
 });
 
-test("다크 테마 토큰과 네온 포인트를 쓴다", () => {
-  assert.match(css, /--bg:#080b12/);
-  assert.match(css, /--green:#35e39b/);
-  assert.match(css, /color-scheme:\s*dark/i.test(css) ? /color-scheme/ : /--bg:#080b12/);
-  assert.match(html, /name="theme-color" content="#080b12"/);
+test("⌘K 명령 팔레트로 화면·앱·명령에 접근한다", () => {
+  assert.match(html, /id="paletteDialog"/);
+  assert.match(html, /id="paletteInput"/);
+  assert.match(app, /function openPalette/);
+  assert.match(app, /function paletteItems/);
+  assert.match(app, /e\.key\.toLowerCase\(\)==="k"/);
+  assert.match(css, /\.palette-item/);
+});
+
+test("결재는 정식 문서(decree) + 도장(seal)으로 표현한다", () => {
+  assert.match(app, /function decreeCard/);
+  assert.match(app, /decree-head/);
+  assert.match(app, /decree-sign/);
+  assert.match(app, /class="seal"/);
+  assert.match(app, /sign-slot/);
+  assert.match(app, /approve-proposal/);
+  assert.match(css, /\.decree\{/);
+  assert.match(css, /@keyframes stamp/);
+  assert.match(server, /approve-proposal/);
+  assert.match(server, /runDailyReviewIfDue/);
+  assert.match(server, /generateProposals/);
+});
+
+test("오늘은 다열 미션 컨트롤: KPI·확인할 일·포트폴리오 매트릭스·최근 활동", () => {
+  assert.match(app, /kpi-row/);
+  assert.match(app, /attn-list/);
+  assert.match(app, /function matrixTable/);
+  assert.match(app, /class="timeline"/);
+  assert.match(css, /\.grid\.main-side/);
+  assert.match(css, /\.matrix\b/);
+});
+
+test("폴링은 표적 갱신: 상태 서명 비교 + 스크롤 보존 + 입력 중 재렌더 금지", () => {
+  assert.match(app, /function stateSignature/);
+  assert.match(app, /function safeToRerender/);
+  assert.match(app, /keepScroll/);
+  assert.match(app, /RENDER_SIG/);
 });
 
 test("업무 요청은 6단계 흐름 + 이미지 첨부(붙여넣기·드래그)를 지원한다", () => {
@@ -67,25 +103,23 @@ test("업무 요청은 6단계 흐름 + 이미지 첨부(붙여넣기·드래그
   assert.match(app, /\/api\/attachments/);
 });
 
-test("사용자용 상태는 단순 상태로 변환한다", () => {
+test("사용자용 상태는 단순 상태로 변환하고 색+글자로 함께 표시한다", () => {
   assert.match(app, /const SIMPLE_STATUS/);
   for (const label of ["대기", "작업 중", "검토 중", "승인 필요", "완료", "막힘", "실패", "취소"]) {
     assert.ok(app.includes(`"${label}"`), label);
   }
+  assert.match(app, /statusPill/);
 });
 
-test("본사(robom)와 계열사 앱을 분리한다", () => {
-  assert.match(app, /function familyApps\(\)\{return \(SNAP\.apps\|\|\[\]\)\.filter\(a=>a\.id!=="robom"\)/);
+test("본사(robom)와 계열사 앱을 분리하고 예시 스냅샷도 registry 기준 6앱이다", () => {
+  assert.match(app, /a\.id!=="robom"/);
   assert.match(app, /본사 시스템/);
-});
-
-test("자동 점검 개선 제안을 결재로 올리고 승인하면 업무로 전환한다", () => {
-  assert.match(app, /function autoCard/);
-  assert.match(app, /approve-proposal/);
-  assert.match(app, /시스템(이 올린 개선| 제안)/);
-  assert.match(server, /approve-proposal/);
-  assert.match(server, /runDailyReviewIfDue/);
-  assert.match(server, /generateProposals/);
+  const example = JSON.parse(readFileSync(join(REPO_ROOT, "ops/control-center/snapshots/example.json"), "utf8"));
+  const registryIds = readApps(REPO_ROOT).filter((a) => a.registered !== false).map((a) => a.id);
+  const exampleFamily = example.apps.filter((a) => a.id !== "robom").map((a) => a.id);
+  assert.deepEqual(exampleFamily, registryIds, "example.json 계열사 = registry 정본");
+  assert.ok(example.apps.some((a) => a.id === "robom"), "본사 포함");
+  assert.ok(example.apps.some((a) => a.id === "notebom"), "노트봄 포함");
 });
 
 test("Codex 미연결을 정직하게 표시하고 긴급 제어를 제공한다", () => {
@@ -95,34 +129,62 @@ test("Codex 미연결을 정직하게 표시하고 긴급 제어를 제공한다
   assert.match(app, /\/api\/control/);
 });
 
-test("모바일 하단 탭 5개와 46px+ 조작 계약을 유지한다", () => {
+test("모바일 하단 탭 5개와 44px+ 조작 계약을 유지한다", () => {
   assert.match(html, /aria-label="모바일 주요 메뉴"/);
   assert.match(html, /id="tabbar"/);
   assert.match(app, /#tabbar"\)\.innerHTML=NAV\.map/);
-  assert.match(css, /\.button,\.seg button,\.attn-item\{min-height:46px\}/);
+  assert.match(css, /min-height:44px/);
   assert.match(css, /\.tabbar\{[^}]*grid-template-columns:repeat\(5,1fr\)/);
 });
 
-test("오피스는 부가기능(레일 하단)으로만 두고 제거하지 않는다", () => {
-  assert.match(app, /rail-foot" href="\.\/office\.html"/);
-  const navSource = app.slice(app.indexOf("const NAV"), app.indexOf("const SIMPLE_STATUS"));
+test("기록 화면은 그룹형 서브내비(업무 흐름·운영 기록·시스템)를 쓴다", () => {
+  assert.match(app, /const REC_SECTIONS/);
+  for (const group of ["업무 흐름", "운영 기록", "시스템"]) assert.ok(app.includes(group), group);
+  assert.match(app, /rec-nav/);
+  assert.match(css, /\.records-wrap\{/);
+  assert.match(css, /\.rec-link\.active/);
+});
+
+test("오피스는 부가기능(사이드바 하단)으로만 두고 제거하지 않는다", () => {
+  assert.match(app, /nav-foot" href="\.\/office\.html"/);
+  const navSource = app.slice(app.indexOf("const NAV"), app.indexOf("const REC_SECTIONS"));
   assert.ok(!/office/.test(navSource), "오피스는 주 메뉴가 아니다");
 });
 
-test("오프라인 셸과 API 비캐시 계약을 유지한다", () => {
-  assert.match(sw, /robom-company-os-v3\.2\.0/);
+test("Pretendard를 번들하고(라이선스 포함) 한글 mono 남용을 막는다", () => {
+  assert.match(css, /Pretendard Variable/);
+  assert.match(css, /PretendardVariable\.woff2/);
+  const font = statSync(join(appDir, "assets/fonts/PretendardVariable.woff2"));
+  assert.ok(font.size > 500_000, "실제 폰트 파일이 존재");
+  const license = readFileSync(join(appDir, "assets/fonts/LICENSE.txt"), "utf8");
+  assert.match(license, /SIL OPEN FONT LICENSE|OFL/i);
+  assert.match(sw, /PretendardVariable\.woff2/); // 오프라인 셸 포함
+});
+
+test("오프라인 셸 캐시는 v4로 올리고 API는 캐시하지 않는다", () => {
+  assert.match(sw, /robom-company-os-v4\.0\.0/);
   assert.match(sw, /url\.pathname\.startsWith\("\/api\/"\)/);
 });
 
 test("상단에 설치 버전을 항상 표시하고 실제 앱 버전과 맞춘다", () => {
   assert.match(html, /id="appVersion"/);
-  assert.match(html, /id="brandVer"/);
   assert.match(app, /function loadVersion/);
   assert.match(app, /version\.json/);
+  const ver = JSON.parse(readFileSync(join(appDir, "version.json"), "utf8")).version;
+  const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "desktop/package.json"), "utf8")).version;
+  assert.equal(ver, pkg, "version.json = desktop/package.json");
+  assert.match(app, new RegExp(`HQ_VERSION="${ver.replace(/\./g, "\\.")}"`), "app.js fallback 버전 일치");
   // 데스크톱 빌드가 version.json을 실제 앱 버전으로 주입
   const prep = readFileSync(join(REPO_ROOT, "desktop/scripts/prepare-payload.mjs"), "utf8");
   assert.match(prep, /version\.json/);
   assert.match(prep, /pkg\.version/);
+});
+
+test("데스크톱 셸은 외부 링크를 https+허용 호스트로 제한한다", () => {
+  const main = readFileSync(join(REPO_ROOT, "desktop/main.cjs"), "utf8");
+  assert.match(main, /EXTERNAL_HOST_ALLOWLIST/);
+  assert.match(main, /isAllowedExternalUrl/);
+  assert.match(main, /will-navigate/);
 });
 
 test("서버는 화면 먼저·스냅샷/자동점검은 백그라운드", () => {

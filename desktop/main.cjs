@@ -17,6 +17,23 @@ const payloadDir = app.isPackaged
   ? join(process.resourcesPath, "payload")
   : join(__dirname, "payload");
 
+// 외부 링크는 https + 허용된 호스트만 연다(임의 URL로 기본 브라우저를 여는 것을 차단).
+const EXTERNAL_HOST_ALLOWLIST = new Set([
+  "robom.kr",
+  "www.robom.kr",
+  "robom-labs.github.io",
+  "github.com",
+  "certbom.vercel.app",
+]);
+function isAllowedExternalUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    return url.protocol === "https:" && EXTERNAL_HOST_ALLOWLIST.has(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function prepareDataDirs() {
   const dataRoot = app.getPath("userData");
   const runtimeDir = join(dataRoot, "runtime");
@@ -70,8 +87,13 @@ function createWindow() {
     }
   });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    if (isAllowedExternalUrl(url)) shell.openExternal(url);
     return { action: "deny" };
+  });
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    if (serverLink && url.startsWith(serverLink.replace(/\/+$/, ""))) return; // 본부 화면 내부 이동 허용
+    event.preventDefault();
+    if (isAllowedExternalUrl(url)) shell.openExternal(url);
   });
 }
 
