@@ -33,7 +33,7 @@ export default function Home() {
         <section className="family-hero family-hero--install" aria-labelledby="hero-title">
           <div className="hero-intro">
             <p className="eyebrow"><span aria-hidden="true" /> ROBOM FAMILY</p>
-            <h1 id="hero-title">오늘 필요한 앱을 고르고,<br /><em>휴대폰에서 바로 쓰세요.</em></h1>
+            <h1 id="hero-title">로봄 앱으로 오늘 필요한 정보를 고르고,<br /><em>휴대폰에서 바로 확인하세요.</em></h1>
             <p className="hero-lead">날씨·청약·러닝 대회·가족 일정·자격증 시험·음성 메모에서 지금 해야 할 행동을 {familyApps.length}개의 독립 앱이 또렷하게 알려드립니다.</p>
           </div>
           <div className="quick-install-grid" aria-label={`로봄 ${familyApps.length}개 앱 설치 선택`}>
