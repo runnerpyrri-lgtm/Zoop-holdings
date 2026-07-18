@@ -3,12 +3,27 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { REPO_ROOT } from "./lib/sources.mjs";
+import { REPO_ROOT, readAgents, readApps } from "./lib/sources.mjs";
 
 const map = JSON.parse(readFileSync(join(REPO_ROOT, "ops/control-center/app/office-map.json"), "utf8"));
 const officeJs = readFileSync(join(REPO_ROOT, "ops/control-center/app/office.js"), "utf8");
 const officeHtml = readFileSync(join(REPO_ROOT, "ops/control-center/app/office.html"), "utf8");
 const employees = [...map.desks.filter((desk) => !map.products.includes(desk.id)), map.chair, ...map.secretaries];
+
+test("오피스 팀 편성이 실제 조직(agents.yml)과 6개 앱(registry)을 모두 반영한다", () => {
+  const deskIds = new Set(map.desks.map((d) => d.id));
+  // 실제 직원(에이전트) 전원에게 자리가 있어야 실시간 run이 들어오면 애니메이션된다
+  for (const agent of readAgents(REPO_ROOT)) assert.ok(deskIds.has(agent.id), `오피스에 ${agent.id} 자리 없음`);
+  // 6개 계열사 앱 셀(out/home/run/cert/cal/note)이 모두 있어야 한다(노트봄 포함)
+  const APP_CELL = { outbom: "out", homebom: "home", runningbom: "run", calendarbom: "cal", certbom: "cert", notebom: "note" };
+  for (const app of readApps(REPO_ROOT).filter((a) => a.registered !== false)) {
+    const cell = APP_CELL[app.id];
+    assert.ok(cell && deskIds.has(cell), `오피스에 ${app.id} 앱 셀(${cell}) 없음`);
+  }
+  // 오피스 정본과 폴백(office.js 내장) 둘 다 같은 팀 색을 정의한다(폴백 누락 방지)
+  for (const team of ["design", "data", "support"]) assert.ok(map.teams[team], `팀 색 ${team} 누락`);
+  assert.match(officeJs, new RegExp(`design:"|data:"|support:"`));
+});
 
 test("직원 캐릭터는 남성 20%, 여성 80%로 구성된다", () => {
   assert.equal(employees.length, 20);

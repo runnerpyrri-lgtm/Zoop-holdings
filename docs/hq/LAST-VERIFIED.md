@@ -12,6 +12,7 @@
 | 전역 네트워크 선행(앱별 critical 스팸 억제) | PASS | 단위 테스트(company:network + 앱 UNAVAILABLE 강등) |
 | 증거 저장(비밀·원문 없이 상태/영향만) | PASS | incidents.jsonl 키 검사 |
 | 앱 내부 deep 계약은 need_new_source로 정직 처리 | PASS | docs/hq/HEALTH-ENGINE.md(앱 저장소 세션 범위 밖) |
+| 오피스 팀 편성 = 실제 조직(agents)+6앱 셀 일치 | PASS | office.test 11종(폴백까지 design·data·support 보강) |
 | 데스크톱 .dmg/.exe 빌드·릴리스 | 진행 | Actions → Release hq-v1.9.0 |
 | 서명·공증 | NOT_CONNECTED | ad-hoc 서명 배포 |
 
