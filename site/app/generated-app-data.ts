@@ -79,8 +79,8 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/runningbom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-18T12:12:02+09:00",
-    "lastDeployedSha": "8c03a88bfae81fd3f9ff65c9b79854b85890b30d",
+    "lastVerifiedAt": "2026-07-18T12:39:24+09:00",
+    "lastDeployedSha": "59b173caf1032dd8f436127b900f42681c84a903",
     "lastDataSyncAt": "2026-07-12T00:00:00+09:00",
     "freshnessStatus": "fresh"
   },

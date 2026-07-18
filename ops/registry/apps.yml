@@ -91,8 +91,8 @@ apps:
     stable_install_url: https://robom.kr/get/runningbom
     mobile_status: pwa
     family_spec_version: 1.0.0
-    last_verified_at: "2026-07-18T12:12:02+09:00"
-    last_deployed_sha: 8c03a88bfae81fd3f9ff65c9b79854b85890b30d
+    last_verified_at: "2026-07-18T12:39:24+09:00"
+    last_deployed_sha: 59b173caf1032dd8f436127b900f42681c84a903
     last_data_sync_at: "2026-07-12T00:00:00+09:00"
     freshness_status: fresh
     freshness_slo_hours: 168
