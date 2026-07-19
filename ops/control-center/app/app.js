@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="2.10.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="2.11.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -382,7 +382,11 @@ function loopBoardPanel(){
   const L=HQ?.loops; if(!L)return "";
   const rows=(L.activeLoops||[]).slice(0,12).map(lp=>{
     const retry=lp.taskId&&["QUEUED","RETRY_WAIT","TRIAGED","BLOCKED_EXTERNAL"].includes(lp.state)?button("다시 시도","retry-task","secondary",`data-id="${attr(lp.taskId)}"`,"refresh"):"";
-    return `<article><header><div><span>${lp.targetApp?esc(appName(lp.targetApp)||lp.targetApp):"회사 전체"} · ${lp.iteration>1?`${lp.iteration}번째 시도 · `:""}${esc(ago(lp.updatedAt))}</span><h3>${esc(lp.objective)}</h3><small>${esc(lp.loopType)} · ${esc(LOOP_AUTH_LABEL[lp.authorityClass]||lp.authorityClass)}</small></div>${tonePill(LOOP_AUTH_TONE[lp.authorityClass]||"neutral",esc(lp.stateLabel||lp.state))}</header>${lp.nextAction?`<p>다음: ${esc(lp.nextAction)}</p>`:""}${(lp.acceptanceCriteria||[]).length?`<p class="fine">합격 기준: ${lp.acceptanceCriteria.map(c=>esc(c.id)).join(" · ")}${lp.evidence?.origin_recheck?` · 원래 계약: ${esc(lp.evidence.origin_recheck)}`:""}</p>`:""}${retry?`<footer>${retry}</footer>`:""}</article>`;
+    const evid=Object.keys(lp.evidence||{}).length?button("증거 보기","show-loop-evidence","ghost",`data-id="${attr(lp.loopId)}"`):"";
+    const appUrl=lp.targetApp&&appById(lp.targetApp)?.url;
+    const openApp=appUrl?`<a class="button ghost" href="${attr(appUrl)}" target="_blank" rel="noopener">앱 열기</a>`:"";
+    const foot=[retry,evid,openApp].filter(Boolean).join("");
+    return `<article><header><div><span>${lp.targetApp?esc(appName(lp.targetApp)||lp.targetApp):"회사 전체"} · ${lp.iteration>1?`${lp.iteration}번째 시도 · `:""}${esc(ago(lp.updatedAt))}</span><h3>${esc(lp.objective)}</h3><small>${esc(lp.loopType)} · ${esc(LOOP_AUTH_LABEL[lp.authorityClass]||lp.authorityClass)}</small></div>${tonePill(LOOP_AUTH_TONE[lp.authorityClass]||"neutral",esc(lp.stateLabel||lp.state))}</header>${lp.nextAction?`<p>다음: ${esc(lp.nextAction)}</p>`:""}${(lp.acceptanceCriteria||[]).length?`<p class="fine">합격 기준: ${lp.acceptanceCriteria.map(c=>esc(c.id)).join(" · ")}${lp.evidence?.origin_recheck?` · 원래 계약: ${esc(lp.evidence.origin_recheck)}`:""}</p>`:""}${foot?`<footer>${foot}</footer>`:""}</article>`;
   }).join("");
   const meta=L.meta;
   const metaLine=meta&&meta.issueCount?`<div class="run-banner off" style="margin:4px 0 10px"><span class="dot"></span><b>자기 점검(Meta) — 손볼 Loop ${meta.issueCount}건</b><span class="rb-sub">${esc(meta.issues.slice(0,3).map(i=>`${({missing_role:"담당 누락",retry_storm:"재시도 폭주",stuck:"멈춤"}[i.kind]||i.kind)}: ${i.objective||i.loopId}`).join(" · "))}</span></div>`:(meta?`<p class="fine">자기 점검(Meta): 활성 ${meta.activeCount}개 Loop 모두 정상 진행 중 — 멈춤·재시도 폭주·담당 누락 없음.</p>`:"");
@@ -767,6 +771,7 @@ document.addEventListener("click",async e=>{
     else if(a==="open-intake")await setControl({intakeClosed:false},"새 작업 접수를 재개했습니다.");
     else if(a==="download-bundle"){const r=records("tasks").find(x=>x.id===action.dataset.id);if(r)download(`robom-task-${r.id}.md`,bundleFor(r));}
     else if(a==="retry-task")await retryTask(action.dataset.id);
+    else if(a==="show-loop-evidence"){const lp=(HQ?.loops?.activeLoops||[]).find(x=>x.loopId===action.dataset.id);if(lp){const ev=Object.entries(lp.evidence||{}).map(([k,v])=>`${k}=${v}`).join(" · ")||"아직 수집된 증거 없음";const cr=(lp.acceptanceCriteria||[]).map(c=>c.id).join(", ");showToast(`${lp.objective} · 상태 ${lp.stateLabel||lp.state} · ${lp.iteration}번째 시도 · 기준[${cr}] · 증거: ${ev}`,"good");}}
     else if(a==="set-effort")await setExecutorConfig({effort:action.dataset.effort});
     else if(a==="save-model")await setExecutorConfig({model:($("#cxModel")?.value||"").trim()});
     else if(a==="backup")await doBackup();
