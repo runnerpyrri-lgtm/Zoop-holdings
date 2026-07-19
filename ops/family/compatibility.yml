@@ -20,11 +20,11 @@ apps:
     deployed_sha: 651dc0f37ace59c1707c1eb742e9fc9e06749d9b
   runningbom:
     family_spec: 1.0.0
-    generated_commit: fe655b865edb5ad2c037e117143684c6dae9f5eb
+    generated_commit: 4aaa43cade5923a3a8a03160d200a575de4e5a51
     build: pass
     visual: pass
     analytics: pass
-    deployed_sha: c82ce46d7a860dccc916319ddb38d58337451b17
+    deployed_sha: 4aaa43cade5923a3a8a03160d200a575de4e5a51
   calendarbom:
     family_spec: 1.0.0
     generated_commit: fe655b865edb5ad2c037e117143684c6dae9f5eb
