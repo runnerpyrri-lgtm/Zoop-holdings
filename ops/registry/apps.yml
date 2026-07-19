@@ -12,6 +12,8 @@ apps:
     healthcheck_url: https://robom-labs.github.io/outbom/
     deploy_provider: github-pages
     base_path: /outbom/
+    # 야외봄이 실제로 쓰는 날씨 데이터 소스(Open-Meteo, 공개·무키). HQ가 서울 고정 좌표로 직접 probe해 예보 파이프라인을 실측한다.
+    forecast_probe_url: "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code,visibility,cloud_cover,snowfall&daily=sunrise,sunset&wind_speed_unit=ms&past_days=1&forecast_days=2&timezone=auto"
     privacy_url: https://robom.kr/privacy/outbom
     support_url: https://robom.kr/support
     android_app_id: kr.robom.outbom

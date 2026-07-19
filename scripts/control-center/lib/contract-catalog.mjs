@@ -170,6 +170,7 @@ function commonAppContracts(app) {
 // ── 야외봄 전용(§12) ──
 function outbomContracts(app) {
   const id = "outbom"; const s = (cid, ...rest) => C(`c:${id}:${cid}`, id, ...rest);
+  const fp = app.forecast_probe_url; // 야외봄 실제 날씨 소스(Open-Meteo) — 있으면 실측 심층 계약, 없으면 need_new_source
   return [
     s("forecast-source-declared", "data", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAny: ["open-meteo", "api/forecast", "forecast"] },
       { severityIfFail: "warning", failureClass: "schema", what: "배포 번들에 날씨 데이터 소스 참조가 존재", userImpact: "날씨 소스 연결이 사라지면 예보가 뜨지 않습니다.", recommendedAction: "forecast 소스 연결을 확인합니다." }),
@@ -179,15 +180,43 @@ function outbomContracts(app) {
       { severityIfFail: "warning", failureClass: "storage", what: "기존 사용자 저장 키(running-alarm:*) 참조 보존", userImpact: "키가 사라지면 기존 사용자 설정을 잃습니다.", recommendedAction: "저장 키 마이그레이션 없이 키를 바꾸지 않습니다." }),
     s("kakao-key-absent", "security", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, forbiddenMarkers: ["KakaoAK "] },
       { severityIfFail: "critical", failureClass: "security", consecutiveFailures: 1, what: "Kakao REST 키가 공개 번들에 없음", userImpact: "키 노출 시 도용·과금 위험이 있습니다.", recommendedAction: "키를 서버 측으로 옮기고 노출 키는 폐기합니다." }),
-    s("forecast-probe", "data", "need_new_source", {},
-      { severityIfFail: "warning", failureClass: "freshness", needNewSource: true,
-        sourceNeeded: "OutBom 공개 forecast API base 또는 안전한 health endpoint를 registry에 선언",
-        whyNeeded: "registry에 probe URL이 없어 실제 forecast JSON 계약(오늘·내일 배열, generatedAt, 결측 처리)을 운영에서 확인할 수 없음",
-        privacyRisk: "좌표·검색어를 기록하면 안 됨 — 서울 기준 고정 synthetic 좌표만 사용",
-        freeImplementationOption: "registry apps.yml에 data_probe_url(서울 고정 좌표 forecast) 1줄 선언",
-        fallbackStatus: "UNAVAILABLE",
-        what: "서울 고정 좌표 forecast 응답의 심층 데이터 계약(오늘·내일 nonempty, 시간 정렬, 필수 기상값 finite, 결측 위장 금지, generatedAt 나이)",
-        userImpact: "예보 데이터 이상을 운영에서 조기 감지하지 못합니다.", recommendedAction: "registry에 probe URL을 선언하면 즉시 자동 점검됩니다." }),
+    // ── 날씨 데이터 소스(Open-Meteo) 실측 심층 계약 — 야외봄이 의존하는 실제 파이프라인(서울 고정 좌표, 공개·무키) ──
+    ...(fp ? [
+      s("forecast-http", "data", "http_json_contract", { url: fp, contentTypeIncludes: "json" },
+        { required: true, severityIfFail: "critical", failureClass: "availability", consecutiveFailures: 1, timeoutMs: 25_000,
+          what: "날씨 소스(Open-Meteo) 서울 예보 200·JSON", userImpact: "날씨 소스가 끊기면 야외봄 예보가 빈 화면이 됩니다.", recommendedAction: "Open-Meteo 상태·쿼리를 확인합니다(장애면 자동 회복 대기)." }),
+      s("forecast-hours", "data", "http_json_contract", { url: fp, assertions: [
+        { path: "hourly.time", op: "length_gte", value: 48, label: "시간별 예보 시각 수" }] },
+        { severityIfFail: "error", failureClass: "schema", timeoutMs: 25_000, what: "시간별 예보(오늘·내일 포함) 48시간 이상", userImpact: "예보 시간이 비면 활동 추천이 불가합니다.", recommendedAction: "forecast_days·past_days 쿼리를 확인합니다." }),
+      s("forecast-temperature", "data", "http_json_contract", { url: fp, assertions: [
+        { path: "hourly.temperature_2m", op: "length_gte", value: 48, label: "기온 배열 길이" },
+        { path: "hourly.temperature_2m", op: "finite", quantifier: "every", label: "기온 수치 유효(결측 위장 금지)" }] },
+        { severityIfFail: "error", failureClass: "integrity", timeoutMs: 25_000, what: "기온 값 전수 유효 숫자(null·문자 위장 없음)", userImpact: "기온이 깨지면 체감·활동 점수가 틀립니다.", recommendedAction: "소스 응답 스키마를 확인합니다." }),
+      s("forecast-fields", "data", "http_json_contract", { url: fp, assertions: [
+        { path: "hourly.precipitation_probability", op: "is_array", label: "강수확률" },
+        { path: "hourly.wind_speed_10m", op: "is_array", label: "풍속" },
+        { path: "hourly.uv_index", op: "is_array", label: "자외선" },
+        { path: "hourly.weather_code", op: "is_array", label: "날씨코드" }] },
+        { severityIfFail: "error", failureClass: "schema", timeoutMs: 25_000, what: "핵심 기상 필드(강수확률·풍속·자외선·날씨코드) 존재", userImpact: "필드가 빠지면 활동별 점수 계산이 무너집니다.", recommendedAction: "소스 쿼리의 hourly 필드를 확인합니다." }),
+      s("forecast-daylight", "data", "http_json_contract", { url: fp, assertions: [
+        { path: "daily.sunrise", op: "length_gte", value: 1, label: "일출" },
+        { path: "daily.sunrise", op: "date_valid", quantifier: "every", label: "일출 시각 parse" },
+        { path: "daily.sunset", op: "date_valid", quantifier: "every", label: "일몰 시각 parse" }] },
+        { severityIfFail: "warning", failureClass: "schema", timeoutMs: 25_000, what: "일출·일몰 시각 유효(야외 활동 시간대 판정)", userImpact: "일출·일몰이 없으면 낮/밤 추천이 틀립니다.", recommendedAction: "daily 쿼리를 확인합니다." }),
+      s("forecast-timezone", "data", "http_json_contract", { url: fp, assertions: [
+        { path: "timezone", op: "nonempty_string", label: "타임존" },
+        { path: "hourly.time", op: "date_valid", quantifier: "every", label: "시각 parse" }] },
+        { severityIfFail: "warning", failureClass: "integrity", timeoutMs: 25_000, what: "타임존 선언 + 모든 예보 시각 parse 가능", userImpact: "타임존이 깨지면 시간대가 어긋난 예보가 나옵니다.", recommendedAction: "timezone=auto 쿼리를 확인합니다." }),
+    ] : [
+      s("forecast-probe", "data", "need_new_source", {},
+        { severityIfFail: "warning", failureClass: "freshness", needNewSource: true,
+          sourceNeeded: "registry에 forecast_probe_url(서울 고정 좌표) 선언",
+          whyNeeded: "probe URL이 없으면 실제 forecast JSON 계약을 확인할 수 없음",
+          privacyRisk: "좌표·검색어 기록 금지 — 서울 고정 좌표만",
+          freeImplementationOption: "apps.yml outbom에 forecast_probe_url 1줄",
+          fallbackStatus: "UNAVAILABLE",
+          what: "서울 고정 좌표 forecast 심층 계약", userImpact: "예보 이상을 조기 감지 못함.", recommendedAction: "forecast_probe_url을 선언하면 자동 점검." }),
+    ]),
     s("scoring-goldens", "data", "repo_text_contract", { repo: app.repo, pathCandidates: ["lib/weather.ts", "lib/scoring.ts"], mustContainAny: ["score"] },
       { severityIfFail: "info", failureClass: "integrity", what: "scoring 로직 정본이 main에 존재(읽기 전용 감사)", userImpact: "점수 로직이 사라지면 활동 추천이 무의미해집니다.", recommendedAction: "scoring 모듈·golden 테스트를 유지합니다." }),
     s("api-error-isolation", "user_surface", "browser_smoke", { url: app.web_url, viewports: [{ width: 390, height: 844 }], maxConsoleErrors: 0, checkOverflow: true, bodyMinTextLength: 40 },
