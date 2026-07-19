@@ -399,11 +399,19 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
           regressionHeld += 1;
           continue;
         }
-        try { await store.updateStatus("tasks", task.id, { status: "completed", verifiedBy: "origin-recheck+regression-guard" }); } catch { /* skip */ }
-        try { if (loop) transitionLoop(loop.loopId, "CLOSED", { now, note: "원래 계약 재검증 PASS + 회귀 없음", evidence: { origin_recheck: "PASS", regression_guard: "PASS" } }); } catch { /* skip */ }
-        if (task.approvalId) { try { await store.updateStatus("approvals", task.approvalId, { status: "resolved", comment: "원래 계약 재검증 통과 + 회귀 없음 — 자동 종료" }); } catch { /* skip */ } }
+        // §16/§17 딥 재확인: 원래 계약이 2회 연속 PASS해야 닫는다(일시적 flaky PASS로 성급히 닫지 않음).
+        const streak = (task.originPassStreak || 0) + 1;
+        if (streak < 2) {
+          try { await store.updateStatus("tasks", task.id, { originPassStreak: streak }); } catch { /* skip */ }
+          try { if (loop && loop.state !== "RECHECKING_ORIGIN") transitionLoop(loop.loopId, "RECHECKING_ORIGIN", { now, note: "1차 재검증 통과 — 한 번 더 확인 후 종료(2회 연속 필요)" }); } catch { /* skip */ }
+          continue; // in_review 유지, 다음 점검에 재확인
+        }
+        try { await store.updateStatus("tasks", task.id, { status: "completed", verifiedBy: "origin-recheck×2+regression-guard", originPassStreak: streak }); } catch { /* skip */ }
+        try { if (loop) transitionLoop(loop.loopId, "CLOSED", { now, note: "원래 계약 2회 연속 재검증 PASS + 회귀 없음", evidence: { origin_recheck: "PASS×2", regression_guard: "PASS" } }); } catch { /* skip */ }
+        if (task.approvalId) { try { await store.updateStatus("approvals", task.approvalId, { status: "resolved", comment: "원래 계약 2회 연속 재검증 통과 + 회귀 없음 — 자동 종료" }); } catch { /* skip */ } }
         reverified += 1;
       } else if (stillFailing.has(task.originContract)) {
+        try { await store.updateStatus("tasks", task.id, { originPassStreak: 0 }); } catch { /* skip */ } // 실패 시 연속 카운터 리셋
         try { const loop = findLoopByTask(task.id); if (loop) openIteration(loop.loopId, { now, failureSignature: `origin-still-failing:${task.originContract}` }); } catch { /* skip */ }
         try { await store.updateStatus("tasks", task.id, { status: "blocked", reason: "원래 계약이 아직 실패 — 새 iteration 필요" }); } catch { /* skip */ }
         reiterated += 1;
