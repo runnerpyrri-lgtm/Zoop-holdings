@@ -178,8 +178,13 @@ export function metaAudit(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR, { now = new 
   const nowMs = now.getTime();
   const issues = [];
   const waiting = new Set(["AWAITING_APPROVAL", "DELEGATED_APPROVAL", "BLOCKED_HUMAN", "BLOCKED_EXTERNAL", "RETRY_WAIT"]);
+  const runningStates = new Set(["QUEUED", "CLAIMED", "INVESTIGATING", "IMPLEMENTING", "VERIFYING_LOCAL", "WAITING_CI", "MERGING", "DEPLOYING"]);
   for (const l of active) {
+    // §17 감사1(요건): 목표·합격기준·담당·검증자가 다 갖춰졌는가.
     if (!l.ownerAgent || !l.verifierAgent) issues.push({ loopId: l.loopId, objective: l.objective, kind: "missing_role", note: "담당자·검증자가 지정되지 않았습니다." });
+    if (!(l.acceptanceCriteria || []).length) issues.push({ loopId: l.loopId, objective: l.objective, kind: "missing_criteria", note: "합격 기준이 없습니다 — 무엇을 통과로 볼지 정의되지 않음." });
+    if (runningStates.has(l.state) && !l.taskId) issues.push({ loopId: l.loopId, objective: l.objective, kind: "broken_wiring", note: `${l.state}인데 연결된 작업이 없습니다.` });
+    // §17 감사3(장기): 재시도 폭주·멈춤.
     if ((l.iteration || 1) >= maxIteration) issues.push({ loopId: l.loopId, objective: l.objective, kind: "retry_storm", note: `${l.iteration}회 재시도 — 접근을 근본적으로 바꿔야 합니다.` });
     const ageH = (nowMs - Date.parse(l.updatedAt || l.createdAt || now.toISOString())) / 3.6e6;
     if (Number.isFinite(ageH) && ageH > stuckHours && !waiting.has(l.state)) issues.push({ loopId: l.loopId, objective: l.objective, kind: "stuck", note: `${Math.round(ageH)}시간째 진행이 없습니다.` });

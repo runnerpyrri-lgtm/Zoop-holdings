@@ -100,10 +100,14 @@ test("metaAudit는 재시도 폭주·멈춘 Loop를 잡는다", () => {
   // 30시간째 QUEUED = stuck
   const b = createLoop({ objective: "멈춤", contractId: "ck", fixClass: "codex" }, { runtimeDir: dir, now: new Date("2026-07-18T18:00:00Z") });
   transitionLoop(b.loopId, "QUEUED", { runtimeDir: dir, now: new Date("2026-07-18T18:00:00Z") });
+  // QUEUED인데 taskId 없음 = broken_wiring
+  const c = createLoop({ objective: "끊김", contractId: "cw", fixClass: "codex" }, { runtimeDir: dir, now });
+  transitionLoop(c.loopId, "QUEUED", { runtimeDir: dir, now });
   const audit = metaAudit(dir, { now });
   const kinds = new Set(audit.issues.map((x) => x.kind));
   assert.ok(kinds.has("retry_storm"));
   assert.ok(kinds.has("stuck"));
+  assert.ok(kinds.has("broken_wiring"));
   rmSync(dir, { recursive: true, force: true });
 });
 
