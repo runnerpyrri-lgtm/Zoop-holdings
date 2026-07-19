@@ -543,3 +543,10 @@ button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:0
 .org-node.lv3 span{white-space:normal}
 .org-node.standby{opacity:.65}
 @media (max-width:820px){.org-divs{grid-template-columns:1fr}.org-node.lv1,.org-node.lv2,.org-divs{margin-left:8px}}
+
+/* ── 휴대폰 연결(페어링) ── */
+.mobile-pair{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.mp-qr{width:190px;flex:0 0 auto;background:#fff;border:1.5px solid var(--gold-line);border-radius:12px;padding:9px;box-shadow:0 2px 10px rgba(42,37,25,.06)}
+.mp-qr svg{display:block;width:100%;height:auto}
+.mp-steps{flex:1;min-width:230px}
+.mp-steps code{word-break:break-all}

@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="2.1.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="2.2.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -477,7 +477,7 @@ function recBody(){
     case "delivery":return `<div class="delivery-list">${(SNAP.apps||[]).map(a=>`<article><div><h3>${esc(a.name)}</h3><p>${esc(a.deployTarget||"배포 방식 확인 중")}</p></div>${tonePill((HEALTH[a.health]||HEALTH.unknown)[1],(HEALTH[a.health]||HEALTH.unknown)[0])}<code>${esc(a.production?.deployedSha?.slice(0,12)||a.git?.sha||"—")}</code></article>`).join("")}</div>`;
     case "data":return `<div class="data-grid">${familyApps().map(a=>`<article><header><h2>${esc(a.name)}</h2>${tonePill(a.production?.status==="PASS"?"good":"warn",a.production?.status||"확인")}</header><dl class="data-list"><dt>운영 확인</dt><dd>${esc(a.production?.version?`v${a.production.version}`:"확인 중")}</dd><dt>신선도</dt><dd>${esc(a.production?.warnings?.[0]||"운영 기준 통과")}</dd></dl></article>`).join("")}</div>`;
     case "backup":return `<div class="panel-actions">${button("지금 백업","backup","primary","","save")}${button("JSON 내보내기","export","ghost")}</div><dl class="data-list"><dt>저장 위치</dt><dd>${LOCAL.mode==="live"?"이 컴퓨터의 비공개 runtime 폴더":"브라우저 휴대용 저장"}</dd><dt>마지막 백업</dt><dd>${esc(LOCAL.meta?.lastBackupAt?fmt(LOCAL.meta.lastBackupAt):"아직 없음")}</dd><dt>백업 대상</dt><dd>회의·결재·업무·장애 기록과 감사 로그</dd></dl>`;
-    case "connections":return connectionMarkup();
+    case "connections":loadMobile();return mobilePanel()+connectionMarkup();
     case "security":return `<div class="security-grid">${(SNAP.operations?.security||[]).map(c=>`<article>${tonePill(c.ok?"good":"warn",c.ok?"통과":"확인")}<h3>${esc(c.name)}</h3><p>${esc(c.note||"")}</p></article>`).join("")||empty("보안 점검 항목을 불러오지 못했습니다.")}</div>`;
     case "settings":return `<div class="settings-list">
       <article><div><h3>현재 모드</h3><p>${LOCAL.mode==="live"?"실시간 로컬 본부":"휴대용 보기"}</p></div>${tonePill(LOCAL.mode==="live"?"good":"neutral",LOCAL.mode==="live"?"연결됨":"제한됨")}</article>
@@ -521,6 +521,41 @@ async function deleteMemo(id){
   if(!preview){const data=await fetchJson(`/api/records/notes/${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"archived"})});applyState(data.state);}
   else{const r=(LOCAL.records.notes||[]).find(x=>x.id===id);if(r)r.status="archived";savePortable();}
   showToast("메모를 정리했습니다.","good");renderScreen();
+}
+/* ── 휴대폰 연결(연동): 버튼 하나로 켜고, QR 스캔 → 폰 홈 화면에 앱으로 설치 ── */
+let MOBILE=null,MOBILE_LOADING=false;
+function loadMobile(){ if(MOBILE||MOBILE_LOADING||preview)return; MOBILE_LOADING=true;
+  fetchJson("/api/mobile-access").then(v=>{MOBILE=v;if(CURRENT==="records")renderScreen();}).catch(()=>{MOBILE={ok:false};}); }
+function qrSvgFor(text){
+  try{ if(typeof qrcode!=="function")return "";
+    const qr=qrcode(0,"M");qr.addData(text);qr.make();
+    return qr.createSvgTag({cellSize:5,margin:4,scalable:true});
+  }catch{return "";}
+}
+function mobilePanel(){
+  if(preview)return panel("휴대폰 연결",`<p class="fine">휴대용 보기에서는 설정할 수 없습니다. 맥의 ROBOM HQ에서 켜세요.</p>`);
+  if(!MOBILE)return panel("휴대폰 연결",empty("연결 상태를 확인하는 중입니다."));
+  if(MOBILE.connectedRemotely)return panel("휴대폰 연결",`<div class="simple-list"><div><b>지금 휴대폰으로 접속 중</b>${tonePill("good","연결됨")}</div></div><p class="fine">연결 설정 변경은 맥의 ROBOM HQ에서만 할 수 있습니다.</p>`);
+  if(!MOBILE.enabled){
+    return panel("휴대폰 연결",`<p class="fine" style="margin:0 0 11px">켜면 <b>같은 와이파이</b>에 있는 회장님 휴대폰에서 이 본부 화면을 그대로 볼 수 있습니다. 접속 주소는 QR로 표시되고, 폰에서 <b>홈 화면에 추가</b>하면 앱처럼 설치됩니다. 토큰 인증이라 다른 사람은 접속할 수 없습니다.</p>
+    <div class="today-actions">${button("휴대폰 연결 켜기","mobile-on","gold","","link")}</div>`);
+  }
+  const wifi=(MOBILE.urls||[]).find(u=>u.kind==="wifi")||MOBILE.urls?.[0];
+  const qr=wifi?qrSvgFor(wifi.url):"";
+  return panel("휴대폰 연결 — 켜짐",`
+    <div class="mobile-pair">
+      ${qr?`<div class="mp-qr">${qr}</div>`:""}
+      <div class="mp-steps">
+        <ol class="number-list">
+          <li>휴대폰이 <b>이 컴퓨터와 같은 와이파이</b>에 있는지 확인</li>
+          <li>휴대폰 <b>카메라</b>로 왼쪽 QR을 비추고 링크 열기</li>
+          <li>화면이 뜨면 공유 버튼 → <b>홈 화면에 추가</b> — 폰에 ROBOM HQ 앱이 설치됩니다</li>
+        </ol>
+        ${wifi?`<p class="fine">직접 입력 시: <code>${esc(wifi.url)}</code></p>`:`<p class="fine">네트워크 주소를 찾지 못했습니다. 와이파이 연결을 확인하세요.</p>`}
+        <p class="fine">맥이 켜져 있고 ROBOM HQ가 실행 중일 때 접속됩니다(트레이 상주 포함). 집 밖에서도 보려면 맥·폰에 Tailscale을 설치하면 같은 방식으로 연결됩니다.</p>
+        <div class="today-actions">${button("연결 끄기","mobile-off","danger")}</div>
+      </div>
+    </div>`);
 }
 function connectionMarkup(){const c=SNAP.connections||{};return `<div class="connection-list">${[["로컬 본부",LOCAL.mode==="live","실시간 기록·백업"],["GitHub",String(c.github).startsWith("connected"),c.github],["작업 이벤트",c.events==="connected",c.events],["코덱스 실행기 (단일 실행기)",HQ?.runner?.codex==="connected","codex-runner — 모든 자동 수정은 코덱스가 수행"],["휴대폰 원격",HQ?.remote==="token","토큰 인증 사설망"]].map(([nm,ok,d])=>`<div>${tonePill(ok?"good":"neutral",ok?"연결":"대기")}<b>${esc(nm)}</b><span>${esc(d===true||d===false?"":(d||""))}</span></div>`).join("")}</div>`;}
 function recordList(collection,opt={}){const items=opt.items||records(collection);return items.length?`<div class="record-list">${items.map(r=>`<article><header><div><span>${esc(appName(r.appId))} · ${fmt(r.createdAt)}</span><h3>${esc(r.title||COLLECTION_LABEL[collection]||"기록")}</h3></div>${statusPill(r.status||"open")}</header>${r.body?`<p>${esc(r.body)}</p>`:""}</article>`).join("")}</div>`:empty(opt.emptyTitle||`저장된 ${COLLECTION_LABEL[collection]||"기록"}이 없습니다.`);}
@@ -631,6 +666,9 @@ document.addEventListener("click",async e=>{
     else if(a==="save-memo")await saveMemo();
     else if(a==="delete-memo")await deleteMemo(action.dataset.id);
     else if(a==="apply-review-schedule")await saveReviewSchedule();
+    else if(a==="mobile-on"||a==="mobile-off"){
+      MOBILE=await fetchJson("/api/mobile-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({enabled:a==="mobile-on"})});
+      showToast(a==="mobile-on"?"휴대폰 연결을 켰습니다 — QR을 폰 카메라로 비추세요.":"휴대폰 연결을 껐습니다.","good");renderScreen();}
     else if(a==="run-health"){await fetchJson("/api/health-run",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});showToast("전체 재점검을 시작했습니다(심층 포함). 결과는 1~3분 안에 이 화면에 반영됩니다.","good");CONTRACTS=null;CONTRACTS_LOADING=false;setTimeout(()=>{CONTRACTS=null;CONTRACTS_LOADING=false;loadContracts();},90_000);}
     else if(a==="set-company-mode"){const data=await fetchJson("/api/company-mode",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:action.dataset.mode})});try{HQ=await fetchJson("/api/hq-status");}catch{}showToast({RUNNING:"회사를 가동했습니다 — 상시 관제·자동 복구·전결이 켜집니다.",MONITOR_ONLY:"관제만 모드 — 점검·기안만 하고 수정은 하지 않습니다.",PAUSED:"회사를 안전하게 일시정지했습니다."}[data.mode]||"반영했습니다.","good");updateChrome();renderScreen();}
     else if(a==="set-delegation"){const data=await fetchJson("/api/delegation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({approvalMode:action.dataset.approval})});try{HQ=await fetchJson("/api/hq-status");}catch{}showToast(data.approvalMode==="VICE_CHAIR_DELEGATED"?"수석부회장 전결을 위임했습니다 — 위임 가능 안건은 자동 재가됩니다.":"전결을 해제했습니다 — 새 안건은 회장 직접결재입니다.","good");updateChrome();renderScreen();}

@@ -21,6 +21,7 @@ import { runContractEngine, contractResultsToRaw } from "./lib/contract-engine.m
 import { buildContractCatalog, catalogCoverage } from "./lib/contract-catalog.mjs";
 import { readApps } from "./lib/sources.mjs";
 import { tryActivatePlaywrightDriver } from "./lib/browser-driver.mjs";
+import { readMobileAccess, writeMobileAccess, connectUrls, DEFAULT_MOBILE_PORT } from "./lib/mobile-access.mjs";
 import { readAuthority, writeAuthority, isDelegable, currentShift, COMPANY_MODES, APPROVAL_MODES } from "./lib/company-authority.mjs";
 import { startRunnerSupervisor } from "./lib/runner-supervisor.mjs";
 import { REPO_ROOT } from "./lib/sources.mjs";
@@ -344,7 +345,7 @@ function readHealthSummary() {
   } catch { return null; }
 }
 
-async function handleApi(req, res, path, store, maxBodyBytes, snapDir) {
+async function handleApi(req, res, path, store, maxBodyBytes, snapDir, local) {
   if (path === "/api/company-state") {
     if (req.method !== "GET") {
       sendText(res, 405, "method not allowed", { Allow: "GET" });
@@ -361,7 +362,26 @@ async function handleApi(req, res, path, store, maxBodyBytes, snapDir) {
     const summary = queueSummary();
     if (summary.runner) summary.runner.managed = MANAGE_RUNNER; // 러너 자동 관리 여부는 서버가 정본
     const authority = readAuthority();
-    sendJson(res, 200, { ok: true, ...summary, remote: REMOTE_ENABLED ? "token" : "local-only", reviewEveryMinutes: AUTO_REVIEW ? readReviewEveryMinutes() : 0, reviewMinMinutes: REVIEW_MIN_MINUTES, health: readHealthSummary(), company: { mode: authority.mode, approvalMode: authority.approvalMode, delegatedAt: authority.delegatedAt, shift: currentShift() } });
+    sendJson(res, 200, { ok: true, ...summary, remote: REMOTE_ENABLED || mobileEnabled() ? "token" : "local-only", mobile: mobileEnabled(), reviewEveryMinutes: AUTO_REVIEW ? readReviewEveryMinutes() : 0, reviewMinMinutes: REVIEW_MIN_MINUTES, health: readHealthSummary(), company: { mode: authority.mode, approvalMode: authority.approvalMode, delegatedAt: authority.delegatedAt, shift: currentShift() } });
+    return;
+  }
+
+  // 휴대폰 연결(연동) — 토큰·주소는 이 컴퓨터(로컬 창)에서만 보여준다. 원격에서 토큰 재노출 금지.
+  if (path === "/api/mobile-access") {
+    if (req.method === "GET") {
+      if (!local) { sendJson(res, 200, { ok: true, enabled: mobileEnabled(), connectedRemotely: true }); return; }
+      const state = MOBILE_STATE || readMobileAccess();
+      sendJson(res, 200, { ok: true, enabled: Boolean(state.enabled), port: state.port, token: state.enabled ? state.token : null, urls: connectUrls(state), listening: Boolean(mobileServer) });
+      return;
+    }
+    if (req.method !== "POST") { sendText(res, 405, "method not allowed", { Allow: "GET, POST" }); return; }
+    if (!local) throw new HttpError("휴대폰 연결 설정은 이 컴퓨터에서만 바꿀 수 있습니다.", 403, "LOCAL_ONLY");
+    const body = await readJsonBody(req, maxBodyBytes);
+    if (typeof body.enabled !== "boolean") throw new HttpError("enabled(boolean)가 필요합니다.", 400, "INVALID_BODY");
+    MOBILE_STATE = writeMobileAccess({ enabled: body.enabled });
+    if (body.enabled) await startMobileListener(store);
+    else stopMobileListener();
+    sendJson(res, 200, { ok: true, enabled: Boolean(MOBILE_STATE.enabled), port: MOBILE_STATE.port, token: MOBILE_STATE.enabled ? MOBILE_STATE.token : null, urls: connectUrls(MOBILE_STATE), listening: Boolean(mobileServer) });
     return;
   }
 
@@ -575,13 +595,47 @@ function resolveStaticFile(appDir, path) {
   return file;
 }
 
-// ── 원격(휴대폰) 인증: 토큰이 설정된 경우에만 localhost 밖 요청을 허용 ──
+// ── 원격(휴대폰) 인증: 환경변수 토큰(고급) 또는 프로그램에서 켠 휴대폰 연결 토큰 ──
 const remoteSessions = new Map(); // ip → {count, windowStart} 간이 rate limit
+let MOBILE_STATE = null; // 시작·토글 시 갱신되는 캐시(파일 정본)
+let mobileServer = null;
+function mobileEnabled() { return Boolean(MOBILE_STATE?.enabled && MOBILE_STATE.token); }
+function remoteAllowed() { return REMOTE_ENABLED || mobileEnabled(); }
 function tokenMatches(candidate) {
-  if (!REMOTE_ENABLED || typeof candidate !== "string") return false;
-  const expected = Buffer.from(REMOTE_TOKEN);
+  if (typeof candidate !== "string" || !candidate) return false;
+  const valids = [];
+  if (REMOTE_ENABLED) valids.push(REMOTE_TOKEN);
+  if (mobileEnabled()) valids.push(MOBILE_STATE.token);
   const actual = Buffer.from(candidate);
-  return expected.length === actual.length && timingSafeEqual(expected, actual);
+  return valids.some((v) => {
+    const expected = Buffer.from(v);
+    return expected.length === actual.length && timingSafeEqual(expected, actual);
+  });
+}
+// 휴대폰 연결 리스너: 켜면 0.0.0.0에 별도 포트로 열되, 모든 비로컬 요청은 토큰 인증을 거친다.
+async function startMobileListener(store) {
+  if (mobileServer) return true;
+  const state = MOBILE_STATE;
+  if (!state?.enabled) return false;
+  const server = createControlCenterServer({ store });
+  try {
+    await new Promise((resolveListen, rejectListen) => {
+      server.once("error", rejectListen);
+      server.listen(state.port || DEFAULT_MOBILE_PORT, "0.0.0.0", () => { server.off("error", rejectListen); resolveListen(); });
+    });
+    server.unref(); // 보조 리스너가 프로세스 종료를 막지 않는다(메인 서버가 수명 정본)
+    mobileServer = server;
+    console.log(`[robom-hq] 휴대폰 연결 대기 중 — 같은 와이파이에서 포트 ${state.port} (토큰 인증)`);
+    return true;
+  } catch (error) {
+    console.error("[robom-hq] 휴대폰 연결 리스너 시작 실패", error?.message);
+    return false;
+  }
+}
+function stopMobileListener() {
+  if (!mobileServer) return;
+  try { mobileServer.close(); } catch { /* 무시 */ }
+  mobileServer = null;
 }
 function remoteAuthorized(req) {
   const header = String(req.headers.authorization || "");
@@ -605,7 +659,7 @@ function rateLimited(req) {
 async function handleRequest(req, res, { store, appDir, snapDir, maxBodyBytes }) {
   const local = isLocalHostHeader(req.headers.host) && [LOCAL_HOST, "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress);
   if (!local) {
-    if (!REMOTE_ENABLED) {
+    if (!remoteAllowed()) {
       sendJson(res, 403, { error: "LOCAL_ONLY", message: "localhost 요청만 허용합니다." });
       return;
     }
@@ -620,7 +674,7 @@ async function handleRequest(req, res, { store, appDir, snapDir, maxBodyBytes })
   }
   const path = decodeSafePath(req.url);
   if (path.startsWith("/api/")) {
-    await handleApi(req, res, path, store, maxBodyBytes, snapDir);
+    await handleApi(req, res, path, store, maxBodyBytes, snapDir, local);
     return;
   }
   if (req.method !== "GET" && req.method !== "HEAD") {
@@ -675,7 +729,8 @@ export function createControlCenterServer({
 
 export async function startControlCenter({ port = DEFAULT_PORT, openBrowser = true, refreshSnapshot = true } = {}) {
   if (!Number.isSafeInteger(port) || port < 0 || port > 65_535) throw new TypeError("ROBOM_HQ_PORT가 올바르지 않습니다.");
-  const server = createControlCenterServer();
+  const store = createCompanyStore(); // 메인·휴대폰 리스너가 같은 저장소 인스턴스를 공유(동시 쓰기 경합 방지)
+  const server = createControlCenterServer({ store });
   const bindHost = REMOTE_ENABLED ? "0.0.0.0" : LOCAL_HOST;
   await new Promise((resolveListen, rejectListen) => {
     server.once("error", rejectListen);
@@ -691,6 +746,10 @@ export async function startControlCenter({ port = DEFAULT_PORT, openBrowser = tr
   if (REMOTE_ENABLED) {
     console.log(`[robom-hq] 휴대폰 연결 허용됨(토큰 인증). 같은 사설망에서 http://<이 컴퓨터 IP>:${actualPort}/?token=<토큰> 으로 1회 접속하면 이후 쿠키로 유지됩니다.`);
   }
+  // 회장이 프로그램에서 켠 휴대폰 연결을 재시작 후에도 이어간다(설정 파일이 정본).
+  MOBILE_STATE = readMobileAccess();
+  if (MOBILE_STATE.enabled) await startMobileListener(store);
+  server.once("close", stopMobileListener); // 메인 서버가 닫히면 휴대폰 리스너도 함께 닫는다
   // 데스크톱은 Electron 드라이버가 이미 등록됨. 개발·CI에서는 Playwright가 있으면 활성(없으면 브라우저 계약만 점검 불가로 정직 표기).
   tryActivatePlaywrightDriver(process.env.ROBOM_HQ_PLAYWRIGHT || "playwright").then((ok) => {
     if (ok) console.log("[robom-hq] 브라우저 심층 점검: Playwright 드라이버 활성");
