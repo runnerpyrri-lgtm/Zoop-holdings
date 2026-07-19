@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="2.15.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="2.16.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -245,6 +245,7 @@ function renderToday(){
     <div>
       ${panel("내가 확인할 일",attn.length?`<div class="attn-list">${attn.slice(0,7).map(it=>`<button class="attn-item ${it.kind||""}" type="button" data-go="${attr(it.go)}"><span class="ai-ic">${icon(it.kind==="review"?"gavel":"alert")}</span><b>${esc(it.label)}</b><span class="ai-go">${icon("chev")}</span></button>`).join("")}</div>`:empty("지금 확인할 일이 없습니다.","막힘·결재·경고가 생기면 여기에 먼저 나타나요."),attn.length?`<span class="pt-count">${attn.length}</span>`:"")}
       ${incidentBoardPanel()}
+      ${HQ?.loops?.active?loopBoardPanel():""}
       ${autos.length?panel("결재 상신 — 시스템 개선 제안",`<div class="approval-list">${autos.slice(0,3).map(r=>decreeCard(r)).join("")}</div>`,`<span class="pt-count">${autos.length}</span>`):""}
       ${panel("포트폴리오 현황 — 6개 앱",matrixTable(),`<a class="status neutral" href="#/apps">전체 보기</a>`,"flush")}
     </div>
