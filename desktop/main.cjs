@@ -4,8 +4,9 @@
 // 창을 닫아도 트레이에서 계속 감시하며, 트레이에서 일시정지·재개·완전 종료할 수 있다.
 "use strict";
 const { app, BrowserWindow, Tray, Menu, nativeImage, shell, dialog } = require("electron");
-const { chmodSync, existsSync, mkdirSync, copyFileSync, readFileSync } = require("node:fs");
+const { chmodSync, existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync } = require("node:fs");
 const { join } = require("node:path");
+const { spawnSync } = require("node:child_process");
 const { pathToFileURL } = require("node:url");
 
 let mainWindow = null;
@@ -66,17 +67,33 @@ function prepareDataDirs() {
   return { runtimeDir, snapDir, dataRoot };
 }
 
-// 첫 실행 시 로그인 자동 시작을 기본 ON으로 한다(이후에는 회장의 선택을 존중).
-function ensureLoginItemDefault(dataRoot) {
+// 자동 시작은 기본 OFF — 회장이 트레이에서 직접 켜야만 부팅 시 실행된다.
+// 과거 버전이 (1) Electron 로그인 항목을 숨김 ON으로 강제했고 (2) 종료해도 즉시
+// 되살리는 KeepAlive LaunchAgent(kr.robom.company-os)를 설치할 수 있었다. 이 둘 때문에
+// "꺼도 자꾸 자동 실행"되는 문제가 있었으므로, 새 버전 첫 실행 때 한 번 둘 다 해제한다.
+// 표식 이후에는 회장의 트레이 선택만 존중한다(다시 자동으로 켜지 않는다).
+function normalizeAutoStart(dataRoot) {
   try {
-    const marker = join(dataRoot, "login-item-initialized");
+    const marker = join(dataRoot, "autostart-off-v243");
     if (existsSync(marker)) return;
+    // (1) Electron 로그인 항목 해제 — 부팅 시 몰래 뜨던 자동 실행 중단
     if (process.platform === "darwin" || process.platform === "win32") {
-      app.setLoginItemSettings({ openAtLogin: true, openAsHidden: true });
+      app.setLoginItemSettings({ openAtLogin: false, openAsHidden: false });
     }
-    require("node:fs").writeFileSync(marker, new Date().toISOString());
+    // (2) 예전에 설치됐을 수 있는 KeepAlive LaunchAgent 제거 — 종료해도 되살아나던 진짜 원인
+    if (process.platform === "darwin") {
+      try {
+        const label = "kr.robom.company-os";
+        const plistPath = join(app.getPath("home"), "Library", "LaunchAgents", `${label}.plist`);
+        spawnSync("launchctl", ["bootout", `gui/${process.getuid()}/${label}`], { encoding: "utf8" });
+        if (existsSync(plistPath)) rmSync(plistPath, { force: true });
+      } catch (agentError) {
+        console.error("[robom-hq] 레거시 자동시작 LaunchAgent 제거 실패", agentError);
+      }
+    }
+    writeFileSync(marker, new Date().toISOString());
   } catch (error) {
-    console.error("[robom-hq] 로그인 자동 시작 기본 설정 실패", error);
+    console.error("[robom-hq] 자동 시작 정규화 실패", error);
   }
 }
 
@@ -216,13 +233,13 @@ function buildTray() {
     { label: "자동작업 다시 시작", click: () => apiPost("/api/control", { paused: false }) },
     { type: "separator" },
     {
-      label: "로그인 시 자동 시작",
+      label: "부팅 시 자동 시작 (기본 꺼짐)",
       type: "checkbox",
-      checked: app.getLoginItemSettings().openAtLogin,
-      click: (item) => { app.setLoginItemSettings({ openAtLogin: item.checked }); if (RUNTIME_DIR) writeDesktopStatus(RUNTIME_DIR); },
+      checked: process.platform === "darwin" || process.platform === "win32" ? app.getLoginItemSettings().openAtLogin : false,
+      click: (item) => { app.setLoginItemSettings({ openAtLogin: item.checked, openAsHidden: false }); if (RUNTIME_DIR) writeDesktopStatus(RUNTIME_DIR); },
     },
     { type: "separator" },
-    { label: "완전 종료", click: () => { quitting = true; app.quit(); } },
+    { label: "완전 종료 (다시 안 켜짐)", click: () => { quitting = true; app.quit(); } },
   ]);
   tray.setContextMenu(menu);
   tray.on("click", showWindow);
@@ -237,7 +254,7 @@ if (!gotLock) {
     app.setName("ROBOM HQ");
     const { dataRoot, runtimeDir } = prepareDataDirs();
     RUNTIME_DIR = runtimeDir;
-    ensureLoginItemDefault(dataRoot);
+    normalizeAutoStart(dataRoot);
     writeDesktopStatus(runtimeDir);
     try {
       serverLink = await startServer();

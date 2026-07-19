@@ -242,10 +242,13 @@ test("완전 자동: HQ가 codex-runner를 관리하고 하루 2회(6시·18시)
   assert.match(app, /set-company-mode/);
   assert.match(app, /set-delegation/);
   assert.match(app, /전결<\/div>/); // 전결 도장
-  // 데스크톱이 관리 러너 켜고 로그인 자동시작 기본 ON
+  // 데스크톱이 관리 러너를 켜되, 자동 시작은 기본 OFF다:
+  // 첫 실행 때 부팅 자동실행(로그인 항목)을 끄고, 종료해도 되살리던 레거시 KeepAlive LaunchAgent를 제거한다.
   const main = readFileSync(join(REPO_ROOT, "desktop/main.cjs"), "utf8");
   assert.match(main, /ROBOM_HQ_MANAGE_RUNNER = "1"/);
-  assert.match(main, /setLoginItemSettings\(\{ openAtLogin: true/);
+  assert.match(main, /function normalizeAutoStart/);
+  assert.match(main, /setLoginItemSettings\(\{ openAtLogin: false/);
+  assert.match(main, /kr\.robom\.company-os/);
   // UI가 자동 관리·점검 주기를 정직하게 표시(주기는 hq-status의 reviewEveryMinutes로 동적 표기)
   assert.match(app, /자동으로 다시 켜는 중|자동 실행 중|자동 관리/);
   assert.match(app, /function reviewLabel/);

@@ -877,7 +877,8 @@ function evalHqRuntime(c, ctx, env) {
         let d; try { d = JSON.parse(readFileSync(f, "utf8")); } catch { return fail("desktop-status parse 실패", "유효 JSON"); }
         if (d.platform && !["darwin", "win32"].includes(d.platform)) return pass(`${d.platform}(자동시작 비적용)`, "해당 없음");
         if (!d.loginItem) return unavailable("loginItem 미기록", "데스크톱 상태 필요");
-        return d.loginItem.openAtLogin ? pass("맥 부팅 자동 시작 ON", "자동 시작 등록") : degraded("자동 시작 OFF(시스템 설정에서 꺼짐)", "자동 시작 등록");
+        // 자동 시작은 기본 OFF가 정상(회장 선택). ON/OFF 모두 정상 상태로 보고만 한다.
+        return d.loginItem.openAtLogin ? pass("부팅 자동 시작 ON(회장이 켬)", "자동 시작 상태 보고") : pass("부팅 자동 시작 OFF(기본값)", "자동 시작 상태 보고");
       }
       default: return unavailable(`미구현 check: ${check}`, "코드 등록 필요");
     }
