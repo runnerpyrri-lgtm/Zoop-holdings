@@ -3,7 +3,7 @@
 // 같은 네트워크(권장: Tailscale 사설망)의 휴대폰이 토큰 인증으로 접속할 수 있다.
 import { createServer } from "node:http";
 import { randomUUID, timingSafeEqual } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { extname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
@@ -271,6 +271,22 @@ function loopTypeFor(failureClass = "") {
   return map[failureClass] || "reliability";
 }
 
+// §12 장기 운영: 백업 파일이 무한 누적되지 않도록 아주 오래된 것만 정리한다.
+// 안전장치: 최근 keepMin개는 무조건 보존하고, keepDays 이내 백업도 보존한다(백업 없는 대량 삭제 금지).
+function pruneOldBackups(backupsDir, { now = new Date(), keepDays = 60, keepMin = 20 } = {}) {
+  try {
+    const files = readdirSync(backupsDir).filter((f) => f.startsWith("company-backup-") && f.endsWith(".json.local"))
+      .map((f) => { try { return { f, m: statSync(join(backupsDir, f)).mtimeMs }; } catch { return null; } })
+      .filter(Boolean).sort((a, b) => b.m - a.m); // 최신 우선
+    const cutoff = now.getTime() - keepDays * 86400_000;
+    let pruned = 0;
+    for (let i = keepMin; i < files.length; i += 1) { // 최근 keepMin개는 건너뜀
+      if (files[i].m < cutoff) { try { rmSync(join(backupsDir, files[i].f), { force: true }); pruned += 1; } catch { /* skip */ } }
+    }
+    return { pruned };
+  } catch { return { pruned: 0 }; }
+}
+
 // §12 유지보수: 가장 최근 백업의 나이(시간)를 잰다. 백업이 없으면 Infinity.
 const BACKUP_MAX_AGE_HOURS = Number(process.env.ROBOM_HQ_BACKUP_MAX_AGE_HOURS || 24); // 하루 1회 자동 백업
 function newestBackupAgeHours(backupsDir, now = new Date()) {
@@ -491,6 +507,8 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
   if (healthSummary) { healthSummary.backupAgeHours = Number.isFinite(backupAgeH) ? Math.round(backupAgeH) : null; healthSummary.autoBackedUp = autoBackedUp; }
   // §12 장기 운영: 30일 지난 종료 Loop 정리(파일 무한 증가 방지). 활성 Loop는 건드리지 않는다.
   try { pruneClosedLoops(DEFAULT_COMPANY_RUNTIME_DIR, { now, keepDays: 30 }); } catch { /* 정리 실패 무시 */ }
+  // §12 장기 운영: 아주 오래된 백업(60일↑) 정리. 최근 20개는 무조건 보존(백업 없는 대량 삭제 금지).
+  try { pruneOldBackups(store.paths.backupsDir, { now, keepDays: 60, keepMin: 20 }); } catch { /* 정리 실패 무시 */ }
   try {
     mkdirSync(DEFAULT_COMPANY_RUNTIME_DIR, { recursive: true, mode: 0o700 });
     writeFileSync(REVIEW_MARKER, JSON.stringify({ at: new Date().toISOString(), created: created.length, delegated, health: healthSummary }), { mode: 0o600 });
