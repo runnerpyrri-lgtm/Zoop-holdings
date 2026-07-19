@@ -270,14 +270,10 @@ function homebomContracts(app) {
       { severityIfFail: "warning", failureClass: "security", what: "refresh(동기화) 경로가 토큰 인증을 요구(읽기 전용 코드 감사)", userImpact: "무인증 refresh는 과금·오염 위험입니다.", recommendedAction: "x-sync-token 검증을 유지합니다." }),
     s("pipeline-workflow", "data", "github_actions", { repo: app.repo, maxAgeHours: 24 },
       { severityIfFail: "warning", failureClass: "automation", what: "데이터 파이프라인 workflow 최근 성공", userImpact: "워크플로가 죽으면 수집이 멈춥니다.", recommendedAction: "Actions 실행 이력을 확인합니다." }),
-    s("collection-stats", "data", "need_new_source", {},
-      { severityIfFail: "info", failureClass: "observability", needNewSource: true,
-        sourceNeeded: "fetched·valid·published·preserved 수를 노출하는 read-only /health 응답 또는 헤더",
-        whyNeeded: "현재 public endpoint가 수집 통계를 노출하지 않아 0건 삭제 보호·conflict 수를 외부에서 검증할 수 없음",
-        privacyRisk: "민감 원문 없이 숫자·verifiedAt·snapshot fingerprint만",
-        freeImplementationOption: "Supabase 함수에 통계 헤더(x-collection-stats) 추가",
-        fallbackStatus: "UNAVAILABLE",
-        what: "수집 통계(fetched≥published, 불가능 통계 금지, 0건 삭제 보호) 심층 검증", userImpact: "수집 이상을 통계로 조기 감지하지 못합니다.", recommendedAction: "read-only 통계 신호를 추가하면 자동 점검됩니다." }),
+    s("collection-stats", "data", "http_json_contract", { url: probe, headerAssertions: [
+      { path: "x-collection-stats", op: "exists", label: "수집 통계 헤더" }] },
+      { severityIfFail: "info", failureClass: "observability", what: "수집 통계 헤더(x-collection-stats: published·fetched·valid·preserved 숫자) 노출 — 0건 삭제 보호 조기 감지",
+        userImpact: "수집 이상을 통계로 조기 감지합니다(헤더 배포 전에는 미노출로 표기).", recommendedAction: "청약봄 Supabase 함수 배포(PR #31)가 반영되면 자동 점검됩니다." }),
     // ── 공고 응답 심층 실측(서버 normalize()가 보장하는 필드만 — 빈 배열이면 every는 공허참으로 통과) ──
     s("notices-housing-category", "data", "http_json_contract", { url: probe, itemsPathCandidates: itemPaths, assertions: [
       { path: "", op: "eq", quantifier: "every", itemPath: "housingCategory", value: "아파트", label: "주택구분=아파트" }] },
@@ -393,14 +389,9 @@ function calendarbomContracts(app) {
       { severityIfFail: "warning", failureClass: "storage", what: "JSON 백업 내보내기 기능 존재", userImpact: "백업이 없으면 기기 교체 때 일정을 잃습니다.", recommendedAction: "백업 기능을 유지합니다." }),
     s("ics-static", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAny: ["BEGIN:VCALENDAR", "ics", "ICS"] },
       { severityIfFail: "info", failureClass: "storage", what: "ICS 내보내기·가져오기 코드 존재", userImpact: "캘린더 앱 연동이 끊깁니다.", recommendedAction: "ICS 지원을 유지합니다." }),
-    s("user-storage-health", "storage", "need_new_source", {},
-      { severityIfFail: "info", failureClass: "observability", needNewSource: true,
-        sourceNeeded: "사용자 동의 후 로컬에서 출력하는 비식별 진단 JSON(손상 여부·마지막 백업 나이·저장공간 버킷·예약 알림 수)",
-        whyNeeded: "HQ는 다른 origin의 localStorage를 직접 읽을 수 없음(§18.1 opt-in handshake 필요)",
-        privacyRisk: "일정 제목·내용은 절대 포함 금지 — 숫자·버킷만",
-        freeImplementationOption: "캘린더봄 설정에 '진단 데이터 보내기(내 맥의 HQ로)' 옵트인 버튼",
-        fallbackStatus: "UNAVAILABLE",
-        what: "실사용자 저장 데이터 건강(손상·백업 나이·잔여 공간·알림 수)", userImpact: "사용자 기기 문제를 원격에서 알 수 없습니다.", recommendedAction: "옵트인 진단 브리지를 구현하면 자동 점검됩니다." }),
+    s("user-storage-health", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAll: ["diagnosticsOptIn", "calendarbom:diagnostics-optin"] },
+      { severityIfFail: "info", failureClass: "observability",
+        what: "개인정보 보호형 진단 옵트인(숫자만·기본 꺼짐·자동전송 없음)이 배포 번들에 존재", userImpact: "사용자가 원할 때 저장 건강(손상·개수·용량)을 숫자만으로 진단할 수 있습니다.", recommendedAction: "캘린더봄 옵트인 진단 배포(PR #1)가 반영되면 자동 점검됩니다." }),
   ];
 }
 
@@ -451,14 +442,14 @@ function certbomContracts(app) {
     s("interest-roundtrip-smoke", "user_surface", "browser_smoke", { url: app.web_url, viewports: [{ width: 390, height: 844 }], maxConsoleErrors: 0, checkOverflow: true, bodyMinTextLength: 40 },
       { runTier: "deep", severityIfFail: "warning", failureClass: "user_flow", requiredCapabilities: ["network", "browser"], timeoutMs: 45_000,
         what: "자격증봄 화면 smoke(렌더·콘솔 오류 0·넘침 0)", userImpact: "화면이 깨지면 시험 일정을 볼 수 없습니다.", recommendedAction: "콘솔 오류를 수정합니다." }),
-    s("source-hash-change", "data", "need_new_source", {},
-      { severityIfFail: "info", failureClass: "observability", needNewSource: true,
-        sourceNeeded: "각 공식 source HTML·PDF의 content hash 저장(수집 workflow 산출물)",
-        whyNeeded: "hash가 없으면 공식 출처 문서 변경을 결정론적으로 감지할 수 없음",
-        privacyRisk: "공개 문서 hash만 — 개인정보 없음",
-        freeImplementationOption: "수집 workflow가 source별 sha256을 registry에 기록",
-        fallbackStatus: "UNAVAILABLE",
-        what: "공식 출처 문서 변경 감지(hash 기반)", userImpact: "출처 개편을 늦게 발견하면 일정이 틀린 채 방치됩니다.", recommendedAction: "workflow에 hash 기록을 추가하면 자동 점검됩니다." }),
+    s("source-hash-change", "data", "http_json_contract", { url: `https://raw.githubusercontent.com/${app.repo}/main/ops/source-registry/source-hashes.json`, assertions: [
+      { path: "schemaVersion", op: "gte", value: 1, label: "해시 스키마" },
+      { path: "sources", op: "length_gte", value: 8, label: "모니터 출처 수" },
+      { path: "sources", op: "nonempty_string", quantifier: "every", itemPath: "sourceId", label: "출처 id" },
+      { path: "sources", op: "date_valid", quantifier: "every", itemPath: "checkedAt", label: "확인 시각" }] },
+      { severityIfFail: "info", failureClass: "observability", timeoutMs: 25_000,
+        what: "공식 출처 콘텐츠 모니터(source-hashes.json: 출처별 sha256·상태·확인시각) — 출처 문서 변경 감지",
+        userImpact: "출처 개편을 늦게 발견하면 일정이 틀린 채 방치됩니다.", recommendedAction: "source-monitor 워크플로(PR #8) 병합 후 자동 점검됩니다." }),
   ];
 }
 
@@ -588,13 +579,9 @@ function hqContracts({ registryApps }) {
       { severityIfFail: "warning", failureClass: "integrity", what: "최신 HQ 릴리스에 mac(arm64·x64)·win 산출물 존재·크기 0 금지", userImpact: "산출물이 깨지면 설치·업데이트가 막힙니다.", recommendedAction: "릴리스 워크플로를 재실행합니다." }),
     C(`c:${id}:hq-ci`, id, "ci", "github_actions", { repo: "robom-labs/robom" },
       { severityIfFail: "error", failureClass: "automation", what: "본사 저장소 최신 main CI", userImpact: "CI 실패는 다음 배포 위험입니다.", recommendedAction: "실패 원인을 수정합니다." }),
-    s("login-item-status", "login-item-status", { severityIfFail: "info", failureClass: "observability", needNewSource: true,
-      sourceNeeded: "macOS 로그인 항목 실제 등록 상태를 renderer에 노출하는 desktop API",
-      whyNeeded: "Electron 설정값만으로는 사용자가 시스템 설정에서 껐는지 알 수 없음",
-      privacyRisk: "boolean 상태만 — 개인정보 없음",
-      freeImplementationOption: "desktop main이 app.getLoginItemSettings()를 스냅샷에 포함",
-      fallbackStatus: "UNAVAILABLE",
-      what: "맥 부팅 자동 시작 실제 등록 상태", userImpact: "자동 시작이 꺼진 걸 모르면 24/7 운영이 끊깁니다.", recommendedAction: "desktop API 노출 시 자동 점검됩니다." }),
+    s("login-item-status", "login-item-status", { severityIfFail: "warning", failureClass: "observability",
+      what: "맥/윈도 부팅 자동 시작 실제 등록 상태(desktop main이 app.getLoginItemSettings()를 desktop-status.json에 기록)",
+      userImpact: "자동 시작이 꺼진 걸 모르면 24/7 운영이 끊깁니다.", recommendedAction: "시스템 설정에서 로그인 항목을 켜거나 설정 화면에서 자동 시작을 다시 활성화합니다." }),
   ];
 }
 

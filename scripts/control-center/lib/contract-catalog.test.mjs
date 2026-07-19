@@ -28,7 +28,9 @@ test("계약 id 중복 0 · evaluator 미등록 0 (§9.7 게이트)", () => {
 
 test("need_new_source 계약은 §18 메타데이터(source_needed 등)를 전부 갖는다", () => {
   const nns = contracts.filter((c) => c.needNewSource);
-  assert.ok(nns.length >= 5, "실측 불가 항목을 숨기지 말고 정직 표기");
+  // 대부분의 신호를 실제로 열어(앱별 실측 계약 추가) need_new_source는 노트봄('절대 수정 금지') 관련만 남는다.
+  assert.ok(nns.length >= 2, "실측 불가 항목을 숨기지 말고 정직 표기");
+  assert.ok(nns.every((c) => c.target === "notebom"), "남은 need_new_source는 노트봄(수정 금지)만");
   for (const c of nns) {
     for (const k of ["sourceNeeded", "whyNeeded", "privacyRisk", "freeImplementationOption", "fallbackStatus"]) {
       assert.ok(c[k], `${c.id}: ${k} 누락`);

@@ -79,6 +79,22 @@ function ensureLoginItemDefault(dataRoot) {
   }
 }
 
+// 맥/윈도 로그인 자동시작의 '실제' 등록 상태를 런타임에 노출한다(계약 c:robom-hq:login-item-status가 읽는다).
+// 시스템 설정에서 회장이 껐는지 여부를 Electron 설정값이 아니라 OS 실제 상태로 판정하기 위함.
+function writeDesktopStatus(runtimeDir) {
+  try {
+    let loginItem = null;
+    if (process.platform === "darwin" || process.platform === "win32") {
+      const s = app.getLoginItemSettings();
+      loginItem = { openAtLogin: !!s.openAtLogin, openAsHidden: !!s.openAsHidden, wasOpenedAtLogin: !!s.wasOpenedAtLogin };
+    }
+    const payload = { platform: process.platform, appVersion: app.getVersion(), loginItem, at: new Date().toISOString() };
+    require("node:fs").writeFileSync(join(runtimeDir, "desktop-status.json"), JSON.stringify(payload), { mode: 0o600 });
+  } catch (error) {
+    console.error("[robom-hq] desktop-status 기록 실패", error);
+  }
+}
+
 // 심층 브라우저 점검 드라이버: 숨김 창(sandbox·메모리 세션)으로 운영 앱을 실제 렌더해 검사한다.
 // 원격 페이지 script는 로컬 filesystem·IPC·token에 접근할 수 없다(§6.1). 사용자 프로필은 절대 쓰지 않는다.
 async function registerElectronBrowserDriver() {
@@ -218,8 +234,9 @@ if (!gotLock) {
   app.on("second-instance", showWindow);
   app.whenReady().then(async () => {
     app.setName("ROBOM HQ");
-    const { dataRoot } = prepareDataDirs();
+    const { dataRoot, runtimeDir } = prepareDataDirs();
     ensureLoginItemDefault(dataRoot);
+    writeDesktopStatus(runtimeDir);
     try {
       serverLink = await startServer();
     } catch (error) {

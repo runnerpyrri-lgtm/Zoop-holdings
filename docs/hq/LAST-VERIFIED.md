@@ -35,6 +35,12 @@
   - **자격증봄**: ops/source-registry/sources.json(raw GitHub) → 4종(schemaVersion≥2·dataVersion·출처 8곳·id 중복0·공식/접수 URL https·확인시각). 실제 파일 한글 키 스키마 확인. (런타임 데이터는 번들 내장이라 별도 API 없음 — 정직히 파일 점검)
   - **캘린더봄**: 서버 데이터 없음(클라이언트 전용) → 저장 키 6개 불변 계약(critical, 사용자 데이터 유실 방지) + 백업/ICS 내보내기·가져오기 UI 존재. 앱 스스로 선언한 '저장 키 불변' 원칙 기반.
   - 라이브 PASS는 회장 맥에서(샌드박스는 외부 호스트 403 차단). 엔진 구조 검증: 신규 계약 전수 코드 예외 0.
-- **남은 need_new_source 6개(정직)**: 청약봄 collection-stats(Supabase 함수에 통계 헤더 추가 필요), 자격증봄 source-hash(수집 workflow가 sha256 기록), 캘린더봄 user-storage-health(설정 옵트인 — **개인정보라 회장 확인 경계**, 자동 미구현), robom-hq login-item(desktop API), 노트봄 2개('절대 수정 금지'). 이들은 각 앱 인프라 추가/개인정보 동의가 필요한 항목이라 허수로 채우지 않고 정직하게 남김.
+- **남은 신호도 노트봄만 빼고 전부 착수 완료**(회장 지시 "노트봄 빼고 다 진행·모든 권한"). need_new_source 7 → **2(노트봄 2개만)**:
+  - **robom-hq login-item** ✅ 본사에서 구현 완료 — desktop main이 `app.getLoginItemSettings()`를 `desktop-status.json`에 기록, 계약이 OS 실제 자동시작 상태를 판정(v2.4.0 포함).
+  - **청약봄 collection-stats** → homebom PR #31(Supabase 함수 `x-collection-stats` 숫자 헤더). 병합·배포 시 계약 자동 green.
+  - **자격증봄 source-hash** → certbom PR #8(공식 출처 콘텐츠 모니터 워크플로 + `source-hashes.json`). 병합·배포 시 green.
+  - **캘린더봄 user-storage-health** → calendarbom PR #1(개인정보 없는 옵트인 진단·숫자만·기본 꺼짐·**자동 전송 없음**·로컬 저장). 회장이 소유주로서 직접 동의해 개인정보 경계 충족. 자동 데이터 전송은 안전 원칙상 제외(로컬 저장만). 배포 시 옵트인 존재를 계약이 확인.
+  - **노트봄 2개**: '절대 수정 금지' 규칙으로 열지 않음(정직 표기 유지).
+  - 3개 앱 신호는 Draft PR로 상신(사람 병합·배포 검증). 계약은 이미 실측형으로 전환돼 배포되는 즉시 green으로 살아남.
 - **오피스 80명 전원 데스크 배치**: 현재 층별 핵심 데스크 + 가족·생활 인원 구동. 80명을 11개 층 좌석에 충돌 없이 전수 배치(seatsByFloor 확장)는 다음 단계.
 - **CompanyKernel SSE·ExecutorBroker**: 현재 6초 폴링 + Codex 단일 러너. 실행기 미연결은 정직하게 '자동 수정 대기'로 표기(연결 시 즉시 '수정 중'). 이벤트 버스(SSE)·다중 실행기 어댑터는 다음 단계.
