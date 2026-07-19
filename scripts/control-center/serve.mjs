@@ -24,6 +24,7 @@ import { tryActivatePlaywrightDriver } from "./lib/browser-driver.mjs";
 import { readMobileAccess, writeMobileAccess, connectUrls, DEFAULT_MOBILE_PORT } from "./lib/mobile-access.mjs";
 import { readAuthority, writeAuthority, isDelegable, currentShift, COMPANY_MODES, COMPANY_MODE_LABELS, APPROVAL_MODES } from "./lib/company-authority.mjs";
 import { classifyFix, classifyIncidents, resolutionLine } from "./lib/incident-fix.mjs";
+import { createLoop, transitionLoop, openIteration, findLoopByContract, findLoopByTask, summarizeLoops } from "./lib/loop-engine.mjs";
 import { loadRoster, computeWorkforce, orgTree, currentShiftId } from "./lib/workforce.mjs";
 import { startRunnerSupervisor } from "./lib/runner-supervisor.mjs";
 import { REPO_ROOT } from "./lib/sources.mjs";
@@ -209,7 +210,7 @@ function seoulDate(now = new Date()) {
   catch { return now.toISOString().slice(0, 10); }
 }
 
-// ── 심층 계약 엔진(진단률 100%): 카탈로그 257개 계약을 실제 실행한다 ──
+// ── 심층 계약 엔진(진단률 100%): 카탈로그의 모든 계약(동적 집계)을 실제 실행한다 ──
 // cheap·standard는 매 점검, deep(브라우저 렌더)은 60분 TTL. 이전 run에서만 실행된 계약은 cached로 이어 붙인다.
 const DEEP_TTL_MINUTES = 60;
 const CONTRACTS_LATEST = join(DEFAULT_COMPANY_RUNTIME_DIR, "health", "contracts-latest.json");
@@ -259,6 +260,17 @@ export async function runDeepContracts({ now = new Date(), force = false } = {})
 }
 // 설정된 주기(분)마다 실제 스냅샷 신호로 종합 점검해 개선 제안을 결재(approvals)에 올린다.
 // 감시기가 10분마다 호출하며, 마지막 점검 이후 everyMinutes가 지났을 때만 실행한다(마커로 관리).
+// 계약 실패 계열 → Loop 종류(§6 loop_type). 회장 화면에서 어떤 성격의 개선인지 보여준다.
+function loopTypeFor(failureClass = "") {
+  const map = {
+    security: "security", quota: "maintenance", freshness: "data_quality", data_stale: "data_quality",
+    availability: "reliability", production: "reliability", ci: "reliability", transport: "reliability",
+    observability: "reliability", schema: "data_quality", integrity: "data_quality", parity: "maintenance",
+    storage: "maintenance", automation: "maintenance", notification: "user_experience",
+  };
+  return map[failureClass] || "reliability";
+}
+
 async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNAP_DIR, force = false, now = new Date() } = {}) {
   if (!AUTO_REVIEW && !force) return { skipped: "disabled" };
   // v2.0.0: 회사 모드가 정본. RUNNING·MONITOR_ONLY = 상시 관제(감시기 주기마다), PAUSED = 중지.
@@ -284,13 +296,15 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
   const created = [];
   const appTarget = (t) => (t === "company" || t === "robom-hq" ? "" : t);
 
-  // 1) 결정론적 health 엔진 — 심층 계약 엔진(257개)을 먼저 실행하고, anti-flap 판정 후 확정 incident만 결재 상신
+  // 1) 결정론적 health 엔진 — 심층 계약 엔진(카탈로그 전량, 동적)을 먼저 실행하고, anti-flap 판정 후 확정 incident만 결재 상신
   let healthSummary = null;
+  let healthResults = []; // 원래 계약 자동 재검증에 쓰기 위해 바깥으로 끌어낸다
   try {
     let runner = null; try { runner = readRunnerStatus(); } catch { /* 러너 상태 없음 */ }
     const contractReport = await runDeepContracts({ now });
     const extraResults = contractResultsToRaw(contractReport);
     const health = runHealthEngine({ snapshot, runtimeDir: DEFAULT_COMPANY_RUNTIME_DIR, now, runner, watchdogMinutes: WATCHDOG_MINUTES, extraResults });
+    healthResults = health.results || [];
     healthSummary = { ...health.summary, contracts: contractReport?.coverage || null };
     // v2.5.0: 신호가 회복되면(recoveries) 그 계약으로 올렸던 pending 결재를 자동으로 닫는다("회복되면 자동 종료"를 실제로 이행).
     let autoClosed = 0;
@@ -301,6 +315,10 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
         if ((!a.status || a.status === "pending") && a.requestedBy === "auto-review" && recoveredKeys.has(a.proposalKey)) {
           try { await store.updateStatus("approvals", a.id, { status: "resolved", comment: "신호 회복 — 컴퓨터가 자동 종료" }); autoClosed += 1; } catch { /* skip */ }
         }
+      }
+      // 신호가 회복된 계약의 Loop도 CLOSED로 닫는다(원래 계약 재검증 통과 = 진짜 해결).
+      for (const contractId of recoveredKeys) {
+        try { const loop = findLoopByContract(contractId); if (loop) transitionLoop(loop.loopId, "CLOSED", { now, note: "신호 회복 자동 종료", evidence: { origin_recheck: "PASS" } }); } catch { /* skip */ }
       }
     } catch { /* 회복 자동종료 실패는 무시 */ }
     healthSummary.autoClosed = autoClosed;
@@ -323,11 +341,45 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
           recommendation: inc.recommendedAction, priority, requestedBy: "auto-review", proposalKey: inc.contractId,
           fixClass, failureClass: inc.failureClass || "", detectedAt: inc.detectedAt || null, status: "pending",
         });
+        // §6 Loop 생성 — 확정 사건마다 목표·합격기준·담당·검증자를 갖춘 Loop를 연다(원래 계약 재검증이 필수 기준).
+        try {
+          const loop = createLoop({
+            objective: inc.userImpact || `${inc.target} 문제 해결`, contractId: inc.contractId, fixClass,
+            appId: appTarget(inc.target), userImpact: inc.userImpact, expected: inc.expected, severity: inc.severity,
+            loopType: loopTypeFor(inc.failureClass), approvalId: rec.id,
+            nextAction: fixClass === "human" ? "회장 확인 필요(비밀키·권한·결제 등)" : "회장 승인 대기",
+          }, { now });
+          await store.updateStatus("approvals", rec.id, { loopId: loop.loopId });
+        } catch { /* loop 생성 실패는 결재를 막지 않는다 */ }
         created.push(rec.id); existingKeys.add(inc.contractId);
       } catch { /* 개별 실패는 건너뛴다 */ }
     }
     healthSummary.selfHealed = selfHealed;
   } catch (error) { console.error("[robom-hq] health 엔진 실행 실패", error?.message); }
+
+  // §7 핵심: Codex가 작업을 끝냈다(in_review)고 해결이 아니다. 원래 실패했던 계약이 이번 점검에서
+  // 다시 PASS해야만 그 Loop를 CLOSED로 닫고 업무를 완료 처리한다. 아직 실패면 새 iteration으로 재시도한다.
+  let reverified = 0, reiterated = 0;
+  try {
+    const passContracts = new Set(healthResults.filter((r) => r.status === "PASS").map((r) => r.contractId));
+    const stillFailing = new Set(healthResults.filter((r) => r.confirmed).map((r) => r.contractId));
+    const st4 = await store.getState();
+    const reviewTasks = (st4.records.tasks || []).filter((t) => t.status === "in_review" && t.originContract);
+    for (const task of reviewTasks) {
+      if (passContracts.has(task.originContract)) {
+        try { await store.updateStatus("tasks", task.id, { status: "completed", verifiedBy: "origin-recheck" }); } catch { /* skip */ }
+        try { const loop = findLoopByTask(task.id); if (loop) transitionLoop(loop.loopId, "CLOSED", { now, note: "원래 계약 재검증 PASS", evidence: { origin_recheck: "PASS" } }); } catch { /* skip */ }
+        if (task.approvalId) { try { await store.updateStatus("approvals", task.approvalId, { status: "resolved", comment: "원래 계약 재검증 통과 — 자동 종료" }); } catch { /* skip */ } }
+        reverified += 1;
+      } else if (stillFailing.has(task.originContract)) {
+        try { const loop = findLoopByTask(task.id); if (loop) openIteration(loop.loopId, { now, failureSignature: `origin-still-failing:${task.originContract}` }); } catch { /* skip */ }
+        try { await store.updateStatus("tasks", task.id, { status: "blocked", reason: "원래 계약이 아직 실패 — 새 iteration 필요" }); } catch { /* skip */ }
+        reiterated += 1;
+      }
+      // PASS도 확정 실패도 아니면(UNAVAILABLE 등) 판정 보류 — in_review 유지
+    }
+  } catch (error) { console.error("[robom-hq] 원래 계약 재검증 실패", error?.message); }
+  if (healthSummary) { healthSummary.reverified = reverified; healthSummary.reiterated = reiterated; }
 
   // 2) 성장 제안(다음 개선 행동)·회사 보안만 기존 제안기에서 가져온다(건강/CI/PR은 엔진이 담당 — 중복 방지)
   const growth = generateProposals(snapshot, existing, { limit: 20 }).filter((p) => /:next$|:security$/.test(p.key));
@@ -354,9 +406,11 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
             title: approval.title, appId: approval.appId || "", problem: approval.body || "",
             desiredOutcome: approval.recommendation || "", priority: approval.priority || "normal",
             autonomy: "implement_and_review", status: "queued",
+            originContract: approval.proposalKey || "", approvalId: approval.id, loopId: approval.loopId || null,
           });
           try { enqueueTask(task, { snapshot: readSnapshotValue(snapDir) }); }
           catch { await store.updateStatus("tasks", task.id, { status: "blocked" }); }
+          if (approval.loopId) { try { transitionLoop(approval.loopId, "DELEGATED_APPROVAL", { now, note: "수석부회장 전결", patch: { taskId: task.id } }); transitionLoop(approval.loopId, "QUEUED", { now, note: "대기열 등록" }); } catch { /* skip */ } }
           delegated += 1;
         } catch { /* 개별 전결 실패는 건너뛴다 */ }
       }
@@ -456,7 +510,8 @@ async function handleApi(req, res, path, store, maxBodyBytes, snapDir, local) {
       const pendingApprovals = stApprovals.filter((a) => !a.status || a.status === "pending");
       board = buildIncidentBoard(pendingApprovals, codexReady);
     } catch { /* 인력·보드 계산 실패 무시 */ }
-    sendJson(res, 200, { ok: true, ...summary, remote: REMOTE_ENABLED || mobileEnabled() ? "token" : "local-only", mobile: mobileEnabled(), reviewEveryMinutes: AUTO_REVIEW ? readReviewEveryMinutes() : 0, reviewMinMinutes: REVIEW_MIN_MINUTES, health: readHealthSummary(), incidentBoard: board, company: { mode: authority.mode, modeLabel: COMPANY_MODE_LABELS[authority.mode] || authority.mode, approvalMode: authority.approvalMode, delegatedAt: authority.delegatedAt, shift: currentShift() }, workforce: wf ? { summary: wf.summary, running: wf.running, contractsAssigned: wf.contractsAssigned, contractsFailing: wf.contractsFailing, contractsAutoFixing: wf.contractsAutoFixing, contractsNeedHuman: wf.contractsNeedHuman, executorConnected: wf.executorConnected, byDivision: wf.byDivision } : null });
+    let loops = null; try { loops = summarizeLoops(); } catch { /* loop 요약 실패 무시 */ }
+    sendJson(res, 200, { ok: true, ...summary, remote: REMOTE_ENABLED || mobileEnabled() ? "token" : "local-only", mobile: mobileEnabled(), reviewEveryMinutes: AUTO_REVIEW ? readReviewEveryMinutes() : 0, reviewMinMinutes: REVIEW_MIN_MINUTES, health: readHealthSummary(), incidentBoard: board, loops, company: { mode: authority.mode, modeLabel: COMPANY_MODE_LABELS[authority.mode] || authority.mode, approvalMode: authority.approvalMode, delegatedAt: authority.delegatedAt, shift: currentShift() }, workforce: wf ? { summary: wf.summary, running: wf.running, contractsAssigned: wf.contractsAssigned, contractsFailing: wf.contractsFailing, contractsAutoFixing: wf.contractsAutoFixing, contractsNeedHuman: wf.contractsNeedHuman, executorConnected: wf.executorConnected, byDivision: wf.byDivision } : null });
     return;
   }
 
@@ -679,9 +734,11 @@ async function handleApi(req, res, path, store, maxBodyBytes, snapDir, local) {
       priority: approval.priority || "normal",
       autonomy: "implement_and_review",
       status: "queued",
+      originContract: approval.proposalKey || "", approvalId: approval.id, loopId: approval.loopId || null,
     });
     try { enqueueTask(task, { snapshot: readSnapshotValue(snapDir) }); }
     catch (error) { await store.updateStatus("tasks", task.id, { status: "blocked" }); }
+    if (approval.loopId) { try { transitionLoop(approval.loopId, "QUEUED", { note: "회장 재가 — 대기열 등록", patch: { taskId: task.id } }); } catch { /* skip */ } }
     sendJson(res, 200, { ok: true, task, state: await store.getState() });
     return;
   }

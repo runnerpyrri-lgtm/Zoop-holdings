@@ -1,0 +1,92 @@
+// Loop 엔진: 생성·전이·iteration·CLOSED 조건·요약이 결정론적으로 동작하는지 검증한다.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import {
+  createLoop, transitionLoop, openIteration, readLoops, summarizeLoops,
+  deriveAcceptanceCriteria, findLoopByContract, isActive, LOOP_STATES,
+} from "./loop-engine.mjs";
+
+function tmp() { return mkdtempSync(join(tmpdir(), "loop-test-")); }
+
+test("createLoop은 objective 없으면 거부한다", () => {
+  const dir = tmp();
+  assert.throws(() => createLoop({}, { runtimeDir: dir }));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("createLoop은 원래 계약 재검증을 필수 기준으로 넣는다", () => {
+  const dir = tmp();
+  const now = new Date("2026-07-19T00:00:00Z");
+  const loop = createLoop({ objective: "야외봄 응답 복구", contractId: "production:outbom", fixClass: "codex", appId: "outbom" }, { runtimeDir: dir, now });
+  const oc = loop.acceptanceCriteria.find((c) => c.id === "origin-contract-pass");
+  assert.ok(oc && oc.required && oc.source === "production:outbom");
+  assert.ok(loop.acceptanceCriteria.some((c) => c.id === "local-tests-pass")); // codex형은 테스트도 요구
+  assert.equal(loop.authorityClass, "codex");
+  assert.equal(loop.state, "AWAITING_APPROVAL"); // codex는 승인 대기부터
+  assert.equal(loop.iteration, 1);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("self_heal Loop은 승인 없이 분류 상태로 시작한다", () => {
+  const dir = tmp();
+  const loop = createLoop({ objective: "데이터 신선도 재점검", contractId: "freshness:homebom", fixClass: "self_heal" }, { runtimeDir: dir });
+  assert.equal(loop.state, "TRIAGED");
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("전이는 정의된 상태만 허용하고 종료 후엔 되돌리지 않는다", () => {
+  const dir = tmp();
+  const loop = createLoop({ objective: "x", contractId: "c1", fixClass: "codex" }, { runtimeDir: dir });
+  assert.throws(() => transitionLoop(loop.loopId, "NOT_A_STATE", { runtimeDir: dir }));
+  transitionLoop(loop.loopId, "QUEUED", { runtimeDir: dir });
+  transitionLoop(loop.loopId, "RECHECKING_ORIGIN", { runtimeDir: dir });
+  transitionLoop(loop.loopId, "CLOSED", { runtimeDir: dir, evidence: { origin_recheck: "PASS" } });
+  const after = transitionLoop(loop.loopId, "QUEUED", { runtimeDir: dir }); // 종료 후 재개 금지
+  assert.equal(after.state, "CLOSED");
+  assert.equal(after.evidence.origin_recheck, "PASS");
+  assert.ok(after.closedAt);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("openIteration은 iteration을 올리고 이력에 실패 서명을 남긴다", () => {
+  const dir = tmp();
+  const loop = createLoop({ objective: "x", contractId: "c2", fixClass: "codex" }, { runtimeDir: dir });
+  const it = openIteration(loop.loopId, { runtimeDir: dir, failureSignature: "exit1:build" });
+  assert.equal(it.iteration, 2);
+  assert.equal(it.state, "TRIAGED");
+  assert.equal(it.attemptHistory.length, 1);
+  assert.equal(it.attemptHistory[0].iteration, 1);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("findLoopByContract는 활성 Loop만 찾는다", () => {
+  const dir = tmp();
+  const loop = createLoop({ objective: "x", contractId: "c3", fixClass: "codex" }, { runtimeDir: dir });
+  assert.ok(findLoopByContract("c3", { runtimeDir: dir }));
+  transitionLoop(loop.loopId, "CLOSED", { runtimeDir: dir });
+  assert.equal(findLoopByContract("c3", { runtimeDir: dir }), null); // 종료된 건 안 잡힘
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("summarizeLoops는 활성/종료를 나눠 센다", () => {
+  const dir = tmp();
+  const a = createLoop({ objective: "a", contractId: "ca", fixClass: "codex" }, { runtimeDir: dir });
+  createLoop({ objective: "b", contractId: "cb", fixClass: "self_heal" }, { runtimeDir: dir });
+  transitionLoop(a.loopId, "CLOSED", { runtimeDir: dir });
+  const s = summarizeLoops(dir);
+  assert.equal(s.total, 2);
+  assert.equal(s.active, 1);
+  assert.equal(s.closed, 1);
+  assert.ok(s.activeLoops.length === 1);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("모든 상태 라벨과 활성 판정이 일관된다", () => {
+  assert.ok(LOOP_STATES.includes("RECHECKING_ORIGIN"));
+  assert.equal(isActive("CLOSED"), false);
+  assert.equal(isActive("FAILED_SAFE"), false);
+  assert.equal(isActive("QUEUED"), true);
+});

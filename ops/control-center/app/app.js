@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="2.5.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="2.6.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -375,6 +375,18 @@ function incidentBoardPanel(){
   return panel("문제 처리 현황 — 누가·어떻게 고치나",body);
 }
 
+/* ── 자율 개선 Loop 보드 (v2.6.0) — 목표·합격기준·상태·원래 계약 재검증 ── */
+const LOOP_AUTH_LABEL={self_heal:"컴퓨터 자동",codex:"Codex 수정",human:"회장 확인"};
+const LOOP_AUTH_TONE={self_heal:"good",codex:"warn",human:"bad"};
+function loopBoardPanel(){
+  const L=HQ?.loops; if(!L)return "";
+  const rows=(L.activeLoops||[]).slice(0,12).map(lp=>`<article><header><div><span>${lp.targetApp?esc(appName(lp.targetApp)||lp.targetApp):"회사 전체"} · ${lp.iteration>1?`${lp.iteration}번째 시도 · `:""}${esc(ago(lp.updatedAt))}</span><h3>${esc(lp.objective)}</h3><small>${esc(lp.loopType)} · ${esc(LOOP_AUTH_LABEL[lp.authorityClass]||lp.authorityClass)}</small></div>${tonePill(LOOP_AUTH_TONE[lp.authorityClass]||"neutral",esc(lp.stateLabel||lp.state))}</header>${lp.nextAction?`<p>다음: ${esc(lp.nextAction)}</p>`:""}${(lp.acceptanceCriteria||[]).length?`<p class="fine">합격 기준: ${lp.acceptanceCriteria.map(c=>esc(c.id)).join(" · ")}${lp.evidence?.origin_recheck?` · 원래 계약: ${esc(lp.evidence.origin_recheck)}`:""}</p>`:""}</article>`).join("");
+  return panel("자율 개선 Loop — 목표·기준·검증까지",`
+    <div class="kpi-row" style="margin-bottom:8px">${kpi(L.active,"진행 중 Loop",L.active?"accent":"good")}${kpi(L.closed,"완료","good")}${kpi(L.failedSafe,"안전 중단",L.failedSafe?"bad":"")}</div>
+    <p class="fine">각 문제·개선을 ‘목표 → 합격 기준 → 담당 → 수정 → <b>원래 계약 재검증</b> → 종료’의 닫힌 Loop로 관리합니다. Codex가 끝났다고 바로 완료가 아니라, <b>원래 실패했던 계약이 다시 통과해야</b> Loop를 닫습니다. 실패하면 같은 수정 반복 대신 새 시도(iteration)로 접근을 바꿉니다.</p>
+    ${rows?`<div class="record-list">${rows}</div>`:empty("진행 중인 Loop가 없습니다.","문제·개선이 확정되면 여기에 목표·기준과 함께 Loop로 나타납니다.")}`);
+}
+
 /* ── 실행기 설정: 회장이 Codex 모델·추론 강도를 고른다 (v2.5.0) ── */
 function executorConfigPanel(){
   const c=HQ?.control||{};const eff=c.codexEffort||"";
@@ -426,7 +438,8 @@ function renderAutomation(){
     <a href="#/records/approvals"><b>결재함 열기</b><span class="status neutral">이동</span></a>
   </div>`)}
   ${incidentBoardPanel()}
-  ${HQ?.health?panel("결정론적 점검 결과 (AI 없이 자동)",`<div class="kpi-row" style="margin-bottom:0">${kpi(HQ.health.pass??0,"정상","good")}${kpi(HQ.health.degraded??0,"확인 필요",HQ.health.degraded?"warn":"")}${kpi(HQ.health.fail??0,"장애",HQ.health.fail?"bad":"")}${kpi(HQ.health.openIncidents??0,"열린 사건",HQ.health.openIncidents?"warn":"")}${kpi(HQ.health.unavailable??0,"점검 불가")}</div><p class="fine">실제 신호(운영 응답·버전·CI·데이터 신선도·PR)를 규칙으로 판정합니다. 위 ‘문제 처리 현황’이 각 사건을 누가 어떻게 고치는지 보여줍니다. 같은 문제는 반복 상신하지 않고, 신호가 회복되면 결재도 자동으로 닫힙니다.${HQ.health.selfHealed?` 이번 점검에서 ${HQ.health.selfHealed}건은 컴퓨터가 자동 처리, ${HQ.health.autoClosed||0}건은 회복으로 자동 종료했습니다.`:""}</p>`):""}
+  ${loopBoardPanel()}
+  ${HQ?.health?panel("결정론적 점검 결과 (AI 없이 자동)",`<div class="kpi-row" style="margin-bottom:0">${kpi(HQ.health.pass??0,"정상","good")}${kpi(HQ.health.degraded??0,"확인 필요",HQ.health.degraded?"warn":"")}${kpi(HQ.health.fail??0,"장애",HQ.health.fail?"bad":"")}${kpi(HQ.health.openIncidents??0,"열린 사건",HQ.health.openIncidents?"warn":"")}${kpi(HQ.health.unavailable??0,"점검 불가")}</div><p class="fine">실제 신호(운영 응답·버전·CI·데이터 신선도·PR)를 규칙으로 판정합니다. 위 ‘문제 처리 현황’이 각 사건을 누가 어떻게 고치는지 보여줍니다. 같은 문제는 반복 상신하지 않고, 신호가 회복되면 결재도 자동으로 닫힙니다.${HQ.health.selfHealed?` 이번 점검에서 ${HQ.health.selfHealed}건은 컴퓨터가 자동 처리, ${HQ.health.autoClosed||0}건은 회복으로 자동 종료했습니다.`:""}${HQ.health.reverified?` 원래 계약 재검증 통과 ${HQ.health.reverified}건 자동 완료.`:""}${HQ.health.reiterated?` 아직 실패 ${HQ.health.reiterated}건은 새 시도로 재개했습니다.`:""}</p>`):""}
   ${contractsPanel()}
   ${panel("제어",`<div class="today-actions">${HQ?.control?.paused?button("자동작업 다시 시작","resume-all","secondary","","play"):button("모든 자동작업 일시정지","pause-all","danger","","pause")}${HQ?.control?.intakeClosed?button("새 작업 접수 재개","open-intake","secondary"):button("새 작업 접수 중지","close-intake","ghost")}</div>`)}
   ${panel("연결 방법 (맥에서 딱 한 번)",`<ol class="number-list"><li>맥 터미널에서 한 번만: <code>codex login</code> — 구독 계정 로그인 (API 키 금지)</li><li>끝. ROBOM HQ가 실행기를 자동으로 켜고 감시합니다 — 이 앱을 켜 두기만 하면 승인한 작업이 자동 처리됩니다.</li></ol><p class="fine">${HQ?.runner?.managed?"실행기 자동 관리가 켜져 있습니다. ":""}로그인 전에는 미연결로 정직하게 표시하며, 요청은 대기열에 안전 보관됩니다. 실제 코드 수정에는 맥에 로봄 저장소 클론이 필요하며, HQ가 <code>~/robom-labs/robom</code> 등을 자동으로 찾습니다.</p>`)}`;
