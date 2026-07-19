@@ -20,21 +20,23 @@
 | §18 Loop 화면 | 자율 개선 Loop 보드(목표·기준·상태·증거·다시 시도) | hq-v2.6.0/2.8.0 |
 | §14 Meta Loop | 멈춘 Loop·재시도 폭주·담당 누락 자가 점검 | hq-v2.8.0 |
 | §13 성장 Loop | 개선 제안도 목표·기준을 갖춘 닫힌 Loop로 관리 | hq-v2.9.0 |
+| §16 verifier 분리 | 완료 판정을 실행자가 아니라 점검 사이클이 원래 계약으로 독립 재검증 | hq-v2.6.0 |
+| §17 감사2 회귀 방지 | Loop 시작 시 앱별 실패 기준선 저장 → 수정이 다른 걸 깨뜨리면 종료 보류·재시도 | hq-v2.10.0 |
 | §0 하드코딩 금지 | 과거 계약 수(257) 제거 → 카탈로그 동적 집계 | hq-v2.5.0 |
-| (별건) 자동 재실행 오류 | 창 닫으면 완전 종료·레거시 KeepAlive 매 실행 제거 | hq-v2.7.0 |
+| (별건) 자동 재실행 오류 | 창 닫으면 완전 종료·레거시 KeepAlive 매 실행 제거·러너 자식 정리 | hq-v2.7.0 |
 
 ## 이미 존재해 Loop에 연결한 기반 (지침 §4)
 
 health contract 엔진·anti-flap·incident/recovery·task queue·lease·heartbeat·Codex runner·
 막힘 자동 재큐·회사 모드(RUNNING/MONITOR_ONLY/PAUSED 등)·수석부회장 전결·조직도·인력.
 
-## 남은 단계 (후속 배포 예정)
+## 남은 단계 (후속 배포 예정 — 정직하게 '미완'으로 표기)
 
-- §17 세 차례 반박 감사 자동화(요구사항·기술·장기운영) — 현재는 원래 계약 재검증(verifier)까지. red-team 단계 자동화 추가 예정.
-- §10.1 worktree 격리 실행 — 현재는 대상 저장소 직접 작업. 병렬 안전을 위한 격리 예정.
-- §11 완전 event-driven 트리거 — 현재는 감시기 주기(watchdog) + 이벤트 일부. git/CI/deploy webhook 확대 예정.
-- §12 유지보수 Loop 심화(dependency·TLS·secret expiry·backup age) — 일부 health contract로 존재, 전용 Loop 확대 예정.
-- §16 red-team/verifier 에이전트 실제 분리 — Loop에 필드는 있으나 단일 executor. 단계 분리 강화 예정.
+- §17 감사1·감사3(요구사항·장기운영) 완전 자동화 — 감사2(회귀 방지)와 verifier 재검증은 배포됨. 나머지 두 감사는 부분.
+- §10.1 worktree 격리 실행 — 현재는 대상 저장소 직접 작업. 병렬 쓰기 안전을 위한 격리는 미구현.
+- §11 완전 event-driven 트리거 — 현재는 감시기 주기(watchdog) + 상태 변화 반응 일부. git/CI/deploy webhook 확대는 미구현.
+- §12 유지보수 Loop 심화(dependency advisory·TLS·secret expiry·backup age) — 일부 health contract로 존재, 전용 Loop·외부 probe는 미구현.
+- §16 별도 red-team **에이전트** 분리 — verifier(원래 계약 재검증)는 분리됐으나, 완료를 깨뜨리려는 독립 red-team AI 단계는 미구현.
 
 ## 원칙
 
