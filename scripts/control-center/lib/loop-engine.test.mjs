@@ -138,6 +138,15 @@ test("createLoop은 §17 회귀 기준선(baselineFailCount)을 저장한다", (
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("createLoop은 §17 회귀 기준선 집합(baselineFailContracts)을 중복 제거해 저장한다", () => {
+  const dir = tmp();
+  const loop = createLoop({ objective: "x", contractId: "c", fixClass: "codex", baselineFailContracts: ["a", "b", "a"] }, { runtimeDir: dir });
+  assert.deepEqual([...new Set(readLoops(dir)[loop.loopId].baselineFailContracts)].sort(), ["a", "b"]);
+  const noSet = createLoop({ objective: "y", contractId: "c2", fixClass: "codex" }, { runtimeDir: dir });
+  assert.equal(noSet.baselineFailContracts, null); // 미지정 시 null → 회귀 판정은 수 비교로 호환
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("summarizeLoops는 meta 자가점검을 포함한다", () => {
   const dir = tmp();
   createLoop({ objective: "x", contractId: "c", fixClass: "codex" }, { runtimeDir: dir });
