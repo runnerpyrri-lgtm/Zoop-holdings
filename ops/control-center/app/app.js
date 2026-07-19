@@ -130,6 +130,7 @@ function codexState(){
   const r=HQ.runner||{};
   if(HQ.control?.paused)return {cls:"warn",label:"일시정지",detail:"모든 자동작업이 멈춰 있습니다."};
   if(r.state==="running")return {cls:"busy",label:"작업 중",detail:`${appName(HQ.runningTask?.app)} · ${HQ.runningTask?.title||""}`};
+  if(r.state==="starting")return {cls:"busy",label:"실행기 재시작 중",detail:"HQ가 실행기를 자동으로 다시 켜고 있습니다."};
   if(r.state==="not_running")return {cls:"warn",label:"실행기 꺼짐",detail:r.managed?"HQ가 자동으로 다시 켜는 중입니다.":"터미널에서 codex-runner를 켜세요."};
   if(r.codex==="not_connected")return {cls:"warn",label:"Codex 미연결",detail:r.managed?"맥에서 codex login 한 번만 하면 이후 자동 실행됩니다.":(r.codexDetail||"codex login이 필요합니다.")};
   return {cls:"on",label:"대기 중",detail:`대기 ${HQ.pending||0}건 · 준비 완료 · ${ago(r.at)}`};

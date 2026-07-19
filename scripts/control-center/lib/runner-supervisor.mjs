@@ -38,7 +38,7 @@ export function discoverRepoRoot() {
 }
 
 // 러너를 자식으로 실행하고 감시한다. runtimeDir/snapDir/repoRoot 환경을 자식에 전달한다.
-export function startRunnerSupervisor({ runtimeDir, snapDir, repoRoot = discoverRepoRoot(), logger = console } = {}) {
+export function startRunnerSupervisor({ runtimeDir, snapDir, repoRoot = discoverRepoRoot(), logger = console, spawnProcess = spawn } = {}) {
   let child = null;
   let stopped = false;
   let fastFailures = 0;
@@ -62,30 +62,43 @@ export function startRunnerSupervisor({ runtimeDir, snapDir, repoRoot = discover
     catch { /* 상태 기록 실패는 무시 */ }
   };
 
+  // 자식 프로세스가 아직 상태를 쓰기 전에도 HQ 화면은 자동 복구 중임을 알 수 있어야 한다.
+  const markStarting = () => {
+    try { writeRunnerStatus({ state: "starting", managed: true }, { runtimeDir }); }
+    catch { /* 상태 기록 실패는 무시 */ }
+  };
+
   function spawnOnce() {
     if (stopped) return;
     startedAt = Date.now();
+    markStarting();
     try {
-      child = spawn(process.execPath, [RUNNER_SCRIPT], { env: childEnv(), stdio: ["ignore", "pipe", "pipe"] });
+      child = spawnProcess(process.execPath, [RUNNER_SCRIPT], { env: childEnv(), stdio: ["ignore", "pipe", "pipe"] });
     } catch (error) {
       markDown(`실행 실패: ${error.message}`);
-      scheduleRestart(true);
+      scheduleRestart(true, `실행 실패: ${error.message}`);
       return;
     }
     child.stdout?.on("data", (d) => logger.log?.(String(d).trimEnd()));
     child.stderr?.on("data", (d) => logger.error?.(String(d).trimEnd()));
-    child.on("exit", (code, signal) => {
+    let settled = false;
+    const handleStop = (reason, fast = Date.now() - startedAt < 15_000) => {
+      if (settled) return;
+      settled = true;
       child = null;
-      markDown(`실행기 종료(code ${code ?? signal ?? "?"})`);
-      scheduleRestart(Date.now() - startedAt < 15_000); // 15초 내 종료면 크래시로 간주
-    });
+      markDown(reason);
+      scheduleRestart(fast, reason); // 15초 내 종료면 크래시로 간주
+    };
+    child.once("error", (error) => handleStop(`실행 실패: ${error.message}`, true));
+    child.once("exit", (code, signal) => handleStop(`실행기 종료(code ${code ?? signal ?? "?"})`));
     logger.log?.(`[robom-hq] codex-runner 자동 실행 중${repoRoot ? ` · 작업 저장소 ${repoRoot}` : " · 작업 저장소 미발견(요청은 대기열 보관)"}`);
   }
 
-  function scheduleRestart(fast) {
+  function scheduleRestart(fast, reason) {
     if (stopped) return;
     fastFailures = fast ? Math.min(fastFailures + 1, 6) : 0;
     const delay = fast ? Math.min(3000 * 2 ** fastFailures, 120_000) : 3000; // 크래시 루프 보호(최대 2분)
+    logger.error?.(`[robom-hq] codex-runner ${reason || "종료"}; ${delay / 1000}초 뒤 자동 재시작`);
     timer = setTimeout(spawnOnce, delay);
     timer.unref?.();
   }
