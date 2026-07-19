@@ -170,6 +170,22 @@ export function findLoopByTask(taskId, { runtimeDir = DEFAULT_COMPANY_RUNTIME_DI
   return Object.values(loops).find((l) => l.taskId === taskId) || null;
 }
 
+// §14 Meta Loop — Loop 시스템 자체를 점검한다. 멈춘 Loop·재시도 폭주·담당/검증자 누락을 결정론으로 찾아
+// 회장에게 "회사가 스스로 자기 운영도 감시한다"를 정직하게 보여준다. 이 자체는 부작용이 없다(읽기·플래그만).
+export function metaAudit(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR, { now = new Date(), stuckHours = 24, maxIteration = 5 } = {}) {
+  const active = Object.values(readLoops(runtimeDir)).filter((l) => isActive(l.state));
+  const nowMs = now.getTime();
+  const issues = [];
+  const waiting = new Set(["AWAITING_APPROVAL", "DELEGATED_APPROVAL", "BLOCKED_HUMAN", "BLOCKED_EXTERNAL", "RETRY_WAIT"]);
+  for (const l of active) {
+    if (!l.ownerAgent || !l.verifierAgent) issues.push({ loopId: l.loopId, objective: l.objective, kind: "missing_role", note: "담당자·검증자가 지정되지 않았습니다." });
+    if ((l.iteration || 1) >= maxIteration) issues.push({ loopId: l.loopId, objective: l.objective, kind: "retry_storm", note: `${l.iteration}회 재시도 — 접근을 근본적으로 바꿔야 합니다.` });
+    const ageH = (nowMs - Date.parse(l.updatedAt || l.createdAt || now.toISOString())) / 3.6e6;
+    if (Number.isFinite(ageH) && ageH > stuckHours && !waiting.has(l.state)) issues.push({ loopId: l.loopId, objective: l.objective, kind: "stuck", note: `${Math.round(ageH)}시간째 진행이 없습니다.` });
+  }
+  return { checkedAt: now.toISOString(), activeCount: active.length, issueCount: issues.length, issues: issues.slice(0, 20) };
+}
+
 // 요약(회장 화면·hq-status 노출용).
 export function summarizeLoops(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR) {
   const loops = Object.values(readLoops(runtimeDir));
@@ -182,13 +198,14 @@ export function summarizeLoops(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR) {
     closed: loops.filter((l) => l.state === "CLOSED").length,
     failedSafe: loops.filter((l) => l.state === "FAILED_SAFE").length,
     byState,
+    meta: metaAudit(runtimeDir),
     activeLoops: active
       .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
       .slice(0, 30)
       .map((l) => ({
         loopId: l.loopId, loopType: l.loopType, targetApp: l.targetApp, objective: l.objective,
         state: l.state, stateLabel: loopStateLabel(l.state), authorityClass: l.authorityClass,
-        iteration: l.iteration, nextAction: l.nextAction, severity: l.severity,
+        iteration: l.iteration, nextAction: l.nextAction, severity: l.severity, taskId: l.taskId || null,
         acceptanceCriteria: l.acceptanceCriteria, evidence: l.evidence, createdAt: l.createdAt, updatedAt: l.updatedAt,
       })),
   };

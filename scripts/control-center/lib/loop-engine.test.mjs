@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   createLoop, transitionLoop, openIteration, readLoops, summarizeLoops,
-  deriveAcceptanceCriteria, findLoopByContract, isActive, LOOP_STATES,
+  deriveAcceptanceCriteria, findLoopByContract, isActive, LOOP_STATES, metaAudit,
 } from "./loop-engine.mjs";
 
 function tmp() { return mkdtempSync(join(tmpdir(), "loop-test-")); }
@@ -89,4 +89,28 @@ test("모든 상태 라벨과 활성 판정이 일관된다", () => {
   assert.equal(isActive("CLOSED"), false);
   assert.equal(isActive("FAILED_SAFE"), false);
   assert.equal(isActive("QUEUED"), true);
+});
+
+test("metaAudit는 재시도 폭주·멈춘 Loop를 잡는다", () => {
+  const dir = tmp();
+  const now = new Date("2026-07-20T00:00:00Z");
+  // 재시도 5회 = retry_storm
+  const a = createLoop({ objective: "폭주", contractId: "cs", fixClass: "codex" }, { runtimeDir: dir, now: new Date("2026-07-19T23:00:00Z") });
+  for (let i = 0; i < 4; i++) openIteration(a.loopId, { runtimeDir: dir, now: new Date("2026-07-19T23:30:00Z") });
+  // 30시간째 QUEUED = stuck
+  const b = createLoop({ objective: "멈춤", contractId: "ck", fixClass: "codex" }, { runtimeDir: dir, now: new Date("2026-07-18T18:00:00Z") });
+  transitionLoop(b.loopId, "QUEUED", { runtimeDir: dir, now: new Date("2026-07-18T18:00:00Z") });
+  const audit = metaAudit(dir, { now });
+  const kinds = new Set(audit.issues.map((x) => x.kind));
+  assert.ok(kinds.has("retry_storm"));
+  assert.ok(kinds.has("stuck"));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("summarizeLoops는 meta 자가점검을 포함한다", () => {
+  const dir = tmp();
+  createLoop({ objective: "x", contractId: "c", fixClass: "codex" }, { runtimeDir: dir });
+  const s = summarizeLoops(dir);
+  assert.ok(s.meta && typeof s.meta.issueCount === "number");
+  rmSync(dir, { recursive: true, force: true });
 });

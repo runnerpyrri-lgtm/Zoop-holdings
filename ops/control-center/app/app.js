@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="2.7.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="2.8.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -380,8 +380,14 @@ const LOOP_AUTH_LABEL={self_heal:"컴퓨터 자동",codex:"Codex 수정",human:"
 const LOOP_AUTH_TONE={self_heal:"good",codex:"warn",human:"bad"};
 function loopBoardPanel(){
   const L=HQ?.loops; if(!L)return "";
-  const rows=(L.activeLoops||[]).slice(0,12).map(lp=>`<article><header><div><span>${lp.targetApp?esc(appName(lp.targetApp)||lp.targetApp):"회사 전체"} · ${lp.iteration>1?`${lp.iteration}번째 시도 · `:""}${esc(ago(lp.updatedAt))}</span><h3>${esc(lp.objective)}</h3><small>${esc(lp.loopType)} · ${esc(LOOP_AUTH_LABEL[lp.authorityClass]||lp.authorityClass)}</small></div>${tonePill(LOOP_AUTH_TONE[lp.authorityClass]||"neutral",esc(lp.stateLabel||lp.state))}</header>${lp.nextAction?`<p>다음: ${esc(lp.nextAction)}</p>`:""}${(lp.acceptanceCriteria||[]).length?`<p class="fine">합격 기준: ${lp.acceptanceCriteria.map(c=>esc(c.id)).join(" · ")}${lp.evidence?.origin_recheck?` · 원래 계약: ${esc(lp.evidence.origin_recheck)}`:""}</p>`:""}</article>`).join("");
+  const rows=(L.activeLoops||[]).slice(0,12).map(lp=>{
+    const retry=lp.taskId&&["QUEUED","RETRY_WAIT","TRIAGED","BLOCKED_EXTERNAL"].includes(lp.state)?button("다시 시도","retry-task","secondary",`data-id="${attr(lp.taskId)}"`,"refresh"):"";
+    return `<article><header><div><span>${lp.targetApp?esc(appName(lp.targetApp)||lp.targetApp):"회사 전체"} · ${lp.iteration>1?`${lp.iteration}번째 시도 · `:""}${esc(ago(lp.updatedAt))}</span><h3>${esc(lp.objective)}</h3><small>${esc(lp.loopType)} · ${esc(LOOP_AUTH_LABEL[lp.authorityClass]||lp.authorityClass)}</small></div>${tonePill(LOOP_AUTH_TONE[lp.authorityClass]||"neutral",esc(lp.stateLabel||lp.state))}</header>${lp.nextAction?`<p>다음: ${esc(lp.nextAction)}</p>`:""}${(lp.acceptanceCriteria||[]).length?`<p class="fine">합격 기준: ${lp.acceptanceCriteria.map(c=>esc(c.id)).join(" · ")}${lp.evidence?.origin_recheck?` · 원래 계약: ${esc(lp.evidence.origin_recheck)}`:""}</p>`:""}${retry?`<footer>${retry}</footer>`:""}</article>`;
+  }).join("");
+  const meta=L.meta;
+  const metaLine=meta&&meta.issueCount?`<div class="run-banner off" style="margin:4px 0 10px"><span class="dot"></span><b>자기 점검(Meta) — 손볼 Loop ${meta.issueCount}건</b><span class="rb-sub">${esc(meta.issues.slice(0,3).map(i=>`${({missing_role:"담당 누락",retry_storm:"재시도 폭주",stuck:"멈춤"}[i.kind]||i.kind)}: ${i.objective||i.loopId}`).join(" · "))}</span></div>`:(meta?`<p class="fine">자기 점검(Meta): 활성 ${meta.activeCount}개 Loop 모두 정상 진행 중 — 멈춤·재시도 폭주·담당 누락 없음.</p>`:"");
   return panel("자율 개선 Loop — 목표·기준·검증까지",`
+    ${metaLine}
     <div class="kpi-row" style="margin-bottom:8px">${kpi(L.active,"진행 중 Loop",L.active?"accent":"good")}${kpi(L.closed,"완료","good")}${kpi(L.failedSafe,"안전 중단",L.failedSafe?"bad":"")}</div>
     <p class="fine">각 문제·개선을 ‘목표 → 합격 기준 → 담당 → 수정 → <b>원래 계약 재검증</b> → 종료’의 닫힌 Loop로 관리합니다. Codex가 끝났다고 바로 완료가 아니라, <b>원래 실패했던 계약이 다시 통과해야</b> Loop를 닫습니다. 실패하면 같은 수정 반복 대신 새 시도(iteration)로 접근을 바꿉니다.</p>
     ${rows?`<div class="record-list">${rows}</div>`:empty("진행 중인 Loop가 없습니다.","문제·개선이 확정되면 여기에 목표·기준과 함께 Loop로 나타납니다.")}`);
