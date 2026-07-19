@@ -106,7 +106,7 @@ apps:
     name: 캘린더봄
     english_name: CalendarBom
     repo: robom-labs/calendarbom
-    version: 0.7.0
+    version: 0.7.1
     data_version: local-schema-v3
     version_source: https://raw.githubusercontent.com/robom-labs/calendarbom/main/package.json
     web_url: https://robom-labs.github.io/calendarbom/
@@ -125,8 +125,8 @@ apps:
     stable_install_url: https://robom.kr/get/calendarbom
     mobile_status: pwa
     family_spec_version: 1.0.0
-    last_verified_at: "2026-07-19T00:40:00+09:00"
-    last_deployed_sha: 7b4d0325ac0d8534a698747eda0e716545010b18
+    last_verified_at: "2026-07-19T23:05:00+09:00"
+    last_deployed_sha: fbc734b99eb7209ca4416bc57401520fee122cc0
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: local-only
     freshness_slo_hours: 720
