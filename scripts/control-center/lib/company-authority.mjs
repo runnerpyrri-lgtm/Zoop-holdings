@@ -15,11 +15,13 @@ export const APPROVAL_MODES = Object.freeze(["CHAIRMAN_DIRECT", "VICE_CHAIR_DELE
 const FILE = (dir) => join(resolve(dir), "company-authority.json");
 const AUDIT = (dir) => join(resolve(dir), "company-audit.jsonl");
 
-// 비위임(회장 전용) 안건 분류 — 제목·본문에 아래 신호가 있으면 전결 금지
-const NON_DELEGABLE = /결제|구독료|유료|광고|홍보 게시|외부 게시|캠페인|개인정보 수집|법률|약관|계약|스토어 제출|App Store|Play Store|출시|도메인|청구|소유권|비밀값|secret|시크릿|삭제(?!된)|마이그레이션|이전(?:합니다| 작업)/;
+// 비위임(회장 전용) 안건 분류 — 제목·본문에 아래 신호가 있으면 전결 금지.
+// 사용량·요금제·한도·보안(quota/security 계열)도 포함해 자동 전결로 승인 경계가 뚫리지 않게 한다.
+const NON_DELEGABLE = /결제|구독료|유료|요금|사용량|한도|quota|billing|광고|홍보 게시|외부 게시|캠페인|개인정보 수집|법률|약관|계약|스토어 제출|App Store|Play Store|출시|도메인|청구|소유권|비밀값|권한|secret|시크릿|토큰|보안|security|삭제(?!된)|마이그레이션|이전(?:합니다| 작업)/;
 export function isDelegable(approval) {
   if (!approval) return false;
   if (approval.requestedBy !== "auto-review") return false; // 시스템 상신만 전결 대상(사람 상신은 회장 확인)
+  if (approval.fixClass === "human") return false; // 분류기가 '회장 확인 필수'로 판정한 것은 텍스트와 무관하게 전결 금지
   const text = `${approval.title || ""} ${approval.body || ""} ${approval.recommendation || ""}`;
   return !NON_DELEGABLE.test(text);
 }

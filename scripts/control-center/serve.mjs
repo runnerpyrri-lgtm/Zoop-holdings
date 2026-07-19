@@ -376,7 +376,7 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
             objective: inc.userImpact || `${inc.target} 문제 해결`, contractId: inc.contractId, fixClass,
             appId: appTarget(inc.target), userImpact: inc.userImpact, expected: inc.expected, severity: inc.severity,
             loopType: loopTypeFor(inc.failureClass), approvalId: rec.id,
-            baselineFailCount: (health.results || []).filter((r) => r.confirmed && r.target === inc.target).length, // §17 회귀 기준선
+            baselineFailCount: (health.results || []).filter((r) => r.confirmed && appTarget(r.target) === appTarget(inc.target)).length, // §17 회귀 기준선(앱 키 정규화)
             nextAction: fixClass === "human" ? "회장 확인 필요(비밀키·권한·결제 등)" : "회장 승인 대기",
           }, { now });
           await store.updateStatus("approvals", rec.id, { loopId: loop.loopId });
@@ -393,6 +393,9 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
   try {
     const passContracts = new Set(healthResults.filter((r) => r.status === "PASS").map((r) => r.contractId));
     const stillFailing = new Set(healthResults.filter((r) => r.confirmed).map((r) => r.contractId));
+    // 성장·보안 Loop는 originContract가 health 계약이 아니라 제안 키다. 재검증할 계약이 없으므로
+    // 기계 검증 가능한 합격 기준 = "Codex 완료(in_review) + 이 앱에 회귀 없음"으로 닫는다(아래 else if).
+    const healthContractIds = new Set(healthResults.map((r) => r.contractId));
     const st4 = await store.getState();
     // 회장이 '확인 완료'한 작업(성장 Loop 등, 원래 계약이 health 대상이 아닌 경우)의 Loop를 닫는다.
     for (const task of (st4.records.tasks || []).filter((t) => t.status === "completed" && t.loopId)) {
@@ -400,7 +403,7 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
     }
     // §17 감사2(회귀 방지): 앱별 확정 실패 계약 수. 수정 후 이 앱의 실패가 늘었다면 다른 걸 깨뜨린 것 → 종료 보류.
     const appFailNow = {};
-    for (const r of healthResults) if (r.confirmed) appFailNow[r.target] = (appFailNow[r.target] || 0) + 1;
+    for (const r of healthResults) if (r.confirmed) { const k = appTarget(r.target); appFailNow[k] = (appFailNow[k] || 0) + 1; }
     const reviewTasks = (st4.records.tasks || []).filter((t) => t.status === "in_review" && t.originContract);
     for (const task of reviewTasks) {
       if (passContracts.has(task.originContract)) {
@@ -431,6 +434,23 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
         try { const loop = findLoopByTask(task.id); if (loop) openIteration(loop.loopId, { now, failureSignature: `origin-still-failing:${task.originContract}` }); } catch { /* skip */ }
         try { await store.updateStatus("tasks", task.id, { status: "blocked", reason: "원래 계약이 아직 실패 — 새 iteration 필요" }); } catch { /* skip */ }
         reiterated += 1;
+      } else if (!healthContractIds.has(task.originContract)) {
+        // §13 성장·보안 Loop: originContract가 health 계약이 아니라 재검증할 계약이 없다.
+        // 합격 기준 = "개선 작업 완료(in_review) + 이 앱에 회귀 없음". 회귀 감사만 통과하면 닫는다(무한 in_review 방지).
+        const loop = (() => { try { return findLoopByTask(task.id); } catch { return null; } })();
+        const appKey = task.appId || (loop && loop.targetApp) || "";
+        const baseline = loop && Number.isFinite(loop.baselineFailCount) ? loop.baselineFailCount : null;
+        const nowFail = appFailNow[appKey] || 0;
+        if (baseline !== null && nowFail > baseline) {
+          try { if (loop) openIteration(loop.loopId, { now, failureSignature: `regression:${appKey}:${nowFail}>${baseline}` }); } catch { /* skip */ }
+          try { await store.updateStatus("tasks", task.id, { status: "blocked", reason: "개선 작업 후 이 앱에 새 장애가 생김(회귀) — 재검토 필요" }); } catch { /* skip */ }
+          regressionHeld += 1;
+          continue;
+        }
+        try { await store.updateStatus("tasks", task.id, { status: "completed", verifiedBy: "growth-no-regression" }); } catch { /* skip */ }
+        try { if (loop) transitionLoop(loop.loopId, "CLOSED", { now, note: "개선 작업 완료 + 회귀 없음", evidence: { regression_guard: "PASS", origin_recheck: "N/A(성장 Loop)" } }); } catch { /* skip */ }
+        if (task.approvalId) { try { await store.updateStatus("approvals", task.approvalId, { status: "resolved", comment: "개선 작업 완료 + 회귀 없음 — 자동 종료" }); } catch { /* skip */ } }
+        reverified += 1;
       }
       // PASS도 확정 실패도 아니면(UNAVAILABLE 등) 판정 보류 — in_review 유지
     }
@@ -452,6 +472,7 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
         const loop = createLoop({
           objective: p.title, contractId: p.key, fixClass, appId: p.appId, userImpact: p.body,
           loopType: /:security$/.test(p.key) ? "security" : "product_growth", approvalId: rec.id, nextAction: "회장 승인 대기",
+          baselineFailCount: healthResults.filter((r) => r.confirmed && appTarget(r.target) === appTarget(p.appId)).length,
         }, { now });
         await store.updateStatus("approvals", rec.id, { loopId: loop.loopId });
       } catch { /* loop 생성 실패는 결재를 막지 않는다 */ }
