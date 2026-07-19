@@ -22,6 +22,7 @@
 | §13 성장 Loop | 개선 제안도 목표·기준을 갖춘 닫힌 Loop로 관리 | hq-v2.9.0 |
 | §16 verifier 분리 | 완료 판정을 실행자가 아니라 점검 사이클이 원래 계약으로 독립 재검증 | hq-v2.6.0 |
 | §17 감사2 회귀 방지 | Loop 시작 시 앱별 실패 기준선 저장 → 수정이 다른 걸 깨뜨리면 종료 보류·재시도 | hq-v2.10.0 |
+| §18 Loop 버튼 | Loop별 다시 시도·증거 보기·앱 열기 (dead button 0) | hq-v2.11.0 |
 | §0 하드코딩 금지 | 과거 계약 수(257) 제거 → 카탈로그 동적 집계 | hq-v2.5.0 |
 | (별건) 자동 재실행 오류 | 창 닫으면 완전 종료·레거시 KeepAlive 매 실행 제거·러너 자식 정리 | hq-v2.7.0 |
 
@@ -37,6 +38,17 @@ health contract 엔진·anti-flap·incident/recovery·task queue·lease·heartbe
 - §11 완전 event-driven 트리거 — 현재는 감시기 주기(watchdog) + 상태 변화 반응 일부. git/CI/deploy webhook 확대는 미구현.
 - §12 유지보수 Loop 심화(dependency advisory·TLS·secret expiry·backup age) — 일부 health contract로 존재, 전용 Loop·외부 probe는 미구현.
 - §16 별도 red-team **에이전트** 분리 — verifier(원래 계약 재검증)는 분리됐으나, 완료를 깨뜨리려는 독립 red-team AI 단계는 미구현.
+
+## 닫힌 자율 Loop 달성 여부 (§21 최종 판단)
+
+지침 §21의 최종 질문 — "단지 현재 오류를 고치는가, 아니면 스스로 발견·수정·검증·학습하며 계속 성장하는 닫힌 자율 Loop가 되었는가" — 에 대해:
+
+**결정론적 핵심 Loop는 닫혔다.** 발견(health/contract) → 분류(자동/Codex/회장) → 목표·합격기준 정의 →
+승인(회장/전결) → 수정(Codex) → **원래 계약 자동 재검증 + 회귀 감사** → 통과 시 종료 / 실패 시 새 iteration →
+회복 자동 종료 → Meta 자가점검. 이 순환이 회사가 켜져 있는 동안 실제로 돈다(가짜 완료 없음).
+
+남은 항목(worktree 격리·webhook 이벤트·별도 red-team AI·외부 probe 유지보수)은 이 닫힌 Loop를 **더 강하게**
+만드는 보강이며, Loop 닫힘 자체의 결함은 아니다. 후속 세션에서 단계별로 추가한다.
 
 ## 원칙
 
