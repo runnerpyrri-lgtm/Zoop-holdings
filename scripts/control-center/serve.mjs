@@ -498,7 +498,7 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
     const st4 = await store.getState();
     // 회장이 '확인 완료'한 작업(성장 Loop 등, 원래 계약이 health 대상이 아닌 경우)의 Loop를 닫는다.
     for (const task of (st4.records.tasks || []).filter((t) => t.status === "completed" && t.loopId)) {
-      try { const loop = findLoopByTask(task.id); if (loop && loop.state !== "CLOSED") transitionLoop(loop.loopId, "CLOSED", { now, note: "회장 확인 완료" }); } catch { /* skip */ }
+      try { const loop = findLoopByTask(task.id); if (loop && loop.state !== "CLOSED") transitionLoop(loop.loopId, "CLOSED", { now, note: "회장 확인 완료", evidence: { origin_recheck: "HUMAN_CONFIRMED" } }); } catch { /* skip */ }
     }
     // §17 감사2(회귀 방지): 앱별 확정 실패 계약 수. 수정 후 이 앱의 실패가 늘었다면 다른 걸 깨뜨린 것 → 종료 보류.
     const appFailNow = {};

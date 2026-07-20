@@ -51,6 +51,20 @@ test("전이는 정의된 상태만 허용하고 종료 후엔 되돌리지 않�
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("엔진 2차 방어: 검증 근거(origin_recheck) 없는 CLOSE는 거부하고 열린 채로 남긴다(거짓 성공 차단)", () => {
+  const dir = tmp();
+  const loop = createLoop({ objective: "y", contractId: "cg", fixClass: "codex" }, { runtimeDir: dir });
+  transitionLoop(loop.loopId, "QUEUED", { runtimeDir: dir });
+  // 근거 없는 CLOSE → 거부(상태 유지)
+  const rejected = transitionLoop(loop.loopId, "CLOSED", { runtimeDir: dir, note: "근거 없음" });
+  assert.notEqual(rejected.state, "CLOSED", "근거 없는 CLOSE는 무시됨");
+  assert.equal(rejected.state, "QUEUED", "상태 유지 — 열린 채로 드러남");
+  // 근거 있으면 정상 종료
+  const closed = transitionLoop(loop.loopId, "CLOSED", { runtimeDir: dir, evidence: { origin_recheck: "PASS×2" } });
+  assert.equal(closed.state, "CLOSED");
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("openIteration은 iteration을 올리고 이력에 실패 서명을 남긴다", () => {
   const dir = tmp();
   const loop = createLoop({ objective: "x", contractId: "c2", fixClass: "codex" }, { runtimeDir: dir });
@@ -80,7 +94,7 @@ test("createLoop은 같은 계약에 활성 Loop가 있으면 중복 생성하�
   assert.equal(second.loopId, first.loopId); // 새 orphan을 만들지 않는다
   assert.equal(Object.keys(readLoops(dir)).length, 1);
   // 종료된 뒤에는 같은 계약으로 새 Loop를 열 수 있다.
-  transitionLoop(first.loopId, "CLOSED", { runtimeDir: dir });
+  transitionLoop(first.loopId, "CLOSED", { runtimeDir: dir, evidence: { origin_recheck: "PASS" } });
   const third = createLoop({ objective: "재발", contractId: "dup:outbom", fixClass: "codex" }, { runtimeDir: dir });
   assert.notEqual(third.loopId, first.loopId);
   rmSync(dir, { recursive: true, force: true });
@@ -90,7 +104,7 @@ test("findLoopByContract는 활성 Loop만 찾는다", () => {
   const dir = tmp();
   const loop = createLoop({ objective: "x", contractId: "c3", fixClass: "codex" }, { runtimeDir: dir });
   assert.ok(findLoopByContract("c3", { runtimeDir: dir }));
-  transitionLoop(loop.loopId, "CLOSED", { runtimeDir: dir });
+  transitionLoop(loop.loopId, "CLOSED", { runtimeDir: dir, evidence: { origin_recheck: "PASS" } });
   assert.equal(findLoopByContract("c3", { runtimeDir: dir }), null); // 종료된 건 안 잡힘
   rmSync(dir, { recursive: true, force: true });
 });
@@ -99,7 +113,7 @@ test("summarizeLoops는 활성/종료를 나눠 센다", () => {
   const dir = tmp();
   const a = createLoop({ objective: "a", contractId: "ca", fixClass: "codex" }, { runtimeDir: dir });
   createLoop({ objective: "b", contractId: "cb", fixClass: "self_heal" }, { runtimeDir: dir });
-  transitionLoop(a.loopId, "CLOSED", { runtimeDir: dir });
+  transitionLoop(a.loopId, "CLOSED", { runtimeDir: dir, evidence: { origin_recheck: "PASS" } });
   const s = summarizeLoops(dir);
   assert.equal(s.total, 2);
   assert.equal(s.active, 1);
@@ -113,10 +127,10 @@ test("pruneClosedLoops는 오래된 종료 Loop만 지우고 활성은 보존한
   const old = new Date("2026-06-01T00:00:00Z");
   const nowD = new Date("2026-07-20T00:00:00Z");
   const a = createLoop({ objective: "옛종료", contractId: "co", fixClass: "codex" }, { runtimeDir: dir, now: old });
-  transitionLoop(a.loopId, "CLOSED", { runtimeDir: dir, now: old }); // 49일 전 종료
+  transitionLoop(a.loopId, "CLOSED", { runtimeDir: dir, now: old, evidence: { origin_recheck: "PASS" } }); // 49일 전 종료
   const b = createLoop({ objective: "활성", contractId: "cb", fixClass: "codex" }, { runtimeDir: dir, now: nowD });
   const recent = createLoop({ objective: "최근종료", contractId: "cr", fixClass: "codex" }, { runtimeDir: dir, now: nowD });
-  transitionLoop(recent.loopId, "CLOSED", { runtimeDir: dir, now: nowD }); // 방금 종료
+  transitionLoop(recent.loopId, "CLOSED", { runtimeDir: dir, now: nowD, evidence: { origin_recheck: "PASS" } }); // 방금 종료
   const res = pruneClosedLoops(dir, { now: nowD, keepDays: 30 });
   const remaining = readLoops(dir);
   assert.equal(res.pruned, 1);

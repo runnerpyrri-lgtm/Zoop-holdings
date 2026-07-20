@@ -142,6 +142,13 @@ export function transitionLoop(loopId, toState, { runtimeDir = DEFAULT_COMPANY_R
   if (!loop) return null;
   if (TERMINAL_STATES.has(loop.state) && loop.state !== toState) return loop; // 종료된 Loop는 재개하지 않음
   const nowIso = now.toISOString();
+  // §16/§17 엔진 레벨 2차 방어: CLOSED(해결 종료)는 반드시 검증 근거(evidence.origin_recheck)를 지녀야 한다.
+  // call-site 규율이 1차 방어지만, 근거 없는 CLOSE는 '거짓 성공'이므로 엔진이 거부하고 기록한다(미래 버그 백스톱).
+  // FAILED_SAFE(정직한 포기)는 근거가 필요 없다 — 성공 주장이 아니기 때문.
+  if (toState === "CLOSED" && !(evidence && typeof evidence === "object" && evidence.origin_recheck)) {
+    appendEvent(runtimeDir, { at: nowIso, loopId, event: "close_rejected", reason: "no_origin_recheck_evidence", note });
+    return loop; // 종료하지 않음 — 근거 없는 성공 종료를 막고 열린 채로 남겨 드러낸다(정직)
+  }
   loop.state = toState;
   loop.updatedAt = nowIso;
   if (toState === "CLOSED" || toState === "FAILED_SAFE") loop.closedAt = nowIso;

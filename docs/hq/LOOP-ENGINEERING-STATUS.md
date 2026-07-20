@@ -153,6 +153,8 @@
   - **[MED·거짓 green] 특정 기능을 증명 못 하는 진공 marker 4건** — `offline-shell`(sw.js의 './'·'index.html'), `multi-tab-safety-static`(번들의 'storage' — localStorage에도 있음), `stale-banner`(certbom '기준'·'확인' — 거의 모든 한국어 UI), `worker-wasm-refs`(notebom 'worker' — serviceWorker에도 있음)가 일반적 substring 하나로 PASS를 내며 각각 특정 기능(프리캐시·멀티탭 핸들러·LKG 배너·Web Worker) 존재를 주장했다. → 마커를 억지로 조이면(un-inspectable 번들에 거짓 FAIL) 더 나쁘므로, 정직하게 `need_new_source`(UNAVAILABLE '새 신호 필요')로 전환 — 거짓 green 제거, 거짓 FAIL 없음, sourceNeeded/whyNeeded/fallback 메타 완비. 테스트로 고정.
   - 정직하게 확인·문서화(비결함): office.js 사실 수치 전부 건전, `login-item-status`는 pass/fail 게이트가 아니라 실제 ON/OFF를 읽는 상태 보고(정상). deployed-sha·forecast-probe·user-recording-health 등 기존 need_new_source 경로는 이미 정직.
 
+- **22차(자율 Loop 종료 — 엔진 자체 2차 방어, hq-v3.3.17)** → 이월 M3 처리. 정본 종료 게이트는 call-site 규율(원래 계약 2회 PASS + 회귀 가드)로 지켜지지만, `transitionLoop`이 **엔진 레벨**에선 아무 CLOSE나 근거 없이 받아들여, 미래에 잘못 짜인 호출부 하나가 '거짓 성공'을 낼 수 있었다. → CLOSED 전이는 **반드시 검증 근거(evidence.origin_recheck)를 지녀야** 하고, 없으면 엔진이 거부하고 `close_rejected` 이벤트로 기록하며 Loop를 열린 채 남긴다(거짓 성공 대신 열린 상태로 드러냄). 5개 호출부 모두 근거 보유 확인(회장 확인 종료엔 `HUMAN_CONFIRMED` 근거 명시), FAILED_SAFE(정직한 포기)는 게이트 예외. 테스트(근거 없는 CLOSE 거부) 추가. 남은 이월: warn 앱 무-incident 드롭·supervisor 느린 크래시 상한. 미감사: events.mjs·autostart.mjs.
+
 ## 회장 추가 요구(7·8·9) 반영 (hq-v3.3.0~)
 - **9. 설정 화면 + Codex 모델 클릭 선택** — 배포됨(3.3.0): 실행기 모델을 텍스트 타이핑이 아니라 **클릭 리스트**(기본값·gpt-5-codex·gpt-5·o4-mini·o3)로 고른다. 추론 강도(낮음/보통/높음)도 클릭. 점검 주기·모델·강도를 '설정' 화면으로 이동(자동화 화면에서 링크로 안내).
 - **7. 전결→Codex 자동 연동 지속** — 메커니즘 배포됨(전결 위임 → 위임 가능 안건 자동 재가 → 큐 → Codex 실행 → 원래 계약 재검증 → 다음 iteration). '전결' UI에 "위임하면 유지보수만이 아니라 계속 성장" 명시. 실제 실행은 맥 `codex login` 연결 시 작동.
