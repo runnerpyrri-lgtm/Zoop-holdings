@@ -145,7 +145,7 @@ export const generatedAppMeta = [
     "name": "노트봄",
     "englishName": "NoteBom",
     "repo": "robom-labs/notebom",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "dataVersion": "local-schema-v1",
     "webUrl": "https://robom-labs.github.io/notebom/",
     "healthcheckUrl": "https://robom-labs.github.io/notebom/",
@@ -163,8 +163,8 @@ export const generatedAppMeta = [
     "stableInstallUrl": "https://robom.kr/get/notebom",
     "mobileStatus": "pwa",
     "familySpecVersion": "1.0.0",
-    "lastVerifiedAt": "2026-07-20T18:00:00+09:00",
-    "lastDeployedSha": "c40b34e0ffa381ed6552d52ce432248adcc819bf",
+    "lastVerifiedAt": "2026-07-20T18:40:00+09:00",
+    "lastDeployedSha": "5465cbb3a83ee44e6de7534e49479c6d6890643d",
     "lastDataSyncAt": "2026-07-17T23:59:39+09:00",
     "freshnessStatus": "local-only"
   }
