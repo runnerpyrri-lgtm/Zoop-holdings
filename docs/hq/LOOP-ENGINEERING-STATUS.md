@@ -149,6 +149,10 @@
   - **[MED·화면 불일치] DEGRADED가 workforce 실패 헤드라인서 누락** — DEGRADED+warning은 health 엔진이 incident로 올리는데 인력 화면 '실패 N'엔 빠져 두 화면이 어긋났다. → FAIL과 함께 DEGRADED+warning(info 제외)도 '주의 필요'로 집계(파티션 불변식 유지). 테스트 추가.
   - 남은 이월(다음 라운드): 앱 간 회귀 파급(M2)·엔진 자체 CLOSE 게이트(M3)·warn 앱 무-incident 드롭·supervisor 느린 크래시 상한(L1). 미감사: office.js 시뮬레이션 수치, contract-catalog 마커 품질.
 
+- **21차(계약 카탈로그 마커 품질 + office.js 시뮬레이션 — hq-v3.3.16)** → 계약 '정의'(마커·임계·needNewSource)와 오피스 시뮬레이션 수치의 정직성 감사. HIGH 없음. office.js는 **완전 건전**(HUD·층별·티커 등 회장이 사실로 읽는 모든 수치가 실데이터(computeWorkforce·SNAP) 출처, 랜덤/among이 표시 수치에 안 섞임 — 시각 연출만 illustrative). 카탈로그도 대체로 정직(need_new_source·빈배열 FAIL·forbidden-marker UNAVAILABLE 경로 모두 비진공). 실제 결함(진공 marker green) 수정:
+  - **[MED·거짓 green] 특정 기능을 증명 못 하는 진공 marker 4건** — `offline-shell`(sw.js의 './'·'index.html'), `multi-tab-safety-static`(번들의 'storage' — localStorage에도 있음), `stale-banner`(certbom '기준'·'확인' — 거의 모든 한국어 UI), `worker-wasm-refs`(notebom 'worker' — serviceWorker에도 있음)가 일반적 substring 하나로 PASS를 내며 각각 특정 기능(프리캐시·멀티탭 핸들러·LKG 배너·Web Worker) 존재를 주장했다. → 마커를 억지로 조이면(un-inspectable 번들에 거짓 FAIL) 더 나쁘므로, 정직하게 `need_new_source`(UNAVAILABLE '새 신호 필요')로 전환 — 거짓 green 제거, 거짓 FAIL 없음, sourceNeeded/whyNeeded/fallback 메타 완비. 테스트로 고정.
+  - 정직하게 확인·문서화(비결함): office.js 사실 수치 전부 건전, `login-item-status`는 pass/fail 게이트가 아니라 실제 ON/OFF를 읽는 상태 보고(정상). deployed-sha·forecast-probe·user-recording-health 등 기존 need_new_source 경로는 이미 정직.
+
 ## 회장 추가 요구(7·8·9) 반영 (hq-v3.3.0~)
 - **9. 설정 화면 + Codex 모델 클릭 선택** — 배포됨(3.3.0): 실행기 모델을 텍스트 타이핑이 아니라 **클릭 리스트**(기본값·gpt-5-codex·gpt-5·o4-mini·o3)로 고른다. 추론 강도(낮음/보통/높음)도 클릭. 점검 주기·모델·강도를 '설정' 화면으로 이동(자동화 화면에서 링크로 안내).
 - **7. 전결→Codex 자동 연동 지속** — 메커니즘 배포됨(전결 위임 → 위임 가능 안건 자동 재가 → 큐 → Codex 실행 → 원래 계약 재검증 → 다음 iteration). '전결' UI에 "위임하면 유지보수만이 아니라 계속 성장" 명시. 실제 실행은 맥 `codex login` 연결 시 작동.
