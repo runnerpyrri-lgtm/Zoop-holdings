@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="3.2.1"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="3.3.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -401,13 +401,17 @@ function loopBoardPanel(){
 }
 
 /* ── 실행기 설정: 회장이 Codex 모델·추론 강도를 고른다 (v2.5.0) ── */
+// 회장님 Codex 구독에서 고를 수 있는 대표 모델(클릭 선택 — 타이핑 불필요). 안 되는 모델이면 실행기가 정직하게 미연결로 표시.
+const CODEX_MODELS=[["","기본값 (추천)"],["gpt-5-codex","gpt-5-codex"],["gpt-5","gpt-5"],["o4-mini","o4-mini · 빠름"],["o3","o3 · 정밀"]];
 function executorConfigPanel(){
-  const c=HQ?.control||{};const eff=c.codexEffort||"";
+  const c=HQ?.control||{};const eff=c.codexEffort||"";const model=c.codexModel||"";
   const seg=(v,l)=>`<button class="button ${eff===v?"primary":"ghost"}" type="button" data-action="set-effort" data-effort="${attr(v)}">${l}</button>`;
-  return panel("실행기 설정 — 모델·추론 강도 (회장 선택)",`
-    <div class="simple-list"><div><b>추론 강도</b><span class="today-actions" style="gap:6px">${seg("low","낮음·빠름")}${seg("medium","보통")}${seg("high","높음·정밀")}${seg("","기본값")}</span></div></div>
-    <div style="margin-top:10px"><div class="today-actions"><input id="cxModel" type="text" value="${attr(c.codexModel||"")}" placeholder="모델 이름 — 비우면 코덱스 기본값 (예: gpt-5-codex)" maxlength="80" style="flex:1;min-height:44px;padding:0 14px;border:1px solid var(--line,#e2d8c8);border-radius:12px;background:var(--surface,#fff);color:inherit;font-size:15px" />${button("모델 저장","save-model","secondary","","save")}</div></div>
-    <p class="fine">고른 값은 <b>다음 작업부터</b> codex exec에 적용됩니다(현재 강도: ${eff?esc(eff):"기본값"}${c.codexModel?` · 모델: ${esc(c.codexModel)}`:""}). 모델은 회장님 Codex 구독 플랜이 지원하는 이름을 넣으세요. 강도는 높을수록 더 꼼꼼하지만 사용량(토큰)을 더 씁니다.</p>`);
+  const mdl=(v,l)=>`<button class="button ${model===v?"primary":"ghost"}" type="button" data-action="pick-model" data-model="${attr(v)}">${l}</button>`;
+  return panel("실행기 설정 — Codex 모델·추론 강도 (클릭 선택)",`
+    <div class="simple-list"><div><b>추론 강도</b><span class="today-actions" style="gap:6px;flex-wrap:wrap">${seg("low","낮음·빠름")}${seg("medium","보통")}${seg("high","높음·정밀")}${seg("","기본값")}</span></div></div>
+    <div class="simple-list" style="margin-top:8px"><div><b>모델</b><span class="today-actions" style="gap:6px;flex-wrap:wrap">${CODEX_MODELS.map(([v,l])=>mdl(v,l)).join("")}</span></div></div>
+    <details style="margin-top:8px"><summary class="fine">목록에 없는 모델을 직접 입력 (고급)</summary><div class="today-actions" style="margin-top:6px"><input id="cxModel" type="text" value="${attr(model)}" placeholder="예: gpt-5-codex" maxlength="80" style="flex:1;min-height:44px;padding:0 14px;border:1px solid var(--line,#e2d8c8);border-radius:12px;background:var(--surface,#fff);color:inherit;font-size:15px" />${button("저장","save-model","secondary","","save")}</div></details>
+    <p class="fine">고른 값은 <b>다음 작업부터</b> 적용됩니다 (지금: 강도 <b>${eff?esc(eff):"기본값"}</b> · 모델 <b>${model?esc(model):"기본값"}</b>). 강도가 높을수록 더 꼼꼼하지만 사용량(토큰)을 더 씁니다.</p>`);
 }
 
 /* ── 심층 계약 진단(진단률 100%) — 자동화·회사 화면이 공유 ── */
@@ -442,13 +446,11 @@ function renderAutomation(){
   loadContracts();
   return `${title("AUTOMATION","자동화 현황판","Codex 실행기와 자동 점검이 지금 무엇을 하는지 보는 화면입니다.")}
   <div class="kpi-row">${kpi(HQ?.pending??"—","다음 대기")}${kpi(HQ?.running??"—","실행 중",HQ?.running?"accent":"")}${kpi(HQ?.done??"—","완료","good")}${kpi(HQ?.failed??"—","실패·막힘",HQ?.failed?"bad":"")}</div>
-  ${panel("현재 상태",`<div class="codex-line"><span class="status ${cx.cls==="on"?"good":cx.cls==="busy"?"accent":cx.cls==="warn"?"warn":"neutral"}">${esc(cx.label)}</span><p>${esc(cx.detail)}</p></div>`)}
-  ${executorConfigPanel()}
+  ${panel("현재 상태",`<div class="codex-line"><span class="status ${cx.cls==="on"?"good":cx.cls==="busy"?"accent":cx.cls==="warn"?"warn":"neutral"}">${esc(cx.label)}</span><p>${esc(cx.detail)}</p></div><p class="fine" style="margin-top:8px">Codex 모델·추론 강도·점검 주기는 <a href="#/records/settings"><b>설정</b></a>에서 클릭으로 바꿉니다.</p>`)}
   ${HQ?.runningTask?panel("실행 중 작업",`<div class="record-list"><article><header><div><span>${esc(appName(HQ.runningTask.app))}</span><h3>${esc(HQ.runningTask.title)}</h3></div>${tonePill("accent","작업 중")}</header><p>시작 ${fmt(HQ.runningTask.lease?.claimedAt)} · 마지막 신호 ${ago(HQ.runningTask.lease?.heartbeatAt)}</p></article></div>`):""}
   ${HQ?.nextTask?panel("다음 대기",`<div class="simple-list"><div><b>${esc(appName(HQ.nextTask.app))} · ${esc(HQ.nextTask.title)}</b>${tonePill("neutral","대기")}</div></div>`):""}
   ${panel("자동 점검 → 결재",`<div class="simple-list">
     <div><b>${reviewLabel()} 6개 앱 종합 점검 후 개선 제안을 결재로 상신</b>${tonePill(autos?"gold":"good",autos?`상신 ${autos}건 대기`:"이상 없음")}</div>
-    <div class="today-actions" style="gap:8px;align-items:center;flex-wrap:wrap"><label class="fine" for="reviewInterval">점검 주기</label>${reviewIntervalSelect()}${button("적용","apply-review-schedule","secondary","","check")}</div>
     <a href="#/records/approvals"><b>결재함 열기</b><span class="status neutral">이동</span></a>
   </div>`)}
   ${incidentBoardPanel()}
@@ -507,7 +509,7 @@ function renderCompany(){
         </div><p class="fine" style="margin:2px 0 8px">막힌 계약은 자동으로 <b>코덱스 수정 대기열</b>에 올라갑니다. 비밀키·개인정보 같은 건만 회장님 확인을 기다립니다 — 나머지는 알아서 고쳐집니다.</p>`:`<p class="fine" style="margin-top:0">막힌 계약이 없습니다 — 전 계약 정상.</p>`}
         <div class="simple-list">${(wf.byDivision||[]).filter(d=>d.total).slice(0,14).map(d=>`<div><b>${esc(d.divisionName||d.division)}</b>${tonePill(d.blocked?"bad":d.checking?"accent":"good",`${d.onDuty}/${d.total}명 근무 · 계약 ${d.ownedContracts}${d.blocked?` · 막힘 ${d.blocked}`:""}`)}</div>`).join("")}</div>
         <p class="fine">각 직원이 맡은 계약을 점검·검증하는 모습은 <a href="./office.html">오피스 관람</a>에서 캐릭터를 눌러 확인합니다. 인원 수는 실제 실행기(코덱스) 수와 다릅니다 — '수정 중'은 실제 실행기 작업만 집계합니다.</p>`):""}
-      ${panel("수석부회장 전결",`<p class="fine" style="margin:0 0 11px">위임하면 회장님 부재 중에도 <b>시스템이 올린 위임 가능 안건만</b> 수석부회장 리리가 자동 재가해 바로 처리합니다. 결제·계약·홍보·개인정보·비밀값·삭제 같은 안건은 위임돼도 <b>회장 전용</b>으로 남습니다.</p>
+      ${panel("수석부회장 전결 — 위임하면 스스로 성장",`<p class="fine" style="margin:0 0 11px">위임하면 회장님 부재 중에도 <b>시스템이 올린 위임 가능 안건만</b> 수석부회장 리리가 자동 재가해 <b>Codex 실행기가 바로 고치고 새 기능·개선까지 이어서 만듭니다</b> — 유지보수만이 아니라 계속 성장합니다. 결제·계약·홍보·개인정보·비밀값·권한·삭제 같은 안건은 위임돼도 <b>회장 전용</b>으로 남습니다. (Codex는 맥에서 <code>codex login</code> 연결 시 작동, 모델·강도는 <a href="#/records/settings"><b>설정</b></a>에서 클릭 선택.)</p>
       <div class="simple-list"><div><b>결재 모드</b>${tonePill(delegated?"gold":"good",delegated?"수석부회장 전결 위임 중":"회장 직접결재")}</div></div>
       <div class="today-actions" style="margin-top:12px">${delegated?button("전결 즉시 해제","set-delegation","danger",'data-approval="CHAIRMAN_DIRECT"'):button("수석부회장 전결 위임","set-delegation","gold",'data-approval="VICE_CHAIR_DELEGATED"',"check")}</div>`)}
       ${panel("조직도 — 회장부터 아래로",ORG?(()=>{
@@ -572,7 +574,10 @@ function recBody(){
     case "backup":return `<div class="panel-actions">${button("지금 백업","backup","primary","","save")}${button("JSON 내보내기","export","ghost")}</div><dl class="data-list"><dt>저장 위치</dt><dd>${LOCAL.mode==="live"?"이 컴퓨터의 비공개 runtime 폴더":"브라우저 휴대용 저장"}</dd><dt>마지막 백업</dt><dd>${esc(LOCAL.meta?.lastBackupAt?fmt(LOCAL.meta.lastBackupAt):"아직 없음")}</dd><dt>백업 대상</dt><dd>회의·결재·업무·장애 기록과 감사 로그</dd></dl>`;
     case "connections":loadMobile();return mobilePanel()+connectionMarkup();
     case "security":return `<div class="security-grid">${(SNAP.operations?.security||[]).map(c=>`<article>${tonePill(c.ok?"good":"warn",c.ok?"통과":"확인")}<h3>${esc(c.name)}</h3><p>${esc(c.note||"")}</p></article>`).join("")||empty("보안 점검 항목을 불러오지 못했습니다.")}</div>`;
-    case "settings":return `<div class="settings-list">
+    case "settings":return `
+      ${executorConfigPanel()}
+      ${panel("자동 점검 주기",`<div class="today-actions" style="gap:8px;align-items:center;flex-wrap:wrap"><label class="fine" for="reviewInterval">점검 주기</label>${reviewIntervalSelect()}${button("적용","apply-review-schedule","secondary","","check")}</div><p class="fine">${reviewLabel()} 종합 점검 후 개선 제안을 결재로 상신합니다. 짧을수록 자주 점검하지만 사용량이 늘 수 있어요.</p>`)}
+      <div class="settings-list">
       <article><div><h3>현재 모드</h3><p>${LOCAL.mode==="live"?"실시간 로컬 본부":"휴대용 보기"}</p></div>${tonePill(LOCAL.mode==="live"?"good":"neutral",LOCAL.mode==="live"?"연결됨":"제한됨")}</article>
       <article><div><h3>프로그램 버전</h3><p>ROBOM HQ v${esc(APP_VERSION)} — 상단 금색 버전 칩과 동일하면 최신 설치본입니다.</p></div>${tonePill("gold",`v${APP_VERSION}`)}</article>
       <article><div><h3>휴대폰 연결</h3><p>${HQ?.remote==="token"?"토큰 인증으로 사설망 접속 허용됨":"이 컴퓨터 전용(127.0.0.1) — docs/hq/REMOTE-ACCESS.md"}</p></div>${tonePill(HQ?.remote==="token"?"accent":"good",HQ?.remote==="token"?"원격 허용":"비공개")}</article>
@@ -781,6 +786,7 @@ document.addEventListener("click",async e=>{
     else if(a==="retry-task")await retryTask(action.dataset.id);
     else if(a==="show-loop-evidence"){const lp=(HQ?.loops?.activeLoops||[]).find(x=>x.loopId===action.dataset.id);if(lp){const ev=Object.entries(lp.evidence||{}).map(([k,v])=>`${k}=${v}`).join(" · ")||"아직 수집된 증거 없음";const cr=(lp.acceptanceCriteria||[]).map(c=>c.id).join(", ");showToast(`${lp.objective} · 상태 ${lp.stateLabel||lp.state} · ${lp.iteration}번째 시도 · 기준[${cr}] · 증거: ${ev}`,"good");}}
     else if(a==="set-effort")await setExecutorConfig({effort:action.dataset.effort});
+    else if(a==="pick-model")await setExecutorConfig({model:action.dataset.model||""});
     else if(a==="save-model")await setExecutorConfig({model:($("#cxModel")?.value||"").trim()});
     else if(a==="backup")await doBackup();
     else if(a==="export")await doExport();
