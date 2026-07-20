@@ -62,9 +62,20 @@ jobs:
             TODAY=$(TZ=Asia/Seoul date +%Y-%m-%d)
             PRCOUNT=$(curl -sS -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" | jq 'length' 2>/dev/null || echo "?")
-            TEXT=$(printf '🕒 %s 기준\n황준필 회장님, 보고드리겠습니다!\n[Zoop Holdings 일일보고 · %s]\n🟢 진행 PR %s건 (검토 대기) — 자세한 내용은 아래 버튼' "$NOW" "$TODAY" "$PRCOUNT")
+            TEXT=$(printf '🕒 %s 기준\n황준필 회장님, 보고드리겠습니다!\n[로봄 일일보고 · %s]\n🟢 진행 PR %s건 (검토 대기) — 자세한 내용은 아래 버튼' "$NOW" "$TODAY" "$PRCOUNT")
           fi
-          TEMPLATE=$(jq -nc --arg t "$TEXT" '{object_type:"text",text:$t,link:{web_url:"https://github.com/runnerpyrri-lgtm/Zoop-holdings/pulls"},button_title:"PR 목록 보기"}')
-          curl -sS -X POST "https://kapi.kakao.com/v2/api/talk/memo/default/send" \
+          # PR 건수는 $GITHUB_REPOSITORY로 세면서 버튼 링크는 다른 저장소(레거시 Zoop-holdings)로
+          # 고정돼 있어, 버튼을 눌러도 방금 센 PR 목록을 볼 수 없던 불일치를 고쳐 같은 저장소로 맞춘다.
+          TEMPLATE=$(jq -nc --arg t "$TEXT" --arg url "https://github.com/${GITHUB_REPOSITORY}/pulls" '{object_type:"text",text:$t,link:{web_url:$url},button_title:"PR 목록 보기"}')
+          # -f 없이 curl만 쓰면 HTTP 4xx/5xx도 exit 0이라, 토큰 만료·쿼터 초과로 발송이 안 돼도
+          # 워크플로는 계속 초록불로 뜬다("매일 보고가 온다"는 신뢰가 조용히 깨짐) → 상태코드와
+          # 카카오 성공 응답(result_code:0)을 함께 확인해 실패를 반드시 잡 실패로 승격한다.
+          HTTP_STATUS=$(curl -sS -o /tmp/kakao-response.json -w "%{http_code}" -X POST "https://kapi.kakao.com/v2/api/talk/memo/default/send" \
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-            --data-urlencode "template_object=${TEMPLATE}"
+            --data-urlencode "template_object=${TEMPLATE}")
+          RESPONSE_BODY=$(cat /tmp/kakao-response.json)
+          if [ "$HTTP_STATUS" != "200" ] || ! echo "$RESPONSE_BODY" | jq -e '.result_code == 0' > /dev/null 2>&1; then
+            echo "::error::카카오 발송 실패(HTTP $HTTP_STATUS): $RESPONSE_BODY"
+            exit 1
+          fi
+          echo "카카오 발송 성공"
