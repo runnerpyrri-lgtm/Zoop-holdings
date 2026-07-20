@@ -166,6 +166,7 @@
 
 - **26차(세션 자기검증 → 자기 결함 수정 — hq-v3.3.22)** → 이 세션 변경분(3.3.11~3.3.21)을 적대적으로 자기검증. 핵심 정직 경로(CLOSE 게이트·ciResult·workforce 파티션·runner backoff·events·정규식·카탈로그)는 **전부 건전** 확인. 내가 이 세션에 넣은 실제 결함만 수정: **[MED]** self_heal 승격 결재가 승인되면 existingKeys에서 빠져 매 실행 중복 상신됐고 회복돼도 안 닫힘 → 승격은 **열린 Loop 유무**로 중복 방지, 회복 시 `#escalated` 결재도 base contractId로 함께 종료. **[LOW]** 회복 경로가 존재하지 않는 `loop.fixClass`를 읽던 것 → `loop.authorityClass`로 교정.
 - **27차(두 CI 엔진 판정 일치 — hq-v3.3.23)** → `evalGithubActions`(deep)가 skipped·neutral·action_required·cancelled를 FAIL(사건)로 올려 health-engine `ciResult`(3.3.19: DEGRADED-info)와 어긋나던 것 → 실제 실패(failure·timed_out·startup_failure)만 FAIL, 나머지 비성공 종료는 **DEGRADED-info**(deep 계약 severityIfFail=error여도 incident 안 나게 severity:info 명시)로 통일. 테스트 추가. **알려진 이월 결함 전부 소진.**
+- **28차(M1 — 스냅샷 runs 크기 제한 — hq-v3.3.24)** → `latest.json`이 종료된 run까지 전부 임베드해 다월 운영 시 무한 증가하던 것 → 임베드 runs를 **비종료(approval_pending·external_wait·작업중) 전부 보존 + 종료 run 최근 80개**로 bound(build-snapshot). 집계 수치는 전체 runs로 계산해 정확도 유지, **장기 대기 항목은 비종료라 절대 안 잘림**. readEvents 파일 파싱은 장기 대기 보존 위해 미변경(파일 rotation은 별도 설계 필요로 후속). 테스트 가드 추가.
 
 ## 코덱스 부재 대응(2026-07-20~ · 토큰 1주 후)
 - 코덱스 토큰이 일주일 뒤 도착. 그때까지 **앱 저장소 코드 수정** 필요 항목은 `docs/hq/CODEX-PENDING-REQUESTS.md`에 대기열로 적재. HQ 본체(robom 저장소) 개선은 Claude가 직접 계속(audit→fix→release). 프로덕션 실측 장애는 HQ 실행 중 결재함으로 자동 상신되므로 대기열이 아니라 그쪽으로 흐른다. 자동시작 L3/L4(트레이 마커 없는 OS 직접 활성 클로버·legacy uninstall의 launchctl disable 생략)는 의도된 tradeoff/경미로 문서화.

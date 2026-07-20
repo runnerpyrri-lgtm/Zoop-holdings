@@ -132,6 +132,14 @@ async function main() {
   const agents = readAgents(REPO_ROOT);
   const { events, dropped: eventsDropped } = readEventsWithMeta(REPO_ROOT, NOW);
   const runs = deriveRuns(events, NOW);
+  // latest.json 무한 증가 방지(M1): 스냅샷에 임베드하는 runs는 '비종료(대기·승인대기·작업중) 전부 + 종료된 run 최근 80개'로 제한한다.
+  // 집계 수치(아래 company.tasks 등)는 전체 runs로 계산해 정확도 유지. 장기 대기(approval_pending·external_wait)는 비종료라 절대 잘리지 않는다.
+  const TERMINAL_RUN_STATUS = new Set(["completed", "failed", "rolled_back"]);
+  const runActivityMs = (r) => { const v = Date.parse(r.lastActivity || ""); return Number.isFinite(v) ? v : -Infinity; };
+  const embeddedRuns = [
+    ...runs.filter((r) => !TERMINAL_RUN_STATUS.has(r.status)),          // 비종료 전부 보존
+    ...runs.filter((r) => TERMINAL_RUN_STATUS.has(r.status)).slice(0, 80), // 종료된 run은 최근 80개만(runs는 최근 활동 순)
+  ].sort((a, b) => runActivityMs(b) - runActivityMs(a));
 
   // 승인함(선택): approvals.yml + 이벤트의 approval_requested pending
   const approvalsFile = parseYamlList(readText(join(REPO_ROOT, "ops/control-center/approvals.yml")), "approvals");
@@ -191,7 +199,7 @@ async function main() {
     apps: appData,
     departments,
     agents,
-    runs,
+    runs: embeddedRuns, // 비종료 전부 + 종료 최근 80개(대기·승인 항목 유실 없이 크기 제한)
     approvals,
     events: events.slice(-40).reverse(),
     connections,
