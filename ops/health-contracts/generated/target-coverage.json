@@ -1,11 +1,11 @@
 {
  "generatedNote": "진단률(정의) 집계",
  "coverage": {
-  "total": 273,
-  "defined": 273,
+  "total": 356,
+  "defined": 356,
   "definedRate": 1,
-  "executable": 266,
-  "needNewSource": 7,
+  "executable": 344,
+  "needNewSource": 12,
   "byTarget": {
    "company": {
     "total": 8,
@@ -14,39 +14,39 @@
     "browserGated": 0
    },
    "outbom": {
-    "total": 31,
-    "executable": 30,
+    "total": 44,
+    "executable": 43,
     "needNewSource": 1,
     "browserGated": 2
    },
    "homebom": {
-    "total": 40,
-    "executable": 39,
-    "needNewSource": 1,
+    "total": 54,
+    "executable": 52,
+    "needNewSource": 2,
     "browserGated": 2
    },
    "runningbom": {
-    "total": 32,
-    "executable": 32,
-    "needNewSource": 0,
+    "total": 47,
+    "executable": 46,
+    "needNewSource": 1,
     "browserGated": 2
    },
    "calendarbom": {
-    "total": 33,
-    "executable": 32,
-    "needNewSource": 1,
+    "total": 43,
+    "executable": 41,
+    "needNewSource": 2,
     "browserGated": 3
    },
    "certbom": {
-    "total": 33,
-    "executable": 32,
-    "needNewSource": 1,
+    "total": 45,
+    "executable": 43,
+    "needNewSource": 2,
     "browserGated": 2
    },
    "notebom": {
-    "total": 34,
-    "executable": 32,
-    "needNewSource": 2,
+    "total": 42,
+    "executable": 38,
+    "needNewSource": 4,
     "browserGated": 2
    },
    "robom": {
@@ -57,13 +57,13 @@
    },
    "robom-hq": {
     "total": 24,
-    "executable": 23,
-    "needNewSource": 1,
+    "executable": 24,
+    "needNewSource": 0,
     "browserGated": 0
    },
    "robom-company": {
-    "total": 16,
-    "executable": 16,
+    "total": 27,
+    "executable": 27,
     "needNewSource": 0,
     "browserGated": 0
    }

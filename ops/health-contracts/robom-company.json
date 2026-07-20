@@ -4,7 +4,7 @@
   "target": "robom-company",
   "generated_from": "scripts/control-center/lib/contract-catalog.mjs",
   "note": "정본은 카탈로그 모듈. 이 파일은 machine-readable 산출물이며 직접 수정하지 않는다(build-health-contracts.mjs 재실행).",
-  "rules_count": 16
+  "rules_count": 27
  },
  "rules": [
   {
@@ -422,6 +422,292 @@
    "what": "오피스 공식 로봄 로고 사용",
    "userImpact": "임시 로고는 브랜드를 해칩니다.",
    "recommendedAction": "공식 로고를 적용합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": true,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:workforce-full-coverage",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "wf-full-coverage"
+   },
+   "severityIfFail": "error",
+   "failureClass": "automation",
+   "what": "가동 시 근무 직원 전원(복지·홍보 제외)에게 담당 계약 배정(부하분산)",
+   "userImpact": "일 없는 직원이 생기면 '전원 가동'이 거짓이 됩니다.",
+   "recommendedAction": "배정 알고리즘을 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:workforce-24h",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "wf-24h"
+   },
+   "severityIfFail": "info",
+   "failureClass": "automation",
+   "what": "24시간 무교대 — 가동 중 OFF_DUTY 0(전원 근무)",
+   "userImpact": "누군가 비번이면 24시간 가동이 아닙니다.",
+   "recommendedAction": "근무 판정 로직을 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:workforce-riri",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "wf-riri"
+   },
+   "severityIfFail": "info",
+   "failureClass": "schema",
+   "what": "회장 직속 2인자=리리(수석부회장)·회장 보고",
+   "userImpact": "지휘 2인자 정본이 흔들리면 안 됩니다.",
+   "recommendedAction": "수석부회장 정본을 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:workforce-divisions",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "wf-divisions"
+   },
+   "severityIfFail": "warning",
+   "failureClass": "schema",
+   "what": "본부 16개·복지 7명 정본 유지",
+   "userImpact": "본부·복지 구성이 깨지면 조직 화면이 비어 보입니다.",
+   "recommendedAction": "정본을 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:workforce-deputy-distinct",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "wf-deputy-distinct"
+   },
+   "severityIfFail": "info",
+   "failureClass": "integrity",
+   "what": "대직자 != 본인",
+   "userImpact": "본인이 본인 대직이면 인계가 무의미합니다.",
+   "recommendedAction": "대직 지정을 고칩니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:workforce-career-ladder",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "wf-career-ladder"
+   },
+   "severityIfFail": "info",
+   "failureClass": "schema",
+   "what": "승진 사다리 정본(≥10단계) 존재",
+   "userImpact": "승진 체계가 없으면 인사 판단이 흐려집니다.",
+   "recommendedAction": "careerLadder 정본을 유지합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:office-floors-11",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "office-floors-11"
+   },
+   "severityIfFail": "info",
+   "failureClass": "schema",
+   "what": "오피스 11개 층(회장층~B4~옥상) 유지",
+   "userImpact": "층이 줄면 탐험 경험이 빈약해집니다.",
+   "recommendedAction": "office-map 층 정본을 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:office-desk-unique",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "office-desk-unique"
+   },
+   "severityIfFail": "warning",
+   "failureClass": "integrity",
+   "what": "오피스 데스크 id 중복 0",
+   "userImpact": "데스크 중복은 캐릭터 배치를 뒤섞습니다.",
+   "recommendedAction": "데스크 id를 정리합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:contracts-min-per-app",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "contracts-min-per-app"
+   },
+   "severityIfFail": "warning",
+   "failureClass": "parity",
+   "what": "앱마다 최소 계약 수 충족(무점검 앱 0)",
+   "userImpact": "점검이 얕은 앱은 장애를 늦게 발견합니다.",
+   "recommendedAction": "부족한 앱에 계약을 보강합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:contracts-total",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "contracts-total"
+   },
+   "severityIfFail": "info",
+   "failureClass": "observability",
+   "what": "전체 계약 수 하한 유지(회귀 감지)",
+   "userImpact": "계약이 갑자기 줄면 커버리지 후퇴입니다.",
+   "recommendedAction": "카탈로그 회귀를 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": true,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "filesystem"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:robom-company:owner-verifier-split",
+   "target": "robom-company",
+   "category": "self",
+   "evaluator": "hq_runtime",
+   "config": {
+    "check": "owner-verifier-split"
+   },
+   "severityIfFail": "error",
+   "failureClass": "integrity",
+   "what": "표본 계약 전수에서 구현자≠검증자 분리",
+   "userImpact": "구현자가 자기 일을 검증하면 견제가 사라집니다.",
+   "recommendedAction": "소유권 규칙을 확인합니다."
   }
  ]
 }

@@ -4,7 +4,7 @@
   "target": "notebom",
   "generated_from": "scripts/control-center/lib/contract-catalog.mjs",
   "note": "정본은 카탈로그 모듈. 이 파일은 machine-readable 산출물이며 직접 수정하지 않는다(build-health-contracts.mjs 재실행).",
-  "rules_count": 34
+  "rules_count": 42
  },
  "rules": [
   {
@@ -280,23 +280,22 @@
     "network"
    ],
    "sourceUnavailableStatus": "UNAVAILABLE",
-   "needNewSource": false,
+   "needNewSource": true,
    "id": "c:notebom:offline-shell",
    "target": "notebom",
    "category": "pwa",
-   "evaluator": "service_worker_contract",
-   "config": {
-    "baseUrl": "https://robom-labs.github.io/notebom/",
-    "mustContainAny": [
-     "index.html",
-     "./"
-    ]
-   },
-   "severityIfFail": "warning",
+   "evaluator": "need_new_source",
+   "config": {},
+   "severityIfFail": "info",
    "failureClass": "availability",
-   "what": "노트봄 오프라인 셸 프리캐시 선언",
+   "sourceNeeded": "SW 프리캐시 목록의 실측 신호(빌드 precache 매니페스트 등)",
+   "whyNeeded": "sw.js에 './'·'index.html'가 있다는 것만으로 앱 셸이 실제 프리캐시되는지 확정 불가(거의 모든 SW가 포함) — SW 존재·문법은 service-worker 계약이 검증",
+   "privacyRisk": "없음",
+   "freeImplementationOption": "배포 시 SW precache 매니페스트(파일 목록)를 노출하거나 registry에 선언",
+   "fallbackStatus": "표면 substring으론 확정 불가(UNAVAILABLE)",
+   "what": "노트봄 오프라인 셸 프리캐시 — 실측 신호 필요",
    "userImpact": "오프라인에서 앱이 아예 열리지 않을 수 있습니다.",
-   "recommendedAction": "SW 프리캐시 목록에 앱 셸을 포함합니다."
+   "recommendedAction": "SW 프리캐시 목록에 앱 셸을 포함하고 확인 가능한 신호를 노출합니다."
   },
   {
    "schemaVersion": "2.2.0",
@@ -317,11 +316,11 @@
    "evaluator": "version_parity",
    "config": {
     "rawUrl": "https://raw.githubusercontent.com/robom-labs/notebom/main/package.json",
-    "expected": "0.3.3"
+    "expected": "0.6.1"
    },
    "severityIfFail": "error",
    "failureClass": "parity",
-   "what": "registry 0.3.3 == 앱 main package.json",
+   "what": "registry 0.6.1 == 앱 main package.json",
    "userImpact": "버전 장부가 어긋나면 배포 판단이 틀립니다.",
    "recommendedAction": "registry 또는 앱 버전을 정합화합니다."
   },
@@ -346,12 +345,12 @@
     "url": "https://robom-labs.github.io/notebom/",
     "baseUrl": "https://robom-labs.github.io/notebom/",
     "markersAny": [
-     "0.3.3"
+     "0.6.1"
     ]
    },
    "severityIfFail": "error",
    "failureClass": "parity",
-   "what": "운영 자산에 버전 0.3.3 marker 존재",
+   "what": "운영 자산에 버전 0.6.1 marker 존재",
    "userImpact": "운영에 오래된 버전이 남아 있으면 사용자에게 구버전이 보입니다.",
    "recommendedAction": "배포 전파를 확인하고 재배포합니다."
   },
@@ -376,7 +375,7 @@
     "url": "https://robom-labs.github.io/notebom/",
     "baseUrl": "https://robom-labs.github.io/notebom/",
     "markersAny": [
-     "7f3a848"
+     "5465cbb"
     ]
    },
    "severityIfFail": "warning",
@@ -403,7 +402,7 @@
    "category": "version",
    "evaluator": "data_freshness",
    "config": {
-    "value": "2026-07-19T08:28:36+09:00",
+    "value": "2026-07-20T18:40:00+09:00",
     "maxHours": 720
    },
    "severityIfFail": "warning",
@@ -727,6 +726,241 @@
   },
   {
    "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:viewport-meta",
+   "target": "notebom",
+   "category": "user_surface",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "markers": [
+     "viewport"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "user_flow",
+   "what": "노트봄 viewport meta 존재(모바일 배율)",
+   "userImpact": "viewport가 없으면 휴대폰에서 글씨가 깨알처럼 작게 보입니다.",
+   "recommendedAction": "index.html head에 viewport meta를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:charset-meta",
+   "target": "notebom",
+   "category": "production",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "markers": [
+     "charset"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "schema",
+   "what": "노트봄 charset 선언 존재",
+   "userImpact": "charset이 없으면 한글이 깨져 보일 수 있습니다.",
+   "recommendedAction": "head에 <meta charset>을 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:lang-attr",
+   "target": "notebom",
+   "category": "user_surface",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "markers": [
+     "<html lang"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "schema",
+   "what": "노트봄 html lang 속성 존재(접근성·번역)",
+   "userImpact": "lang이 없으면 스크린리더·번역 품질이 떨어집니다.",
+   "recommendedAction": "<html lang=\"ko\">를 지정합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:theme-color",
+   "target": "notebom",
+   "category": "pwa",
+   "evaluator": "surface_marker",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "baseUrl": "https://robom-labs.github.io/notebom/",
+    "markersAny": [
+     "theme-color"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "schema",
+   "what": "노트봄 theme-color 지정(설치 시 상단바 색)",
+   "userImpact": "theme-color가 없으면 설치 앱 상단 색이 기본값이 됩니다.",
+   "recommendedAction": "theme-color meta를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:apple-touch-icon",
+   "target": "notebom",
+   "category": "pwa",
+   "evaluator": "surface_marker",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "baseUrl": "https://robom-labs.github.io/notebom/",
+    "markersAny": [
+     "apple-touch-icon"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "availability",
+   "what": "노트봄 apple-touch-icon 선언(아이폰 홈 아이콘)",
+   "userImpact": "없으면 아이폰 홈 화면 아이콘이 흐리게 나옵니다.",
+   "recommendedAction": "apple-touch-icon link를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:manifest-link",
+   "target": "notebom",
+   "category": "pwa",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "markers": [
+     "manifest"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "availability",
+   "what": "노트봄 manifest link가 첫 HTML에 연결",
+   "userImpact": "manifest 링크가 없으면 설치 배너가 뜨지 않습니다.",
+   "recommendedAction": "head에 manifest link를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:noindex-guard",
+   "target": "notebom",
+   "category": "seo",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "negativeMarkers": [
+     "content=\"noindex",
+     "content='noindex"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "schema",
+   "what": "노트봄 운영에 noindex가 실수로 남지 않음",
+   "userImpact": "noindex가 남으면 검색에서 앱이 통째로 사라집니다.",
+   "recommendedAction": "운영 배포에서 noindex meta를 제거합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:notebom:title-nonempty",
+   "target": "notebom",
+   "category": "seo",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/notebom/",
+    "regexMarkers": [
+     "<title[^>]*>\\s*[^\\s<]"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "user_flow",
+   "what": "노트봄 첫 HTML title이 비어있지 않음",
+   "userImpact": "title이 비면 검색·탭에 이름이 안 보입니다.",
+   "recommendedAction": "정적 title을 실제 이름으로 채웁니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
    "runTier": "standard",
    "required": true,
    "enabled": true,
@@ -921,24 +1155,22 @@
     "network"
    ],
    "sourceUnavailableStatus": "UNAVAILABLE",
-   "needNewSource": false,
+   "needNewSource": true,
    "id": "c:notebom:worker-wasm-refs",
    "target": "notebom",
    "category": "production",
-   "evaluator": "surface_marker",
-   "config": {
-    "url": "https://robom-labs.github.io/notebom/",
-    "baseUrl": "https://robom-labs.github.io/notebom/",
-    "markersAny": [
-     "Worker",
-     "worker"
-    ]
-   },
+   "evaluator": "need_new_source",
+   "config": {},
    "severityIfFail": "info",
    "failureClass": "availability",
-   "what": "전사 Web Worker 구조 존재",
+   "sourceNeeded": "Web Worker 전사 구조 실측 신호",
+   "whyNeeded": "'worker' 문자열은 serviceWorker 등록에도 존재해 전사용 Web Worker 사용을 증명 못 함",
+   "privacyRisk": "없음",
+   "freeImplementationOption": "앱이 Worker 사용 여부를 노출하는 신호 제공",
+   "fallbackStatus": "표면 substring으론 확정 불가(UNAVAILABLE)",
+   "what": "전사 Web Worker 구조 — 실측 신호 필요",
    "userImpact": "메인 스레드 전사는 UI를 얼립니다.",
-   "recommendedAction": "Worker 분리를 유지합니다."
+   "recommendedAction": "Worker 분리를 유지하고 확인 신호를 노출합니다."
   },
   {
    "schemaVersion": "2.2.0",

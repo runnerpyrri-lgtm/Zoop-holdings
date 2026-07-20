@@ -4,7 +4,7 @@
   "target": "outbom",
   "generated_from": "scripts/control-center/lib/contract-catalog.mjs",
   "note": "정본은 카탈로그 모듈. 이 파일은 machine-readable 산출물이며 직접 수정하지 않는다(build-health-contracts.mjs 재실행).",
-  "rules_count": 31
+  "rules_count": 44
  },
  "rules": [
   {
@@ -280,23 +280,22 @@
     "network"
    ],
    "sourceUnavailableStatus": "UNAVAILABLE",
-   "needNewSource": false,
+   "needNewSource": true,
    "id": "c:outbom:offline-shell",
    "target": "outbom",
    "category": "pwa",
-   "evaluator": "service_worker_contract",
-   "config": {
-    "baseUrl": "https://robom-labs.github.io/outbom/",
-    "mustContainAny": [
-     "index.html",
-     "./"
-    ]
-   },
-   "severityIfFail": "warning",
+   "evaluator": "need_new_source",
+   "config": {},
+   "severityIfFail": "info",
    "failureClass": "availability",
-   "what": "야외봄 오프라인 셸 프리캐시 선언",
+   "sourceNeeded": "SW 프리캐시 목록의 실측 신호(빌드 precache 매니페스트 등)",
+   "whyNeeded": "sw.js에 './'·'index.html'가 있다는 것만으로 앱 셸이 실제 프리캐시되는지 확정 불가(거의 모든 SW가 포함) — SW 존재·문법은 service-worker 계약이 검증",
+   "privacyRisk": "없음",
+   "freeImplementationOption": "배포 시 SW precache 매니페스트(파일 목록)를 노출하거나 registry에 선언",
+   "fallbackStatus": "표면 substring으론 확정 불가(UNAVAILABLE)",
+   "what": "야외봄 오프라인 셸 프리캐시 — 실측 신호 필요",
    "userImpact": "오프라인에서 앱이 아예 열리지 않을 수 있습니다.",
-   "recommendedAction": "SW 프리캐시 목록에 앱 셸을 포함합니다."
+   "recommendedAction": "SW 프리캐시 목록에 앱 셸을 포함하고 확인 가능한 신호를 노출합니다."
   },
   {
    "schemaVersion": "2.2.0",
@@ -317,11 +316,11 @@
    "evaluator": "version_parity",
    "config": {
     "rawUrl": "https://raw.githubusercontent.com/robom-labs/outbom/main/package.json",
-    "expected": "0.25.5"
+    "expected": "0.25.6"
    },
    "severityIfFail": "error",
    "failureClass": "parity",
-   "what": "registry 0.25.5 == 앱 main package.json",
+   "what": "registry 0.25.6 == 앱 main package.json",
    "userImpact": "버전 장부가 어긋나면 배포 판단이 틀립니다.",
    "recommendedAction": "registry 또는 앱 버전을 정합화합니다."
   },
@@ -346,12 +345,12 @@
     "url": "https://robom-labs.github.io/outbom/",
     "baseUrl": "https://robom-labs.github.io/outbom/",
     "markersAny": [
-     "0.25.5"
+     "0.25.6"
     ]
    },
    "severityIfFail": "error",
    "failureClass": "parity",
-   "what": "운영 자산에 버전 0.25.5 marker 존재",
+   "what": "운영 자산에 버전 0.25.6 marker 존재",
    "userImpact": "운영에 오래된 버전이 남아 있으면 사용자에게 구버전이 보입니다.",
    "recommendedAction": "배포 전파를 확인하고 재배포합니다."
   },
@@ -376,7 +375,7 @@
     "url": "https://robom-labs.github.io/outbom/",
     "baseUrl": "https://robom-labs.github.io/outbom/",
     "markersAny": [
-     "21e0883"
+     "6f90586"
     ]
    },
    "severityIfFail": "warning",
@@ -403,7 +402,7 @@
    "category": "version",
    "evaluator": "data_freshness",
    "config": {
-    "value": "2026-07-19T00:40:00+09:00",
+    "value": "2026-07-19T15:10:00+09:00",
     "maxHours": 48
    },
    "severityIfFail": "warning",
@@ -727,6 +726,241 @@
   },
   {
    "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:viewport-meta",
+   "target": "outbom",
+   "category": "user_surface",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "markers": [
+     "viewport"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "user_flow",
+   "what": "야외봄 viewport meta 존재(모바일 배율)",
+   "userImpact": "viewport가 없으면 휴대폰에서 글씨가 깨알처럼 작게 보입니다.",
+   "recommendedAction": "index.html head에 viewport meta를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:charset-meta",
+   "target": "outbom",
+   "category": "production",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "markers": [
+     "charset"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "schema",
+   "what": "야외봄 charset 선언 존재",
+   "userImpact": "charset이 없으면 한글이 깨져 보일 수 있습니다.",
+   "recommendedAction": "head에 <meta charset>을 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:lang-attr",
+   "target": "outbom",
+   "category": "user_surface",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "markers": [
+     "<html lang"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "schema",
+   "what": "야외봄 html lang 속성 존재(접근성·번역)",
+   "userImpact": "lang이 없으면 스크린리더·번역 품질이 떨어집니다.",
+   "recommendedAction": "<html lang=\"ko\">를 지정합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:theme-color",
+   "target": "outbom",
+   "category": "pwa",
+   "evaluator": "surface_marker",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "baseUrl": "https://robom-labs.github.io/outbom/",
+    "markersAny": [
+     "theme-color"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "schema",
+   "what": "야외봄 theme-color 지정(설치 시 상단바 색)",
+   "userImpact": "theme-color가 없으면 설치 앱 상단 색이 기본값이 됩니다.",
+   "recommendedAction": "theme-color meta를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:apple-touch-icon",
+   "target": "outbom",
+   "category": "pwa",
+   "evaluator": "surface_marker",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "baseUrl": "https://robom-labs.github.io/outbom/",
+    "markersAny": [
+     "apple-touch-icon"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "availability",
+   "what": "야외봄 apple-touch-icon 선언(아이폰 홈 아이콘)",
+   "userImpact": "없으면 아이폰 홈 화면 아이콘이 흐리게 나옵니다.",
+   "recommendedAction": "apple-touch-icon link를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:manifest-link",
+   "target": "outbom",
+   "category": "pwa",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "markers": [
+     "manifest"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "availability",
+   "what": "야외봄 manifest link가 첫 HTML에 연결",
+   "userImpact": "manifest 링크가 없으면 설치 배너가 뜨지 않습니다.",
+   "recommendedAction": "head에 manifest link를 넣습니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:noindex-guard",
+   "target": "outbom",
+   "category": "seo",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "negativeMarkers": [
+     "content=\"noindex",
+     "content='noindex"
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "schema",
+   "what": "야외봄 운영에 noindex가 실수로 남지 않음",
+   "userImpact": "noindex가 남으면 검색에서 앱이 통째로 사라집니다.",
+   "recommendedAction": "운영 배포에서 noindex meta를 제거합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "cheap",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 20000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:title-nonempty",
+   "target": "outbom",
+   "category": "seo",
+   "evaluator": "http_html",
+   "config": {
+    "url": "https://robom-labs.github.io/outbom/",
+    "regexMarkers": [
+     "<title[^>]*>\\s*[^\\s<]"
+    ]
+   },
+   "severityIfFail": "info",
+   "failureClass": "user_flow",
+   "what": "야외봄 첫 HTML title이 비어있지 않음",
+   "userImpact": "title이 비면 검색·탭에 이름이 안 보입니다.",
+   "recommendedAction": "정적 title을 실제 이름으로 채웁니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
    "runTier": "standard",
    "required": false,
    "enabled": true,
@@ -856,31 +1090,236 @@
   {
    "schemaVersion": "2.2.0",
    "runTier": "standard",
+   "required": true,
+   "enabled": true,
+   "timeoutMs": 25000,
+   "consecutiveFailures": 1,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:forecast-http",
+   "target": "outbom",
+   "category": "data",
+   "evaluator": "http_json_contract",
+   "config": {
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code,visibility,cloud_cover,snowfall&daily=sunrise,sunset&wind_speed_unit=ms&past_days=1&forecast_days=2&timezone=auto",
+    "contentTypeIncludes": "json"
+   },
+   "severityIfFail": "critical",
+   "failureClass": "availability",
+   "what": "날씨 소스(Open-Meteo) 서울 예보 200·JSON",
+   "userImpact": "날씨 소스가 끊기면 야외봄 예보가 빈 화면이 됩니다.",
+   "recommendedAction": "Open-Meteo 상태·쿼리를 확인합니다(장애면 자동 회복 대기)."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "standard",
    "required": false,
    "enabled": true,
-   "timeoutMs": 20000,
+   "timeoutMs": 25000,
    "consecutiveFailures": 2,
    "recoverySuccesses": 2,
    "requiredCapabilities": [
     "network"
    ],
    "sourceUnavailableStatus": "UNAVAILABLE",
-   "needNewSource": true,
-   "id": "c:outbom:forecast-probe",
+   "needNewSource": false,
+   "id": "c:outbom:forecast-hours",
    "target": "outbom",
    "category": "data",
-   "evaluator": "need_new_source",
-   "config": {},
+   "evaluator": "http_json_contract",
+   "config": {
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code,visibility,cloud_cover,snowfall&daily=sunrise,sunset&wind_speed_unit=ms&past_days=1&forecast_days=2&timezone=auto",
+    "assertions": [
+     {
+      "path": "hourly.time",
+      "op": "length_gte",
+      "value": 48,
+      "label": "시간별 예보 시각 수"
+     }
+    ]
+   },
+   "severityIfFail": "error",
+   "failureClass": "schema",
+   "what": "시간별 예보(오늘·내일 포함) 48시간 이상",
+   "userImpact": "예보 시간이 비면 활동 추천이 불가합니다.",
+   "recommendedAction": "forecast_days·past_days 쿼리를 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "standard",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 25000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:forecast-temperature",
+   "target": "outbom",
+   "category": "data",
+   "evaluator": "http_json_contract",
+   "config": {
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code,visibility,cloud_cover,snowfall&daily=sunrise,sunset&wind_speed_unit=ms&past_days=1&forecast_days=2&timezone=auto",
+    "assertions": [
+     {
+      "path": "hourly.temperature_2m",
+      "op": "length_gte",
+      "value": 48,
+      "label": "기온 배열 길이"
+     },
+     {
+      "path": "hourly.temperature_2m",
+      "op": "finite",
+      "quantifier": "every",
+      "label": "기온 수치 유효(결측 위장 금지)"
+     }
+    ]
+   },
+   "severityIfFail": "error",
+   "failureClass": "integrity",
+   "what": "기온 값 전수 유효 숫자(null·문자 위장 없음)",
+   "userImpact": "기온이 깨지면 체감·활동 점수가 틀립니다.",
+   "recommendedAction": "소스 응답 스키마를 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "standard",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 25000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:forecast-fields",
+   "target": "outbom",
+   "category": "data",
+   "evaluator": "http_json_contract",
+   "config": {
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code,visibility,cloud_cover,snowfall&daily=sunrise,sunset&wind_speed_unit=ms&past_days=1&forecast_days=2&timezone=auto",
+    "assertions": [
+     {
+      "path": "hourly.precipitation_probability",
+      "op": "is_array",
+      "label": "강수확률"
+     },
+     {
+      "path": "hourly.wind_speed_10m",
+      "op": "is_array",
+      "label": "풍속"
+     },
+     {
+      "path": "hourly.uv_index",
+      "op": "is_array",
+      "label": "자외선"
+     },
+     {
+      "path": "hourly.weather_code",
+      "op": "is_array",
+      "label": "날씨코드"
+     }
+    ]
+   },
+   "severityIfFail": "error",
+   "failureClass": "schema",
+   "what": "핵심 기상 필드(강수확률·풍속·자외선·날씨코드) 존재",
+   "userImpact": "필드가 빠지면 활동별 점수 계산이 무너집니다.",
+   "recommendedAction": "소스 쿼리의 hourly 필드를 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "standard",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 25000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:forecast-daylight",
+   "target": "outbom",
+   "category": "data",
+   "evaluator": "http_json_contract",
+   "config": {
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code,visibility,cloud_cover,snowfall&daily=sunrise,sunset&wind_speed_unit=ms&past_days=1&forecast_days=2&timezone=auto",
+    "assertions": [
+     {
+      "path": "daily.sunrise",
+      "op": "length_gte",
+      "value": 1,
+      "label": "일출"
+     },
+     {
+      "path": "daily.sunrise",
+      "op": "date_valid",
+      "quantifier": "every",
+      "label": "일출 시각 parse"
+     },
+     {
+      "path": "daily.sunset",
+      "op": "date_valid",
+      "quantifier": "every",
+      "label": "일몰 시각 parse"
+     }
+    ]
+   },
    "severityIfFail": "warning",
-   "failureClass": "freshness",
-   "sourceNeeded": "OutBom 공개 forecast API base 또는 안전한 health endpoint를 registry에 선언",
-   "whyNeeded": "registry에 probe URL이 없어 실제 forecast JSON 계약(오늘·내일 배열, generatedAt, 결측 처리)을 운영에서 확인할 수 없음",
-   "privacyRisk": "좌표·검색어를 기록하면 안 됨 — 서울 기준 고정 synthetic 좌표만 사용",
-   "freeImplementationOption": "registry apps.yml에 data_probe_url(서울 고정 좌표 forecast) 1줄 선언",
-   "fallbackStatus": "UNAVAILABLE",
-   "what": "서울 고정 좌표 forecast 응답의 심층 데이터 계약(오늘·내일 nonempty, 시간 정렬, 필수 기상값 finite, 결측 위장 금지, generatedAt 나이)",
-   "userImpact": "예보 데이터 이상을 운영에서 조기 감지하지 못합니다.",
-   "recommendedAction": "registry에 probe URL을 선언하면 즉시 자동 점검됩니다."
+   "failureClass": "schema",
+   "what": "일출·일몰 시각 유효(야외 활동 시간대 판정)",
+   "userImpact": "일출·일몰이 없으면 낮/밤 추천이 틀립니다.",
+   "recommendedAction": "daily 쿼리를 확인합니다."
+  },
+  {
+   "schemaVersion": "2.2.0",
+   "runTier": "standard",
+   "required": false,
+   "enabled": true,
+   "timeoutMs": 25000,
+   "consecutiveFailures": 2,
+   "recoverySuccesses": 2,
+   "requiredCapabilities": [
+    "network"
+   ],
+   "sourceUnavailableStatus": "UNAVAILABLE",
+   "needNewSource": false,
+   "id": "c:outbom:forecast-timezone",
+   "target": "outbom",
+   "category": "data",
+   "evaluator": "http_json_contract",
+   "config": {
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code,visibility,cloud_cover,snowfall&daily=sunrise,sunset&wind_speed_unit=ms&past_days=1&forecast_days=2&timezone=auto",
+    "assertions": [
+     {
+      "path": "timezone",
+      "op": "nonempty_string",
+      "label": "타임존"
+     },
+     {
+      "path": "hourly.time",
+      "op": "date_valid",
+      "quantifier": "every",
+      "label": "시각 parse"
+     }
+    ]
+   },
+   "severityIfFail": "warning",
+   "failureClass": "integrity",
+   "what": "타임존 선언 + 모든 예보 시각 parse 가능",
+   "userImpact": "타임존이 깨지면 시간대가 어긋난 예보가 나옵니다.",
+   "recommendedAction": "timezone=auto 쿼리를 확인합니다."
   },
   {
    "schemaVersion": "2.2.0",

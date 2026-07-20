@@ -288,8 +288,19 @@ function homebomContracts(app) {
       { severityIfFail: "warning", failureClass: "integrity", what: "x-verified-at가 성공 수집 후 단조 증가(뒤로 가지 않음)", userImpact: "검증 시각이 뒤로 가면 파이프라인 오류입니다.", recommendedAction: "수집기 기록 로직을 확인합니다." }),
     s("refresh-auth-static", "security", "repo_text_contract", { repo: app.repo, pathCandidates: ["supabase/functions/notices/index.ts"], mustContainAny: ["x-sync-token"] },
       { severityIfFail: "warning", failureClass: "security", what: "refresh(동기화) 경로가 토큰 인증을 요구(읽기 전용 코드 감사)", userImpact: "무인증 refresh는 과금·오염 위험입니다.", recommendedAction: "x-sync-token 검증을 유지합니다." }),
-    s("pipeline-workflow", "data", "github_actions", { repo: app.repo, maxAgeHours: 24 },
-      { severityIfFail: "warning", failureClass: "automation", what: "데이터 파이프라인 workflow 최근 성공", userImpact: "워크플로가 죽으면 수집이 멈춥니다.", recommendedAction: "Actions 실행 이력을 확인합니다." }),
+    // 청약봄 실제 수집은 GitHub Actions가 아니라 Supabase pg_cron(supabase/migrations/
+    // 20260714142951_notice_sync_queue_schedule.sql — 15분마다 net.http_post로 함수 직접 호출)이 맡는다.
+    // workflowFile 없는 github_actions는 main의 '가장 최근 아무 run'(CI·Pages 배포 등 push 트리거)의
+    // 나이를 본다 — 이는 git push 빈도일 뿐 수집 파이프라인과 무관해, 며칠 커밋이 없으면 수집이 멀쩡해도
+    // "워크플로가 죽으면 수집이 멈춥니다"라는 거짓 인과로 오경보한다. 실제 수집 신선도는 verified-header-fresh
+    // (x-verified-at)·verified-monotonic·stale-flag-honest가 probe 응답으로 이미 직접 실측 — 정직하게 need_new_source.
+    s("pipeline-workflow", "data", "need_new_source", {},
+      { severityIfFail: "info", failureClass: "automation", needNewSource: true,
+        sourceNeeded: "Supabase pg_cron 작업(homebom-official-document-sync) 실행 이력 API",
+        whyNeeded: "실제 수집은 Supabase pg_cron이 수행(GitHub Actions와 무관) — GH Actions '최근 run 나이'는 git push 빈도일 뿐이라 수집 상태의 거짓 대리 신호",
+        privacyRisk: "없음 — 자체 인프라 스케줄 상태", freeImplementationOption: "sync-notice-documents 함수가 마지막 실행 시각을 별도 헤더/엔드포인트로 노출",
+        fallbackStatus: "실제 수집 신선도는 verified-header-fresh(x-verified-at)가 이미 직접 실측 중이라 대체 신호로 충분",
+        what: "청약봄 수집 파이프라인(Supabase pg_cron) 실행 이력 — 실측 신호 필요", userImpact: "GH Actions 대리 신호는 실제 수집 중단을 놓치거나 오경보할 수 있습니다.", recommendedAction: "verified-header-fresh 결과를 우선 신뢰하고, pg_cron 관측 신호가 생기면 이 계약을 교체합니다." }),
     s("collection-stats", "data", "http_json_contract", { url: probe, headerAssertions: [
       { path: "x-collection-stats", op: "exists", label: "수집 통계 헤더" }] },
       { severityIfFail: "info", failureClass: "observability", what: "수집 통계 헤더(x-collection-stats: published·fetched·valid·preserved 숫자) 노출 — 0건 삭제 보호 조기 감지",
