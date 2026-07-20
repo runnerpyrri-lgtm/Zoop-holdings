@@ -116,7 +116,12 @@ function buildSnapshotInBackground() {
 function refreshSnapshotAndReview() {
   return buildSnapshotInBackground()
     .then(() => runDailyReviewIfDue())
-    .catch((error) => console.error("[robom-hq] 스냅샷/자동 점검 실패", error.message));
+    .catch((error) => {
+      // 빌더 실패(네트워크·수집 오류)로 스냅샷이 낡거나 예시로 남는 바로 그 순간에 자동 점검을 건너뛰면
+      // 회장은 낡은 '정상' 화면을 실시간으로 오해한다(거짓 성과). 빌더가 실패해도 신선도·예시 폴백 감지는 반드시 돌린다.
+      console.error("[robom-hq] 스냅샷 갱신 실패 — 기존 스냅샷 기준 신선도 점검을 진행합니다", error.message);
+      return runDailyReviewIfDue().catch((reviewError) => console.error("[robom-hq] 자동 점검 실패", reviewError.message));
+    });
 }
 
 function isLocalHostHeader(host = "") {
@@ -203,6 +208,28 @@ function readSnapshotValue(snapDir) {
     const file = existsSync(latest) ? latest : example;
     return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null;
   } catch { return null; }
+}
+
+// 신선도 판정 임계: 감시기 기본 주기(10분) × 3 + 5 = 35분과 정렬(health-engine snapshot-age와 동일 기준).
+// 이 시간을 넘겨 갱신되지 않았거나 예시(offline) 폴백이면 UI가 '실시간'으로 위장하지 않도록 stale로 표시한다.
+const SNAPSHOT_STALE_MS = Math.max(WATCHDOG_MINUTES * 3 + 5, 15) * 60_000;
+// 서빙되는 스냅샷에 신선도 메타(_freshness)를 붙인다. latest.json이 없어 example.json으로 폴백했거나(example),
+// generatedAt이 임계를 넘겼으면 stale=true. UI는 이 값으로 신호등을 '미확인'으로 낮추고 배너를 띄운다(거짓 성과 방지).
+export function annotateSnapshotFreshness(snapshot, { fromExample, now = Date.now() } = {}) {
+  const gen = Date.parse(snapshot?.generatedAt || "");
+  const isExample = fromExample || snapshot?.example === true;
+  const ageMs = Number.isFinite(gen) ? Math.max(0, now - gen) : null;
+  const stale = isExample || ageMs === null || ageMs > SNAPSHOT_STALE_MS;
+  return {
+    ...snapshot,
+    _freshness: {
+      example: isExample,
+      generatedAt: Number.isFinite(gen) ? snapshot.generatedAt : null,
+      ageMs,
+      stale,
+      staleThresholdMs: SNAPSHOT_STALE_MS,
+    },
+  };
 }
 
 function seoulDate(now = new Date()) {
@@ -1047,9 +1074,19 @@ async function handleRequest(req, res, { store, appDir, snapDir, maxBodyBytes })
   if (normalizedPath === "/snapshot.json") {
     const latest = join(snapDir, "latest.json");
     const example = join(snapDir, "example.json");
-    const file = existsSync(latest) ? latest : example;
+    const usingLatest = existsSync(latest);
+    const file = usingLatest ? latest : example;
     if (!existsSync(file)) { sendText(res, 404, "no snapshot"); return; }
-    const body = readFileSync(file);
+    let payload;
+    try {
+      const snapshot = JSON.parse(readFileSync(file, "utf8"));
+      payload = annotateSnapshotFreshness(snapshot, { fromExample: !usingLatest });
+    } catch {
+      // 파일이 반쯤 기록됐거나 손상된 경우: 원본 바이트 대신 명시적 오류를 준다(거짓 성과 방지).
+      sendText(res, 503, "snapshot unavailable");
+      return;
+    }
+    const body = Buffer.from(JSON.stringify(payload), "utf8");
     res.writeHead(200, {
       "Content-Type": MIME[".json"],
       "Content-Length": body.length,

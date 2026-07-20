@@ -152,8 +152,9 @@ function commonAppContracts(app, allAppIds = []) {
       { runTier: "cheap", severityIfFail: "warning", failureClass: "availability", what: `${name} manifest link가 첫 HTML에 연결`, userImpact: "manifest 링크가 없으면 설치 배너가 뜨지 않습니다.", recommendedAction: "head에 manifest link를 넣습니다." }),
     C(`c:${id}:noindex-guard`, id, "seo", "http_html", { url: app.healthcheck_url, negativeMarkers: ['content="noindex', "content='noindex"] },
       { runTier: "cheap", severityIfFail: "warning", failureClass: "schema", what: `${name} 운영에 noindex가 실수로 남지 않음`, userImpact: "noindex가 남으면 검색에서 앱이 통째로 사라집니다.", recommendedAction: "운영 배포에서 noindex meta를 제거합니다." }),
-    C(`c:${id}:title-nonempty`, id, "seo", "http_html", { url: app.healthcheck_url, markers: [`<title`] },
-      { runTier: "cheap", severityIfFail: "info", failureClass: "user_flow", what: `${name} 첫 HTML title 존재`, userImpact: "title이 비면 검색·탭에 이름이 안 보입니다.", recommendedAction: "정적 title을 채웁니다." }),
+    // page-title은 <title 태그의 '존재'만 본다. 여기서는 실제로 비어있지 않은지(공백만이 아닌 문자)를 정규식으로 확인해 중복·공허 계약을 없앤다.
+    C(`c:${id}:title-nonempty`, id, "seo", "http_html", { url: app.healthcheck_url, regexMarkers: ["<title[^>]*>\\s*[^\\s<]"] },
+      { runTier: "cheap", severityIfFail: "info", failureClass: "user_flow", what: `${name} 첫 HTML title이 비어있지 않음`, userImpact: "title이 비면 검색·탭에 이름이 안 보입니다.", recommendedAction: "정적 title을 실제 이름으로 채웁니다." }),
   );
   if (app.data_probe_url) {
     add(C(`c:${id}:data-probe-heartbeat`, id, "data", "http_json_contract", {

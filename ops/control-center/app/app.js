@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="3.3.1"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="3.3.2"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -136,7 +136,21 @@ function codexState(){
   if(r.codex==="not_connected")return {cls:"warn",label:"Codex 미연결",detail:r.managed?"맥에서 codex login 한 번만 하면 이후 자동 실행됩니다.":(r.codexDetail||"codex login이 필요합니다.")};
   return {cls:"on",label:"대기 중",detail:`대기 ${HQ.pending||0}건 · 준비 완료 · ${ago(r.at)}`};
 }
+function snapFreshness(){return SNAP?._freshness||null;}
+function freshnessBanner(){
+  const fr=snapFreshness();if(!fr||(!fr.example&&!fr.stale))return "";
+  const head=fr.example?"예시(offline) 데이터를 보고 있습니다":"회사 상태 갱신이 지연되고 있습니다";
+  const sub=fr.example
+    ?"실제 운영 상태가 아닙니다. 본부 서버가 실제 스냅샷을 만들면 자동으로 교체됩니다."
+    :`마지막 갱신 ${freshAgeLabel(fr)}. 아래 숫자는 그 시점 기준이라 지금과 다를 수 있습니다. 감시기·네트워크를 확인하세요.`;
+  return `<div class="run-banner off" style="margin:0 0 12px"><span class="dot"></span><b>${esc(head)}</b><span class="rb-sub">${esc(sub)}</span></div>`;
+}
+function freshAgeLabel(fr){if(!fr)return "";const ms=fr.ageMs;if(!Number.isFinite(ms))return "시각 미상";const m=Math.floor(ms/60000);if(m<60)return `${m}분 전`;const h=Math.floor(m/60);if(h<24)return `${h}시간 전`;return `${Math.floor(h/24)}일 전`;}
 function healthSummary(){
+  // 거짓 성과 금지: 데이터가 예시(offline)거나 갱신이 지연되면 '정상 운영'으로 위장하지 않고 미확인으로 낮춘다.
+  const fr=snapFreshness();
+  if(fr&&fr.example)return {cls:"warn",text:"예시 데이터 — 실제 상태 아님"};
+  if(fr&&fr.stale)return {cls:"warn",text:`갱신 지연 — ${freshAgeLabel(fr)} 데이터`};
   const f=familyApps();
   const down=f.filter(a=>a.health==="down").length, warn=f.filter(a=>a.health==="warn").length;
   if(down)return {cls:"bad",text:`장애 ${down}건 — 즉시 확인`};
@@ -237,6 +251,7 @@ function renderToday(){
   const review=records("tasks").filter(t=>["in_review","approval_pending"].includes(t.status)).length+pendingApprovals().length;
   const dateLine=new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",dateStyle:"full"}).format(new Date());
   return `${title("MISSION CONTROL","오늘",dateLine,`${HQ?.control?.paused?button("자동작업 다시 시작","resume-all","secondary","","play"):button("모든 자동작업 일시정지","pause-all","danger","","pause")}`)}
+  ${freshnessBanner()}
   <div class="kpi-row">
     ${kpi(HQ?HQ.pending??0:openCount("tasks"),"대기 중 요청",HQ?.pending?"accent":"","","#/tasks")}
     ${kpi(HQ?.running??0,"Codex 작업 중",HQ?.running?"accent":"","","#/automation")}

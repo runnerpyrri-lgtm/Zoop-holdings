@@ -8,7 +8,7 @@ import { promises as dns } from "node:dns";
 import tls from "node:tls";
 import vm from "node:vm";
 import { DEFAULT_COMPANY_RUNTIME_DIR } from "./company-store.mjs";
-import { runAssertions, resolvePath } from "./contract-assert.mjs";
+import { runAssertions, resolvePath, safeRegex } from "./contract-assert.mjs";
 import { getBrowserDriver } from "./browser-driver.mjs";
 import { loadRoster, orgTree, assignOwnership, computeWorkforce } from "./workforce.mjs";
 import { COMPANY_MODES } from "./company-authority.mjs";
@@ -193,6 +193,12 @@ async function evalHttpHtml(c, ctx) {
   if (c.config.minBytes && r.bytes < c.config.minBytes) problems.push(`본문 ${r.bytes}B < ${c.config.minBytes}B`);
   for (const m of c.config.markers || []) if (!r.bodyText.includes(m)) problems.push(`marker 누락: ${m}`);
   for (const m of c.config.negativeMarkers || []) if (r.bodyText.includes(m)) problems.push(`금지 marker 발견: ${m}`);
+  // 정규식 marker: 단순 substring으로는 못 잡는 '내용이 실제로 있는지'(예: <title>가 비어있지 않은지)를 검사한다.
+  for (const pattern of c.config.regexMarkers || []) {
+    const re = safeRegex(pattern);
+    if (!re) problems.push(`잘못된 regexMarker: ${pattern}`);
+    else if (!re.test(r.bodyText.slice(0, 200_000))) problems.push(`regexMarker 불일치: ${pattern}`);
+  }
   return problems.length ? fail(problems.join(" · "), "계약 충족") : pass(`HTTP 200 · ${r.bytes}B`, "계약 충족");
 }
 

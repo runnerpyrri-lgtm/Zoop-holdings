@@ -116,6 +116,15 @@ async function main() {
     }
   }
 
+  // 전역 네트워크 선행: 운영 점검(healthcheck) 대상이 2개 이상인데 전부 동시에 FAIL이면
+  // 개별 앱 장애가 아니라 로컬 네트워크·공통 호스트 문제로 본다(health-engine의 company:network 가드와 정렬).
+  // 이 경우 신호등을 '전부 빨강(장애)'으로 위장하지 않고 미확인(unknown)으로 낮춰 거짓 경보를 막는다.
+  const probed = appData.filter((a) => a.production && a.production.status);
+  const networkSuspected = probed.length >= 2 && probed.every((a) => a.production.status === "FAIL");
+  if (networkSuspected) {
+    for (const a of probed) { a.health = "unknown"; a.networkSuspected = true; }
+  }
+
   const departments = readDepartments(REPO_ROOT);
   const agents = readAgents(REPO_ROOT);
   const events = readEvents(REPO_ROOT, NOW);
