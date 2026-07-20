@@ -56,6 +56,10 @@
   [calendarbom#4](https://github.com/robom-labs/calendarbom/pull/4)(draft) — 달력 이전/다음달 버튼을 앱 자체 48px 고령자 기준으로 확대.
 - **야외봄 — "다음 개선·신기능 발굴"(문서 제4771호, 7.20 상신, 재가 대기 중)**: 배경 에이전트가
   `/workspace/outbom`에서 감사·구현까지 로컬로 완료(오늘 탭 리렌더 최적화, React.memo·useCallback, 최신 main 위에 rebase까지 마침). 아직 회장 미재가라 push·PR은 보류, 재가 확인 후 즉시 처리 가능.
+- **노트봄 — ASR 엔진 정직 표시 버그**: Claude가 코덱스 부재 기간 감사·대행(2026-07-20).
+  [notebom#11](https://github.com/robom-labs/notebom/pull/11)(draft) — whisper.worker의 `usedFallback` 모듈 전역 플래그가
+  리셋 안 돼, 1차 실패 후 재시도에서 고정확도 모델이 성공해도 "경량 모델(낮은 정확도)"로 오표시하던 것을
+  `createEngineTruth()` 헬퍼+파이프라인 재빌드 시 reset으로 수정. 저장키·스키마 불변, 테스트 65→68.
 - **청약봄 — "워크플로가 죽으면 수집이 멈춥니다"(문서 제4899호, 27시간 오경보)**: 앱 코드 문제가 아니라
   HQ 쪽 계약 설계 결함(GitHub Actions 최근 run 나이를 수집 파이프라인 대리 신호로 오용 — 실제 수집은
   Supabase pg_cron)으로 확인돼, robom 저장소에서 직접 수정·릴리스(hq-v3.3.27). 앱 대기열에는 추가하지 않음.
