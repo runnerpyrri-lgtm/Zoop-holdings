@@ -62,7 +62,7 @@ function companyContracts() {
 }
 
 // ── 공통 계약(§9): registry의 모든 앱에 적용 ──
-function commonAppContracts(app) {
+function commonAppContracts(app, allAppIds = []) {
   const id = app.id; const name = app.name || id;
   const host = new URL(app.web_url).hostname;
   const out = [];
@@ -94,7 +94,8 @@ function commonAppContracts(app) {
       { severityIfFail: "error", failureClass: "availability", what: `${name} service worker 200·문법·캐시 동작 존재`, userImpact: "SW가 깨지면 오프라인·업데이트가 실패합니다.", recommendedAction: "sw.js를 수정해 재배포합니다." }),
     C(`c:${id}:sw-cache-isolation`, id, "pwa", "service_worker_contract", {
       baseUrl: app.web_url, mustContainAny: [id],
-      mustNotContainAny: ["outbom", "homebom", "runningbom", "calendarbom", "certbom", "notebom"].filter((x) => x !== id).map((x) => `${x}-`),
+      // registry 정본에서 다른 앱 접두사를 생성한다(하드코딩 6앱 금지 — 7번째 앱이 추가돼도 캐시 격리가 자동 반영).
+      mustNotContainAny: (allAppIds.length ? allAppIds : [id]).filter((x) => x !== id).map((x) => `${x}-`),
     }, { severityIfFail: "warning", failureClass: "storage",
       what: `${name} SW 캐시 접두사가 자기 앱 소유이고 다른 앱 캐시를 건드리지 않음`, userImpact: "다른 앱 캐시를 지우면 가족 앱들이 함께 고장납니다.", recommendedAction: "캐시 이름 접두사를 앱 전용으로 유지합니다." }),
     C(`c:${id}:offline-shell`, id, "pwa", "service_worker_contract", { baseUrl: app.web_url, mustContainAny: ["index.html", "./"] },
@@ -622,9 +623,10 @@ function companyOpsContracts() {
 
 // ── 카탈로그 빌드 ──
 export function buildContractCatalog({ registryApps = [], siteVersion = "" } = {}) {
+  const allAppIds = registryApps.map((a) => a.id); // 캐시 격리 등에서 하드코딩 6앱 대신 registry 정본을 쓴다
   const contracts = [
     ...companyContracts(),
-    ...registryApps.flatMap((app) => commonAppContracts(app)),
+    ...registryApps.flatMap((app) => commonAppContracts(app, allAppIds)),
   ];
   const byId = Object.fromEntries(registryApps.map((a) => [a.id, a]));
   if (byId.outbom) contracts.push(...outbomContracts(byId.outbom));

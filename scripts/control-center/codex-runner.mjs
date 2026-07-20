@@ -10,14 +10,19 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { DEFAULT_COMPANY_RUNTIME_DIR, createCompanyStore } from "./lib/company-store.mjs";
 import {
-  claimNextTask, completeTask, failTask, heartbeatTask, readControl,
-  recoverStaleLeases, writeRunnerStatus,
+  claimNextTask, completeTask, failTask, heartbeatTask, readControl, releaseTask,
+  recoverStaleLeases, writeRunnerStatus, DEFAULT_LEASE_TTL_MS,
 } from "./lib/task-queue.mjs";
 import { REPO_ROOT } from "./lib/sources.mjs";
 
 const RUNTIME = DEFAULT_COMPANY_RUNTIME_DIR;
 const POLL_MS = 30_000;
-const TASK_TIMEOUT_MS = Number(process.env.ROBOM_HQ_TASK_TIMEOUT_MINUTES || 40) * 60_000;
+// 작업 제한시간은 lease TTL보다 항상 짧게 강제한다(마진 5분). 그렇지 않으면 실행 중인 작업의 lease가
+// 만료돼 다른 claimant가 같은 작업을 이중 실행할 수 있다(spawnSync가 이벤트루프를 막아 heartbeat가 못 뛰므로 특히 위험).
+const TASK_TIMEOUT_MS = Math.min(
+  Number(process.env.ROBOM_HQ_TASK_TIMEOUT_MINUTES || 40) * 60_000,
+  DEFAULT_LEASE_TTL_MS - 5 * 60_000,
+);
 
 export function detectCodexCli() {
   try {
@@ -32,11 +37,17 @@ export function detectCodexCli() {
 // codex exec 실패 원인을 결정론적으로 분류한다. 용량/토큰 소진·요청 한도(rate limit)와 로그인 만료를
 // 일반 코드 실패와 구분해, 화면에 "용량 소진"·"로그인 필요"로 정직하게 띄운다.
 export function classifyCodexFailure(stderr = "", stdout = "") {
-  const t = `${stderr}\n${stdout}`.toLowerCase();
-  if (/usage limit|quota|insufficient[_ ]quota|out of (credits|tokens)|사용량|한도 초과|429|rate.?limit|too many requests|resource_exhausted|billing/.test(t)) {
+  // 분류는 stderr(CLI가 내는 구조화된 에러)를 본다. 모델의 자유 서술(stdout)에 'auth/login/401/billing'이
+  // 들어 있어도 그건 작업 내용일 뿐 실패 원인이 아니므로, stdout에서는 산문에 안 나오는 아주 구체적인
+  // 토큰(insufficient_quota·resource_exhausted)만 인정한다. 과거 bare 'auth/login/401/429' 매칭이 실패를
+  // 오분류해 회장에게 엉뚱한 조치(로그인/용량)를 안내하던 문제를 막는다.
+  const e = String(stderr).toLowerCase();
+  const stdoutSignals = (String(stdout).toLowerCase().match(/insufficient[_ ]quota|resource_exhausted/g) || []).join(" ");
+  const quotaHay = `${e}\n${stdoutSignals}`;
+  if (/usage limit|insufficient[_ ]quota|quota exceeded|out of (credits|tokens)|429 too many|rate[ _-]?limit|resource_exhausted|사용량 초과|한도 초과/.test(quotaHay)) {
     return { kind: "quota", detail: "Codex 사용량(토큰)이 소진됐거나 요청 한도에 걸렸습니다. 한도가 회복되면 자동으로 다시 시도합니다." };
   }
-  if (/not logged in|unauthorized|401|auth|login|세션이 만료|authentication/.test(t)) {
+  if (/not logged in|no api key|unauthorized|http 401|authentication (failed|required)|로그인이 필요|세션이 만료/.test(e)) {
     return { kind: "auth", detail: "Codex 로그인이 필요합니다(맥에서 codex login)." };
   }
   return { kind: "error", detail: String(stderr || "실패").slice(-300) };
@@ -92,6 +103,14 @@ export async function runOne({ codex = detectCodexCli() } = {}) {
   }
   const taskId = packet.task_id;
   log(taskId, `작업 잠금: ${packet.title}`);
+  // claim과 실행 사이에 회장이 일시정지를 눌렀을 수 있다 → 다시 확인해 코드 변경 전에 작업을 대기열로 되돌린다.
+  if (readControl(RUNTIME).paused) {
+    log(taskId, "잠금 직후 일시정지 감지 — 작업을 대기로 되돌립니다.");
+    releaseTask(taskId, { runtimeDir: RUNTIME });
+    await markRecord(taskId, "queued");
+    writeRunnerStatus({ state: "paused", codex: codex.connected ? "connected" : "not_connected" }, { runtimeDir: RUNTIME });
+    return { skipped: "paused-after-claim" };
+  }
   if (!codex.connected) {
     log(taskId, `Codex 미연결: ${codex.reason} — 작업을 실패가 아닌 '막힘'으로 되돌립니다.`);
     failTask(taskId, { status: "blocked", reason: `NOT_CONNECTED: ${codex.reason}` }, { runtimeDir: RUNTIME });

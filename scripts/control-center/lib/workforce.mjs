@@ -59,6 +59,7 @@ const DIV_CATEGORIES = {
   future: ["roadmap", "data"],
   customer: ["user_surface", "production"],
   people: ["self"],
+  facilities: ["self", "network"], // 시설·IT 담당도 역량 범주를 명시 — 없으면 전-범주 fallback으로 무관한 계약이 배정됨
   exec: ["version", "release", "self", "production"],
 };
 // 앱 target → 그 앱을 주로 맡는 division(제품/데이터 우선), 없으면 전 division 대상.
@@ -69,7 +70,9 @@ const APP_DATA = { outbom: "weather-data-lead", homebom: "housing-data-lead", ru
 function needsHuman(c) {
   if (c.needNewSource) return { kind: "source", note: "데이터 소스 선언 필요 (회장 확인)" };
   const id = String(c.contractId || c.id || "");
-  if (/secret|kakao-key|qnet|service-key|key-absent|name-safety/.test(id)) return { kind: "secret", note: "비밀키 폐기·교체 — 사람 확인 필요" };
+  // 'qnet' 단독 토큰은 제거: qnet-https-static(package.json에 certbom 포함 여부만 보는 정보성 감사)까지
+  // 비밀키 사고로 오분류돼 회장 확인으로 잘못 올라갔다. 진짜 비밀키 계약은 secret·name-safety·key 토큰으로 잡힌다.
+  if (/secret|kakao-key|service-key|key-absent|name-safety/.test(id)) return { kind: "secret", note: "비밀키 폐기·교체 — 사람 확인 필요" };
   if (c.category === "security" && /secret|scan/.test(id)) return { kind: "secret", note: "보안 노출 — 사람 확인 필요" };
   return null;
 }
@@ -232,9 +235,12 @@ export function computeWorkforce({ report = null, tasks = [], authority = { mode
     else if (s.authority) { state = "MONITORING"; work = "경영 관제 · 전결·승인 대기"; }
     else { state = running ? "HEALTH_CHECKING" : "MONITORING"; work = `${s.divisionName || s.division} 영역 순환 점검`; }
 
+    // 계약 단위로 집계한다(직원 수가 아니라). failing = failingAuto ∪ failingHuman 파티션이므로
+    // contractsFailing == contractsAutoFixing + contractsNeedHuman 이 항상 성립 — 화면 숫자가 정확히 맞아떨어진다.
+    // (과거엔 autoFixing이 직원 수를 세서 실패 계약 일부가 두 레인 어디에도 안 잡히고 사라졌다.)
     failingTotal += failing.length;
-    if (state === "BLOCKED") needHuman += failingHuman.length || 1;
-    if (state === "TRIAGING" || (state === "REPAIRING")) autoFixing += 1;
+    needHuman += failingHuman.length;
+    autoFixing += failingAuto.length;
 
     const activity = ACTIVITY[state] || "monitor";
     return {

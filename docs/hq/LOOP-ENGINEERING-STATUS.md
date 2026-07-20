@@ -42,6 +42,18 @@
   - Electron: 회장이 앱을 껐을 때 codex 손자 프로세스가 고아로 계속 도는 문제(그룹/트리째 종료로 수정, HIGH — "왜 자꾸 켜져있냐"의 잔재), will-navigate origin 우회(보안, MEDIUM), 종료 중 점검창 생성 방지·미처리 예외 가드.
   - 서버 보안: localhost 예외 API의 CSRF(다른 웹페이지 no-cors 호출) 차단(Sec-Fetch-Site), authority/control 파일 원자적 쓰기(크래시 시 일시정지가 몰래 풀리는 fail-open 방지), 모바일 토큰 편향 제거(거부 표집), rate-limit 맵 누수 정리. (경로 조작·토큰 비교·바인딩·XSS는 감사 결과 이미 안전 확인.)
   - 건강 진단: 대시보드가 미확인 앱까지 "정상 운영"으로 포장하던 거짓 표기 수정(정직 표기), 항상-PASS no-op 계약 3건(stale-lease·certbom parity·wf-mode-6)을 실측 또는 정직한 '점검 불가'로 전환, 아이콘 0개 통과·JSON 미검증 통과 수정, 회장이 못 쓰던 점검주기 조절 UI 복구.
+- **5차(데이터 무결성·실행 정확성)** → 실행기·큐·저장소·인력/카탈로그를 3개 독립 감사로 병렬 점검. 실제 결함 다수 수정 → hq-v3.2.0:
+  - **[치명적]** 저장소 `updateStatus`가 `{status}` 외 필드(verifiedBy·reason·originPassStreak·requeueCount·loopId)를 throw로 거부해 **업무 생명주기 전이가 기록에 아예 안 남던** 문제(재검증·재시도 상한 무력화) → 허용 필드를 넓혀 append-only로 보존(테스트 추가).
+  - **[HIGH]** 큐 claim/finish/회수가 write-then-rm이라 경쟁 시 같은 작업 이중 실행·완료된 작업 재실행 가능 → 원자적 rename으로 교체(+독성 작업 회수 상한→failed).
+  - **[HIGH]** 저장소 append가 개행 안전하지 않아 크래시로 끊긴 줄이 다음 레코드까지 삼키던 유실 → 개행 안전 append(테스트 추가).
+  - 실행기 실패 분류가 모델 서술(stdout)의 auth/401/billing에 속아 오분류하던 문제 → stderr 구체 신호만 판정(테스트 추가). 작업 제한시간을 lease TTL보다 짧게 강제(이중 실행 방지), claim 직후 일시정지 재확인.
+  - 인력 화면 '자동 수정' 수가 계약이 아니라 직원 수를 세서 실패 계약 일부가 사라지던 문제 → 계약 단위 집계(합계 정합). 캐시 격리 계약의 하드코딩 6앱 목록 → registry 정본 생성. 시설 division 역량 범주·비밀키 오분류(qnet) 수정.
+
+### 5차 감사에서 정직하게 '미완'으로 남긴 항목 (맥 Codex/구조 변경 필요)
+- 저장소 **교차 프로세스 append 경쟁**(실행기가 별도 프로세스로 같은 JSONL을 씀): 근본 해결은 단일 라이터(실행기→HTTP API) 또는 파일락. 실행기가 실제로 도는 맥 환경에서 검증·적용 예정.
+- 저장소 **fsync 내구성**·**장기 compaction**(수년치 JSONL 누적): 장기 운영 보강, 후속.
+- 실행기 **async spawn**(현재 spawnSync가 이벤트루프를 막아 heartbeat가 비활성): TASK_TIMEOUT<TTL 강제로 단일 러너 이중실행은 막았으나, 근본 async 전환은 맥 Codex 검증 필요.
+- 실행기 **exit 0 ≠ 성공** 실측(커밋/diff 확인): 현재는 원래 계약 재검증으로 사후 확인. 러너 내 git 확인은 맥 검증 후.
 
 ## 이미 존재해 Loop에 연결한 기반 (지침 §4)
 

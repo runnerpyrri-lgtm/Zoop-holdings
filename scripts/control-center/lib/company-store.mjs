@@ -1,6 +1,6 @@
 // 로봄 Company OS의 회의·결재·요청·작업 기록을 로컬 JSONL로 안전하게 저장한다.
 import { createHash, randomUUID } from "node:crypto";
-import { appendFile, chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, chmod, mkdir, open, readFile, stat, writeFile } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import { REPO_ROOT } from "./sources.mjs";
 
@@ -196,21 +196,45 @@ function normalizeRecord(collection, payload) {
 function normalizeStatusPatch(collection, payload) {
   ensurePlainObject(payload);
   const keys = Object.keys(payload);
+  // Loop 생명주기가 실제로 기록하는 메타데이터를 append-only로 보존한다.
+  // (과거엔 {status}만 허용해 verifiedBy·reason·originPassStreak·requeueCount·loopId 패치가 조용히 throw→유실됐고,
+  //  그 결과 업무가 completed/blocked로 전이돼도 기록에 남지 않아 재검증·재시도 상한이 무력화됐다.)
   const allowed = collection === "approvals"
-    ? new Set(["status", "comment", "signatureRecorded", "approvedBy"])
-    : new Set(["status"]);
-  if (!keys.length || !keys.includes("status") || keys.some((key) => !allowed.has(key))) {
+    ? new Set(["status", "comment", "signatureRecorded", "approvedBy", "fixClass", "loopId"])
+    : new Set(["status", "verifiedBy", "reason", "originPassStreak", "requeueCount", "loopId", "approvalId"]);
+  if (!keys.length || keys.some((key) => !allowed.has(key))) {
     throw new CompanyStoreError(
       collection === "approvals"
-        ? "결재 PATCH는 status와 짧은 comment·signatureRecorded만 허용합니다."
-        : "PATCH는 허용된 status 하나만 변경할 수 있습니다.",
+        ? "결재 PATCH는 status·comment·서명·fixClass·loopId만 허용합니다."
+        : "업무 PATCH는 허용된 상태·메타데이터 필드만 변경할 수 있습니다.",
       { code: "INVALID_STATUS" },
     );
   }
-  if (typeof payload.status !== "string" || !STATUSES.has(payload.status)) {
-    throw new CompanyStoreError("status 값이 올바르지 않습니다.", { code: "INVALID_STATUS" });
+  const changes = {};
+  if (Object.hasOwn(payload, "status")) { // status는 선택(메타데이터만 갱신하는 패치도 허용)
+    if (typeof payload.status !== "string" || !STATUSES.has(payload.status)) {
+      throw new CompanyStoreError("status 값이 올바르지 않습니다.", { code: "INVALID_STATUS" });
+    }
+    changes.status = payload.status;
   }
-  const changes = { status: payload.status };
+  // 짧은 문자열 메타 필드(길이 제한)
+  for (const [key, max] of [["verifiedBy", 120], ["reason", 500], ["loopId", 100], ["approvalId", 100], ["approvedBy", 60], ["fixClass", 20]]) {
+    if (Object.hasOwn(payload, key)) {
+      if (typeof payload[key] !== "string" || payload[key].length > max) {
+        throw new CompanyStoreError(`${key}는 ${max}자 이하 문자열이어야 합니다.`, { code: "INVALID_FIELD" });
+      }
+      changes[key] = payload[key];
+    }
+  }
+  // 0 이상 정수 메타 필드(재검증 연속 카운터·자동 재시도 횟수)
+  for (const key of ["originPassStreak", "requeueCount"]) {
+    if (Object.hasOwn(payload, key)) {
+      if (!Number.isInteger(payload[key]) || payload[key] < 0) {
+        throw new CompanyStoreError(`${key}는 0 이상 정수여야 합니다.`, { code: "INVALID_FIELD" });
+      }
+      changes[key] = payload[key];
+    }
+  }
   if (Object.hasOwn(payload, "comment")) {
     if (typeof payload.comment !== "string" || !payload.comment.trim() || payload.comment.trim().length > 500) {
       throw new CompanyStoreError("comment는 500자 이하의 짧은 문자열이어야 합니다.", { code: "INVALID_FIELD" });
@@ -222,12 +246,6 @@ function normalizeStatusPatch(collection, payload) {
       throw new CompanyStoreError("signatureRecorded는 boolean이어야 합니다.", { code: "INVALID_FIELD" });
     }
     changes.signatureRecorded = payload.signatureRecorded;
-  }
-  if (Object.hasOwn(payload, "approvedBy")) { // 전결 승인자 기록(예: executive-vice-chair)
-    if (typeof payload.approvedBy !== "string" || payload.approvedBy.length > 60) {
-      throw new CompanyStoreError("approvedBy는 짧은 문자열이어야 합니다.", { code: "INVALID_FIELD" });
-    }
-    changes.approvedBy = payload.approvedBy;
   }
   assertNoSensitiveContent(changes);
   return changes;
@@ -318,7 +336,19 @@ export function createCompanyStore({
     ensurePrivateDir(backupsDir),
   ]);
   const appendLine = async (path, value) => {
-    await appendFile(path, `${JSON.stringify(value)}\n`, { encoding: "utf8", mode: 0o600 });
+    // 줄바꿈 안전: 직전 append가 크래시로 끊겨 파일이 개행 없이 끝나면, 그 조각에 새 JSON이 붙어
+    // 한 줄이 되면서 새 레코드까지 파싱 불가로 유실된다. 마지막 바이트가 개행이 아니면 개행을 먼저 넣어
+    // 끊긴 조각만 격리하고(그 줄만 corrupt로 건너뜀) 새 레코드는 온전히 보존한다.
+    let prefix = "";
+    try {
+      const st = await stat(path);
+      if (st.size > 0) {
+        const fh = await open(path, "r");
+        try { const buf = Buffer.alloc(1); await fh.read(buf, 0, 1, st.size - 1); if (buf[0] !== 0x0a) prefix = "\n"; }
+        finally { await fh.close(); }
+      }
+    } catch { /* 파일 없음/조회 실패 → 새 줄로 시작 */ }
+    await appendFile(path, `${prefix}${JSON.stringify(value)}\n`, { encoding: "utf8", mode: 0o600 });
   };
   const appendAudit = async ({ action, collection = null, id = null, status = null, payload = null }) => {
     const event = {

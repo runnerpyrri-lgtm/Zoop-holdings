@@ -15,6 +15,7 @@ export const AUTONOMY_LEVELS = Object.freeze([
   "guarded_auto_deploy",      // 보호장치 갖춘 자동 배포까지
 ]);
 export const DEFAULT_LEASE_TTL_MS = 45 * 60 * 1000; // 45분: 넘기면 stale lease로 복구
+const MAX_RECOVER = 3; // 자동 회수 상한 — 이보다 자주 회수되는 독성 작업은 failed로 보내 회장 확인(무한 재시도 방지)
 
 const QUEUE_STATES = Object.freeze(["pending", "running", "done", "failed"]);
 
@@ -107,10 +108,16 @@ export function recoverStaleLeases(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR, { n
   const recovered = [];
   for (const packet of listState(runtimeDir, "running")) {
     if (isLeaseStale(packet, now(), leaseTtlMs)) {
+      const runningPath = packetFile(runtimeDir, "running", packet.task_id);
       const { lease, ...rest } = packet;
-      rest.recoveredFromStaleLease = true;
-      writeFileSync(packetFile(runtimeDir, "pending", rest.task_id), `${JSON.stringify(rest, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
-      rmSync(packetFile(runtimeDir, "running", packet.task_id), { force: true });
+      rest.recoverCount = (Number(packet.recoverCount) || 0) + 1;
+      // 독성 작업 방지: 여러 번 회수해도 끝나지 않으면 무한 재시도 대신 failed로 보내 회장 확인으로 넘긴다.
+      const dest = rest.recoverCount > MAX_RECOVER ? "failed" : "pending";
+      if (dest === "failed") rest.result = { status: "failed", reason: `자동 회수 ${rest.recoverCount}회 초과 — 회장 확인 필요`, finishedAt: new Date(now()).toISOString() };
+      else rest.recoveredFromStaleLease = true;
+      // 원자적 이동: running 파일을 갱신한 뒤 rename으로 옮긴다(두 디렉터리에 동시 존재하는 창을 없앤다).
+      writeFileSync(runningPath, `${JSON.stringify(rest, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+      renameSync(runningPath, packetFile(runtimeDir, dest, rest.task_id));
       recovered.push(rest.task_id);
     }
   }
@@ -122,12 +129,16 @@ export function claimNextTask(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR, { runner
   if (listState(runtimeDir, "running").length > 0) return null; // 저장소 동시 쓰기 방지: 실행 중이면 새 작업 안 잡음
   const [next] = listState(runtimeDir, "pending");
   if (!next) return null;
+  // 원자적 claim: pending→running을 rename으로 먼저 확보한다. 두 러너가 같은 패킷을 노려도 rename은
+  // 하나만 성공하고 진 쪽은 ENOENT로 실패 → return null. write-then-rm의 경쟁(같은 작업 이중 실행)을 없앤다.
+  const src = packetFile(runtimeDir, "pending", next.task_id);
+  const dst = packetFile(runtimeDir, "running", next.task_id);
+  try { renameSync(src, dst); } catch { return null; }
   const claimed = {
     ...next,
     lease: { runner, leaseId: randomUUID(), claimedAt: new Date(now()).toISOString(), heartbeatAt: new Date(now()).toISOString() },
   };
-  writeFileSync(packetFile(runtimeDir, "running", next.task_id), `${JSON.stringify(claimed, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
-  rmSync(packetFile(runtimeDir, "pending", next.task_id), { force: true });
+  writeFileSync(dst, `${JSON.stringify(claimed, null, 2)}\n`, { encoding: "utf8", mode: 0o600 }); // 잠금 정보 기록(이미 원자적으로 running 확보됨)
   return claimed;
 }
 
@@ -145,12 +156,25 @@ function finishTask(taskId, toState, result, { runtimeDir = DEFAULT_COMPANY_RUNT
   const packet = readPacket(file);
   if (!packet) throw new TaskQueueError("실행 중 작업을 찾을 수 없습니다.", "NOT_RUNNING");
   const done = { ...packet, result: { ...result, finishedAt: new Date(now()).toISOString() } };
-  writeFileSync(packetFile(runtimeDir, toState, taskId), `${JSON.stringify(done, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
-  rmSync(file, { force: true });
+  // 원자적 이동: 결과를 running 파일에 먼저 쓴 뒤 rename으로 done/failed로 옮긴다.
+  // (과거 write-then-rm은 크래시 시 패킷이 running·done 두 곳에 동시에 남아, 이미 끝난 작업이 재실행되던 창을 만들었다.)
+  writeFileSync(file, `${JSON.stringify(done, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+  renameSync(file, packetFile(runtimeDir, toState, taskId));
   return done;
 }
 export const completeTask = (taskId, result = {}, options = {}) => finishTask(taskId, "done", { status: "completed", ...result }, options);
 export const failTask = (taskId, result = {}, options = {}) => finishTask(taskId, "failed", { status: "failed", ...result }, options);
+
+// 잡은 작업을 코드 변경 없이 대기열로 되돌린다(예: claim 직후 일시정지 감지). 원자적 rename으로 옮긴다.
+export function releaseTask(taskId, { runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR } = {}) {
+  const file = packetFile(runtimeDir, "running", taskId);
+  const packet = readPacket(file);
+  if (!packet) return false;
+  const { lease, ...rest } = packet;
+  writeFileSync(file, `${JSON.stringify(rest, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+  renameSync(file, packetFile(runtimeDir, "pending", taskId));
+  return true;
+}
 
 export function cancelPendingTask(taskId, { runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR } = {}) {
   const file = packetFile(runtimeDir, "pending", taskId);
