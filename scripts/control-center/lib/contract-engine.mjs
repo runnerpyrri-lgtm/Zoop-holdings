@@ -631,10 +631,14 @@ async function evalBrowserSmoke(c, ctx) {
         collectStorageKeys: (c.config.storageAssertions || []).map((a) => a.key),
       });
     } catch (error) { problems.push(`${viewport.width}px: 드라이버 오류 ${String(error?.message || error).slice(0, 60)}`); continue; }
-    evidence.push(`${viewport.width}px: 콘솔오류 ${m.consoleErrors.length}·폭 ${m.scrollWidth}/${m.innerWidth}`);
+    evidence.push(`${viewport.width}px: HTTP ${m.httpStatus ?? "?"}·콘솔오류 ${m.consoleErrors.length}·폭 ${m.scrollWidth}/${m.innerWidth}`);
+    // HTTP 오류 페이지(404/500 등)를 '정상'으로 통과시키지 않는다 — 가장 흔한 배포 사고를 잡는다.
+    if (Number.isInteger(m.httpStatus) && m.httpStatus >= 400) problems.push(`${viewport.width}px HTTP ${m.httpStatus} 오류 페이지`);
     if (m.consoleErrors.length > (c.config.maxConsoleErrors ?? 0)) problems.push(`${viewport.width}px 콘솔 오류 ${m.consoleErrors.length}건: ${redactEvidence(m.consoleErrors[0] || "")}`);
     if (c.config.checkOverflow && m.scrollWidth > m.innerWidth + 1) problems.push(`${viewport.width}px 가로 넘침 ${m.scrollWidth - m.innerWidth}px`);
-    if (c.config.bodyMinTextLength && m.bodyTextLength < c.config.bodyMinTextLength) problems.push(`${viewport.width}px 본문 텍스트 ${m.bodyTextLength}자(빈 화면 의심)`);
+    // 본문 텍스트가 0자면(완전 빈 화면) 계약 설정과 무관하게 실패로 본다 — 텍스트 앱에서 빈 화면은 절대 정상이 아니다.
+    const minText = c.config.bodyMinTextLength || 1;
+    if (m.bodyTextLength < minText) problems.push(`${viewport.width}px 본문 텍스트 ${m.bodyTextLength}자(빈 화면 의심)`);
     for (const a of c.config.storageAssertions || []) {
       const value = m.storage?.[a.key];
       if (a.op === "not_eq_empty_overwrite" || a.op === "preserved_or_recovery") {
@@ -725,7 +729,9 @@ function evalHqRuntime(c, ctx, env) {
         const f = join(resolve(runtimeDir), "company-authority.json");
         if (!existsSync(f)) return pass("기본값(초기화 전)", "유효");
         const v = JSON.parse(readFileSync(f, "utf8"));
-        return ["RUNNING", "MONITOR_ONLY", "PAUSED"].includes(v.mode) ? pass(v.mode, "유효한 모드") : fail(String(v.mode), "유효한 모드");
+        // 정본 6종 전부를 유효로 본다. 과거의 3종 목록은 회장이 EMERGENCY_STOP/DRAINING/SAFE_MODE로
+        // 정당하게 세운 상태를 '권한 정본 깨짐'으로 오탐해, 안전 정지 중에 복구를 종용하는 헛경보를 냈다.
+        return COMPANY_MODES.includes(v.mode) ? pass(v.mode, "유효한 모드") : fail(String(v.mode), "유효한 모드");
       }
       case "review-marker": {
         const f = join(resolve(runtimeDir), "last-auto-review.json");

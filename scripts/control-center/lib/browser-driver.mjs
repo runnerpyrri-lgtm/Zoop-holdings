@@ -43,14 +43,15 @@ export async function tryActivatePlaywrightDriver(modulePath = "playwright") {
           const consoleErrors = [];
           page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text().slice(0, 200)); });
           page.on("pageerror", (e) => consoleErrors.push(String(e?.message || e).slice(0, 200)));
-          await page.goto(url, { waitUntil: "load", timeout: timeoutMs });
+          let resp = await page.goto(url, { waitUntil: "load", timeout: timeoutMs });
           if (seedStorage && Object.keys(seedStorage).length) {
             await page.evaluate(seedScript(seedStorage));
-            await page.reload({ waitUntil: "load", timeout: timeoutMs });
+            resp = await page.reload({ waitUntil: "load", timeout: timeoutMs }) || resp;
           }
           await page.waitForTimeout(1500);
           const metrics = await page.evaluate(metricsScript(collectStorageKeys || []));
-          return { consoleErrors, ...metrics };
+          // HTTP 상태를 반드시 함께 반환한다 — 404/500 오류 페이지가 콘솔 에러 없이 '정상'으로 통과하던 거짓 PASS 방지.
+          return { consoleErrors, httpStatus: resp?.status?.() ?? 0, ...metrics };
         } finally { await browser.close(); }
       },
     });

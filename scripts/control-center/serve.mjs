@@ -674,7 +674,7 @@ async function handleApi(req, res, path, store, maxBodyBytes, snapDir, local) {
     if (req.method === "GET") { sendJson(res, 200, { ok: true, ...readAuthority(), shift: currentShift() }); return; }
     if (req.method !== "POST") { sendText(res, 405, "method not allowed", { Allow: "GET, POST" }); return; }
     const body = await readJsonBody(req, maxBodyBytes);
-    if (!COMPANY_MODES.includes(body.mode)) throw new HttpError("mode는 RUNNING·MONITOR_ONLY·PAUSED만 허용합니다.", 400, "INVALID_MODE");
+    if (!COMPANY_MODES.includes(body.mode)) throw new HttpError(`mode는 ${COMPANY_MODES.join("·")} 중 하나여야 합니다.`, 400, "INVALID_MODE");
     sendJson(res, 200, { ok: true, ...writeAuthority({ mode: body.mode }) });
     return;
   }

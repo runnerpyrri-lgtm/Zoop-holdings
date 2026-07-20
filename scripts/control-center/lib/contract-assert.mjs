@@ -31,10 +31,11 @@ export function safeRegex(pattern) {
 
 const isNum = (v) => typeof v === "number" && Number.isFinite(v);
 const isStr = (v) => typeof v === "string";
+const REGEX_MAX = 100_000; // 정규식 테스트 입력 상한 — alternation-overlap 등 backtracking 폭발로 판정이 멈추지 않게 한다
 
 // 각 op: (actual, expected, assertion) → true(통과)/false(실패). type 불일치는 실패로 본다.
 export const ASSERT_OPS = Object.freeze({
-  eq: (a, e) => a === e,
+  eq: (a, e) => a === e && a !== undefined, // 둘 다 undefined(없는 필드끼리 '일치')를 거짓 PASS로 삼지 않는다
   neq: (a, e) => a !== e,
   gt: (a, e) => isNum(a) && isNum(e) && a > e,
   gte: (a, e) => isNum(a) && isNum(e) && a >= e,
@@ -46,8 +47,8 @@ export const ASSERT_OPS = Object.freeze({
   not_contains: (a, e) => (isStr(a) && isStr(e) && !a.includes(e)) || (Array.isArray(a) && !a.includes(e)),
   contains_any: (a, e) => isStr(a) && Array.isArray(e) && e.some((v) => isStr(v) && a.includes(v)),
   not_contains_any: (a, e) => isStr(a) && Array.isArray(e) && !e.some((v) => isStr(v) && a.includes(v)),
-  matches_safe_regex: (a, e) => { const re = safeRegex(e); return Boolean(re && isStr(a) && re.test(a)); },
-  not_matches_safe_regex: (a, e) => { const re = safeRegex(e); return Boolean(re && isStr(a) && !re.test(a)); },
+  matches_safe_regex: (a, e) => { const re = safeRegex(e); return Boolean(re && isStr(a) && re.test(a.slice(0, REGEX_MAX))); },
+  not_matches_safe_regex: (a, e) => { const re = safeRegex(e); return Boolean(re && isStr(a) && !re.test(a.slice(0, REGEX_MAX))); },
   exists: (a) => a !== undefined && a !== null,
   not_exists: (a) => a === undefined || a === null,
   nonempty_string: (a) => isStr(a) && a.trim().length > 0,
@@ -57,7 +58,7 @@ export const ASSERT_OPS = Object.freeze({
   is_array: (a) => Array.isArray(a),
   unique: (a, e) => Array.isArray(a) && new Set(a.map((x) => (e ? resolvePath(x, e) : x))).size === a.length,
   subset: (a, e) => Array.isArray(a) && Array.isArray(e) && a.every((x) => e.includes(x)),
-  same_set: (a, e) => Array.isArray(a) && Array.isArray(e) && a.length === e.length && [...new Set(a)].every((x) => e.includes(x)),
+  same_set: (a, e) => { if (!Array.isArray(a) || !Array.isArray(e)) return false; const sa = new Set(a), se = new Set(e); return sa.size === se.size && [...sa].every((x) => se.has(x)); }, // 양방향·중복 무시 집합 동일성(중복이 length를 속이지 못함)
   one_of: (a, e) => Array.isArray(e) && e.includes(a),
   status_in: (a, e) => isNum(a) && Array.isArray(e) && e.includes(a),
   date_valid: (a) => isStr(a) && Number.isFinite(Date.parse(a)),
@@ -93,7 +94,8 @@ export function runAssertions(subject, assertions, ctx = {}) {
       if (!Array.isArray(target)) ok = false;
       else {
         const test = (item) => op(a.itemPath !== undefined ? resolvePath(item, a.itemPath) : item, expected, ctx);
-        ok = a.quantifier === "every" ? target.every(test) : target.some(test);
+        // 빈 배열은 'every'에서 진공참(vacuous truth)으로 통과하면 안 된다 — 확인한 원소가 0개인데 '전부 만족'은 거짓 PASS.
+        ok = a.quantifier === "every" ? (target.length > 0 && target.every(test)) : target.some(test);
       }
     } else ok = op(target, expected, ctx);
     if (!ok) {

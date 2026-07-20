@@ -32,6 +32,20 @@ test("quantifier every·optional이 배열 항목을 판정한다", () => {
   assert.equal(okOptional.length, 0);
 });
 
+test("거짓 PASS 방지: 빈 배열 every·undefined eq·중복 same_set는 통과하지 않는다", () => {
+  // 빈 배열에 every 진공참 금지 — 확인한 원소 0개면 실패
+  assert.equal(runAssertions({ routes: [] }, [{ path: "routes", op: "eq", value: 200, quantifier: "every", itemPath: "status" }]).length, 1);
+  // 정상(비어있지 않은 배열)은 그대로 통과
+  assert.equal(runAssertions({ routes: [{ status: 200 }, { status: 200 }] }, [{ path: "routes", op: "eq", value: 200, quantifier: "every", itemPath: "status" }]).length, 0);
+  // 둘 다 없는 필드끼리 'eq'는 거짓 PASS가 아니라 실패
+  assert.equal(ASSERT_OPS.eq(undefined, undefined), false);
+  assert.equal(ASSERT_OPS.eq(200, 200), true);
+  // same_set: 중복이 length를 속여 다른 집합을 통과시키지 못한다
+  assert.equal(ASSERT_OPS.same_set([1, 1], [1, 2]), false);
+  assert.equal(ASSERT_OPS.same_set([1, 2, 2], [1, 2]), true);
+  assert.equal(ASSERT_OPS.same_set([1, 2], [2, 1]), true);
+});
+
 test("age_lte_seconds는 주입된 현재 시각으로 판정한다", () => {
   const nowMs = Date.parse("2026-07-19T12:00:00Z");
   assert.equal(ASSERT_OPS.age_lte_seconds("2026-07-19T11:00:00Z", 7200, { nowMs }), true);

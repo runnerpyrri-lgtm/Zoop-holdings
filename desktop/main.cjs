@@ -139,6 +139,8 @@ async function registerElectronBrowserDriver() {
         try { if (new URL(target).origin !== new URL(url).origin) event.preventDefault(); } catch { event.preventDefault(); }
       });
       win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+      let httpStatus = 0; // 메인 프레임 HTTP 응답 코드 — 404/500 오류 페이지를 '정상'으로 통과시키지 않기 위해 포착
+      win.webContents.on("did-navigate", (_e, _url, code) => { if (Number.isInteger(code) && code > 0) httpStatus = code; });
       try {
         const load = (target) => new Promise((resolveLoad, rejectLoad) => {
           const timer = setTimeout(() => rejectLoad(new Error("load timeout")), timeoutMs);
@@ -153,7 +155,7 @@ async function registerElectronBrowserDriver() {
         }
         await new Promise((r) => setTimeout(r, 1500)); // 렌더 안정화
         const metrics = await win.webContents.executeJavaScript(metricsScript(collectStorageKeys || []), true);
-        return { consoleErrors, ...metrics };
+        return { consoleErrors, httpStatus, ...metrics };
       } finally {
         if (!win.isDestroyed()) win.destroy();
       }

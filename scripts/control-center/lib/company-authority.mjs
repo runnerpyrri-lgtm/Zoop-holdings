@@ -49,15 +49,35 @@ function migrateIfNeeded(dir) {
   return { schemaVersion: 1, mode, approvalMode: "CHAIRMAN_DIRECT", delegatedAt: null, updatedAt: new Date().toISOString(), migratedFrom };
 }
 
+const isValidAuthority = (v) => v && COMPANY_MODES.includes(v.mode) && APPROVAL_MODES.includes(v.approvalMode);
+
 export function readAuthority(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR) {
+  const file = FILE(runtimeDir);
+  const primaryExisted = existsSync(file);
   try {
-    const v = JSON.parse(readFileSync(FILE(runtimeDir), "utf8"));
-    if (COMPANY_MODES.includes(v.mode) && APPROVAL_MODES.includes(v.approvalMode)) return v;
-  } catch { /* 없거나 손상 → 마이그레이션/기본 */ }
+    const v = JSON.parse(readFileSync(file, "utf8"));
+    if (isValidAuthority(v)) return v;
+  } catch { /* 손상 → 아래 복구 단계 */ }
+  // 1순위 복구: 마지막 정상 저장본(.bak)에서 되살린다 — 정지(PAUSED/EMERGENCY_STOP) 상태를 잃지 않는다.
+  try {
+    const b = JSON.parse(readFileSync(`${file}.bak`, "utf8"));
+    if (isValidAuthority(b)) {
+      try { mkdirSync(resolve(runtimeDir), { recursive: true, mode: 0o700 }); writeFileSync(file, JSON.stringify(b, null, 2), { encoding: "utf8", mode: 0o600 }); } catch { /* 쓰기 실패 무시 */ }
+      audit(runtimeDir, { action: "authority_restored_from_bak", mode: b.mode });
+      return b;
+    }
+  } catch { /* bak 없음/손상 */ }
+  // 파일이 존재했는데(=손상) 복구도 실패하면, RUNNING으로 몰래 되돌리지 않고 안전하게 PAUSED로 멈춘다(fail-safe).
+  if (primaryExisted) {
+    const safe = { schemaVersion: 1, mode: "PAUSED", approvalMode: "CHAIRMAN_DIRECT", delegatedAt: null, updatedAt: new Date().toISOString(), recoveredFrom: "corrupt-authority" };
+    try { mkdirSync(resolve(runtimeDir), { recursive: true, mode: 0o700 }); writeFileSync(file, JSON.stringify(safe, null, 2), { encoding: "utf8", mode: 0o600 }); audit(runtimeDir, { action: "authority_safe_paused", reason: "corrupt-unrecoverable" }); } catch { /* 메모리 값으로 동작 */ }
+    return safe;
+  }
+  // 진짜 첫 실행(파일·백업 모두 없음): 레거시 마이그레이션 또는 기본 RUNNING.
   const fresh = migrateIfNeeded(runtimeDir);
   try {
     mkdirSync(resolve(runtimeDir), { recursive: true, mode: 0o700 });
-    writeFileSync(FILE(runtimeDir), JSON.stringify(fresh, null, 2), { encoding: "utf8", mode: 0o600 });
+    writeFileSync(file, JSON.stringify(fresh, null, 2), { encoding: "utf8", mode: 0o600 });
     audit(runtimeDir, { action: "authority_initialized", mode: fresh.mode, migratedFrom: fresh.migratedFrom });
   } catch { /* 쓰기 실패 시 메모리 값으로 동작 */ }
   return fresh;
@@ -76,6 +96,8 @@ export function writeAuthority(changes, runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR
   const tmp = `${FILE(runtimeDir)}.tmp`;
   writeFileSync(tmp, JSON.stringify(next, null, 2), { encoding: "utf8", mode: 0o600 });
   renameSync(tmp, FILE(runtimeDir));
+  // 마지막 정상 저장본을 .bak로 남긴다 — 원본이 유실·손상돼도 readAuthority가 여기서 정지 상태를 되살린다.
+  try { writeFileSync(`${FILE(runtimeDir)}.bak`, JSON.stringify(next, null, 2), { encoding: "utf8", mode: 0o600 }); } catch { /* bak 실패는 운영을 막지 않는다 */ }
   audit(runtimeDir, { action: "authority_changed", ...changes });
   return next;
 }

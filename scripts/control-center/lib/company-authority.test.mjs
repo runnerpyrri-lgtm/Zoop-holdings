@@ -18,6 +18,21 @@ test("v1.8 interval>0 → RUNNING, 0 → PAUSED로 1회 마이그레이션(backu
   assert.equal(readAuthority(b).mode, "PAUSED", "사용자가 꺼둔 상태를 몰래 켜지 않는다");
 });
 
+test("권한 파일이 손상돼도 RUNNING으로 몰래 되돌리지 않는다 — .bak 복구, 없으면 안전 PAUSED", () => {
+  // 정지 상태를 저장하면 .bak도 남는다.
+  const a = tmp();
+  writeAuthority({ mode: "EMERGENCY_STOP" }, a);
+  assert.ok(existsSync(join(a, "company-authority.json.bak")), "정상 저장 시 .bak 보존");
+  // 원본이 손상돼도 .bak에서 EMERGENCY_STOP을 되살린다(fail-open 아님).
+  writeFileSync(join(a, "company-authority.json"), "{손상된 JSON");
+  assert.equal(readAuthority(a).mode, "EMERGENCY_STOP", ".bak에서 정지 상태 복구");
+  // 원본·백업 모두 손상이면 RUNNING이 아니라 안전 PAUSED로 멈춘다.
+  const c = tmp();
+  writeFileSync(join(c, "company-authority.json"), "{깨짐");
+  writeFileSync(join(c, "company-authority.json.bak"), "{깨짐");
+  assert.equal(readAuthority(c).mode, "PAUSED", "복구 불가 시 fail-safe PAUSED(≠RUNNING)");
+});
+
 test("전결 분류: 시스템 상신 코드 수정은 위임 가능, 결제·계약·비밀값·홍보는 회장 전용", () => {
   const ok = { requestedBy: "auto-review", title: "러닝봄 CI 실패 확인", body: "실패 로그", recommendation: "수정" };
   assert.equal(isDelegable(ok), true);

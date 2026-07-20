@@ -30,11 +30,13 @@ const rnd=(a,b)=>a+Math.random()*(b-a),hash=s=>[...s].reduce((n,c)=>(n*31+c.char
 const walk=(c,r)=>c>=0&&r>=0&&c<GW&&r<GH&&!BLOCK.has(K(c,r));
 
 function applyMap(m){
-  OFFICE_MAP=m;FLOORS=m.floors||[{id:"ALL",name:"전체",zones:(m.zones||[]).map(z=>z.code),employees:(m.desks||[]).map(d=>d.id),executives:true,meeting:true,common:true}];
+  OFFICE_MAP=m;
+  // 방어적 기본값: 지도가 일부만 있거나(빈 floors·grid 누락) 손상돼도 화면이 통째로 하얗게 비지 않게 한다.
+  FLOORS=(m.floors&&m.floors.length)?m.floors:[{id:"ALL",name:"전체",zones:(m.zones||[]).map(z=>z.code),employees:(m.desks||[]).map(d=>d.id),executives:true,meeting:true,common:true}];
   if(!FLOORS.some(f=>f.id===CURRENT_FLOOR))CURRENT_FLOOR=FLOORS[0].id;
   const floor=FLOORS.find(f=>f.id===CURRENT_FLOOR)||FLOORS[0],zoneSet=new Set(floor.zones||[]),employeeSet=new Set(floor.employees||[]),seats=m.seatsByFloor?.[floor.id]||m.seats||{};
   CURRENT_FLOOR_META=floor;
-  TW=m.grid.tileW;TH=m.grid.tileH;GW=m.grid.w;GH=m.grid.h;T={...m.teams};NAMES={...m.names};PRODUCT=new Set(m.products||[]);
+  const g=m.grid||{};TW=g.tileW||24;TH=g.tileH||24;GW=g.w||40;GH=g.h||30;T={...m.teams};NAMES={...m.names};PRODUCT=new Set(m.products||[]);
   ZONES=(m.zones||[]).filter(z=>zoneSet.has(z.code)).map(z=>({...z,s:z.color,props:z.props||[]}));DESKS=(m.desks||[]).filter(d=>employeeSet.has(d.id)).map(d=>({...d}));CHAIR=floor.executives?{...m.chair}:null;SECS=floor.executives?(m.secretaries||[]).map(s=>({...s})):[];VISITORS=(m.visitors||[]).filter(v=>v.floor===floor.id||(v.floors||[]).includes(floor.id)).map(v=>({...v}));
   MEET=seats.meeting||[];MEET_T=seats.meetingTable||null;LOUNGE=seats.lounge||[];CAFE=seats.cafe||[];CAFE_T=seats.cafeTables||[];
   BLOCK=new Set();
@@ -277,5 +279,8 @@ async function pollHqStatus(){try{if(location.protocol.startsWith("http")&&!wind
 function rotateTicker(){const el=document.getElementById("ticker");if(!el||!TICKER.length)return;TICKER_I=(TICKER_I+1)%TICKER.length;el.textContent=TICKER[TICKER_I];}
 setInterval(pollHqStatus,12000);setInterval(rotateTicker,5000);pollHqStatus();
 
-(async function boot(){let map=null;try{map=window.__MAP__||await(await fetch("./office-map.json",{cache:"no-store"})).json();}catch{}applyMap(map||FALLBACK_MAP);resize();poll();setInterval(poll,6000);setInterval(tickClock,1000);tickClock();requestAnimationFrame(loop);})();
+(async function boot(){let map=null;try{map=window.__MAP__||await(await fetch("./office-map.json",{cache:"no-store"})).json();}catch{}
+  // 손상된 지도로 applyMap이 예외를 던져도 화면이 하얗게 비지 않게 FALLBACK_MAP으로 되돌린다.
+  try{applyMap(map||FALLBACK_MAP);}catch{try{applyMap(FALLBACK_MAP);}catch{}}
+  resize();poll();setInterval(poll,6000);setInterval(tickClock,1000);tickClock();requestAnimationFrame(loop);})();
 })();

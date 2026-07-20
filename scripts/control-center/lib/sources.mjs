@@ -29,6 +29,9 @@ export function parseYamlList(text, topKey = "apps") {
   for (const raw of lines) {
     const line = raw.replace(/\s+#.*$/, ""); // 인라인 주석 제거(단순화)
     if (topRe.test(line)) { inList = true; continue; }
+    // 새 최상위 키(들여쓰기 없는 `key:`)를 만나면 리스트를 벗어난다 — 뒤따르는 다른 섹션의 키가
+    // 마지막 항목에 잘못 붙거나 유령 항목이 되는 것을 막는다(여러 섹션 파일 대응).
+    if (inList && /^[A-Za-z0-9_][^:]*:\s*(.*)$/.test(line) && !topRe.test(line)) { if (cur) { items.push(cur); cur = null; } inList = false; continue; }
     if (!inList) continue;
     const item = line.match(/^\s*-\s*([A-Za-z0-9_]+):\s*(.*)$/);
     if (item) {
