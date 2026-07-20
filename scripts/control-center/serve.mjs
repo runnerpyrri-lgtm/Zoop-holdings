@@ -993,6 +993,10 @@ function remoteAuthorized(req) {
 function rateLimited(req) {
   const ip = req.socket.remoteAddress || "unknown";
   const nowMs = Date.now();
+  // 만료된 항목 정리 — IP별 항목이 무한히 쌓이지 않게 한다(느린 메모리 누수 방지). 항목이 많을 때만 훑는다.
+  if (remoteSessions.size > 512) {
+    for (const [key, e] of remoteSessions) if (nowMs - e.windowStart > 60_000) remoteSessions.delete(key);
+  }
   const entry = remoteSessions.get(ip) || { count: 0, windowStart: nowMs };
   if (nowMs - entry.windowStart > 60_000) { entry.count = 0; entry.windowStart = nowMs; }
   entry.count += 1;
@@ -1018,6 +1022,14 @@ async function handleRequest(req, res, { store, appDir, snapDir, maxBodyBytes })
   }
   const path = decodeSafePath(req.url);
   if (path.startsWith("/api/")) {
+    // CSRF 방지: localhost 예외로 무인증 접근되는 상태변경 API를, 회장이 열어둔 다른 웹페이지가 no-cors로
+    // 몰래 호출(백업/내보내기 반복 → 디스크 채우기, 결재 트리거 등)하지 못하게 한다. 브라우저의 Sec-Fetch-Site가
+    // cross-site면 거부한다. 본부 화면 자체의 요청은 same-origin/none이라 정상 통과(구형 브라우저는 헤더 없음 → 통과).
+    const method = req.method || "GET";
+    if (method !== "GET" && method !== "HEAD" && String(req.headers["sec-fetch-site"] || "") === "cross-site") {
+      sendJson(res, 403, { error: "CROSS_SITE_BLOCKED", message: "다른 사이트에서의 요청은 차단됩니다." });
+      return;
+    }
     await handleApi(req, res, path, store, maxBodyBytes, snapDir, local);
     return;
   }

@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="3.0.2"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="3.1.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -141,8 +141,10 @@ function healthSummary(){
   const down=f.filter(a=>a.health==="down").length, warn=f.filter(a=>a.health==="warn").length;
   if(down)return {cls:"bad",text:`장애 ${down}건 — 즉시 확인`};
   if(warn)return {cls:"warn",text:`주의 ${warn}건`};
-  const known=f.filter(a=>a.health==="ok").length;
-  if(known===0)return {cls:"",text:"상태 확인 중"};
+  // 거짓 PASS 금지: '정상 운영'은 전 앱이 실제 ok로 확인됐을 때만. 미확인(unknown)을 정상으로 포장하지 않는다.
+  const ok=f.filter(a=>a.health==="ok").length;
+  if(ok===0)return {cls:"",text:"상태 확인 중"};
+  if(ok<f.length)return {cls:"warn",text:`정상 ${ok} · 확인 중 ${f.length-ok}`};
   return {cls:"ok",text:`${f.length}개 앱 정상 운영`};
 }
 function updateChrome(){
@@ -446,6 +448,7 @@ function renderAutomation(){
   ${HQ?.nextTask?panel("다음 대기",`<div class="simple-list"><div><b>${esc(appName(HQ.nextTask.app))} · ${esc(HQ.nextTask.title)}</b>${tonePill("neutral","대기")}</div></div>`):""}
   ${panel("자동 점검 → 결재",`<div class="simple-list">
     <div><b>${reviewLabel()} 6개 앱 종합 점검 후 개선 제안을 결재로 상신</b>${tonePill(autos?"gold":"good",autos?`상신 ${autos}건 대기`:"이상 없음")}</div>
+    <div class="today-actions" style="gap:8px;align-items:center;flex-wrap:wrap"><label class="fine" for="reviewInterval">점검 주기</label>${reviewIntervalSelect()}${button("적용","apply-review-schedule","secondary","","check")}</div>
     <a href="#/records/approvals"><b>결재함 열기</b><span class="status neutral">이동</span></a>
   </div>`)}
   ${incidentBoardPanel()}

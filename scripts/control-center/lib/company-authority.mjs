@@ -2,7 +2,7 @@
 // 회사 모드(RUNNING/MONITOR_ONLY/PAUSED)와 결재 모드(회장 직접 / 수석부회장 전결)를 정본으로 관리한다.
 // 원칙: 전결 모드에서도 비위임 안건(결제·계약·홍보·개인정보·비밀값·삭제·스토어 등)은 절대 자동승인하지 않는다.
 // v1.8 분 단위 점검 설정은 1회 마이그레이션(>0→RUNNING, 0→PAUSED)하고 backup에 보존한다.
-import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, copyFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, copyFileSync, renameSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DEFAULT_COMPANY_RUNTIME_DIR } from "./company-store.mjs";
 
@@ -71,9 +71,11 @@ export function writeAuthority(changes, runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR
   if (changes.approvalMode === "VICE_CHAIR_DELEGATED" && cur.approvalMode !== "VICE_CHAIR_DELEGATED") next.delegatedAt = next.updatedAt;
   if (changes.approvalMode === "CHAIRMAN_DIRECT") next.delegatedAt = null;
   mkdirSync(resolve(runtimeDir), { recursive: true, mode: 0o700 });
+  // 원자적 쓰기: tmp에 완전히 쓴 뒤 rename으로 교체한다. 쓰는 도중 크래시가 나도 원본이 잘려
+  // PAUSED/EMERGENCY_STOP가 몰래 RUNNING으로 되돌아가는(fail-open) 사고를 막는다.
   const tmp = `${FILE(runtimeDir)}.tmp`;
   writeFileSync(tmp, JSON.stringify(next, null, 2), { encoding: "utf8", mode: 0o600 });
-  writeFileSync(FILE(runtimeDir), JSON.stringify(next, null, 2), { encoding: "utf8", mode: 0o600 });
+  renameSync(tmp, FILE(runtimeDir));
   audit(runtimeDir, { action: "authority_changed", ...changes });
   return next;
 }

@@ -120,6 +120,7 @@ async function registerElectronBrowserDriver() {
   setBrowserDriver({
     name: "electron",
     async run({ url, viewport, timeoutMs = 45_000, seedStorage, collectStorageKeys }) {
+      if (quitting) throw new Error("앱 종료 중 — 점검 창을 열지 않습니다"); // 종료 중엔 숨은 점검 창을 새로 만들지 않는다(종료 지연 방지)
       const win = new BrowserWindow({
         show: false,
         width: viewport?.width || 390,
@@ -203,7 +204,9 @@ function createWindow() {
     return { action: "deny" };
   });
   mainWindow.webContents.on("will-navigate", (event, url) => {
-    if (serverLink && url.startsWith(serverLink.replace(/\/+$/, ""))) return; // 본부 화면 내부 이동 허용
+    // 본부 화면 내부 이동만 허용 — 반드시 origin(호스트+포트)으로 비교한다.
+    // 문자열 startsWith 비교는 http://127.0.0.1:PORT@attacker.com 같은 userinfo 우회를 허용하므로 금지.
+    try { if (serverLink && new URL(url).origin === new URL(serverLink).origin) return; } catch { /* 잘못된 URL은 아래에서 차단 */ }
     event.preventDefault();
     if (isAllowedExternalUrl(url)) shell.openExternal(url);
   });
@@ -252,6 +255,13 @@ if (!gotLock) {
   app.quit();
 } else {
   app.on("second-instance", showWindow);
+  // 시작 이후의 예기치 못한 오류가 프로세스를 조용히 죽이지 않게 한다(자동 재실행은 하지 않음 — "끄면 꺼진다" 원칙 유지).
+  process.on("unhandledRejection", (reason) => { try { console.error("[robom-hq] unhandledRejection", reason); } catch { /* noop */ } });
+  process.on("uncaughtException", (error) => {
+    try { console.error("[robom-hq] uncaughtException", error); } catch { /* noop */ }
+    if (quitting) return; // 종료 중 오류는 무시
+    try { dialog.showErrorBox("ROBOM HQ 오류", String(error?.stack || error).slice(0, 2000)); } catch { /* 대화상자 실패 무시 */ }
+  });
   app.whenReady().then(async () => {
     app.setName("ROBOM HQ");
     const { dataRoot, runtimeDir } = prepareDataDirs();

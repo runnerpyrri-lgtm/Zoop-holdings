@@ -11,6 +11,11 @@ test("토큰은 12자 이상·헷갈리는 글자(0/O/1/l) 없음·매번 다름
   assert.notEqual(a, b);
   assert.ok(!/[0O1lI]/.test(a), `혼동 글자 포함: ${a}`);
   assert.ok(a.startsWith("robom-"));
+  // 거부 표집 이후에도 본문은 정확히 11자, 허용 알파벳만 — 길이가 흔들리거나 이상 글자가 끼지 않는다.
+  for (let i = 0; i < 50; i++) {
+    const t = generateMobileToken();
+    assert.match(t, /^robom-[abcdefghjkmnpqrstuvwxyz23456789]{11}$/, `형식 위반: ${t}`);
+  }
 });
 
 test("상태 파일: 기본 꺼짐 → 켜면 토큰 자동 생성·재시작 후 유지 → 꺼도 토큰 보존", () => {

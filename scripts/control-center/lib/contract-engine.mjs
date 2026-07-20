@@ -11,6 +11,7 @@ import { DEFAULT_COMPANY_RUNTIME_DIR } from "./company-store.mjs";
 import { runAssertions, resolvePath } from "./contract-assert.mjs";
 import { getBrowserDriver } from "./browser-driver.mjs";
 import { loadRoster, orgTree, assignOwnership, computeWorkforce } from "./workforce.mjs";
+import { COMPANY_MODES } from "./company-authority.mjs";
 import { buildContractCatalog, MIN_CONTRACTS } from "./contract-catalog.mjs";
 import { readApps } from "./sources.mjs";
 
@@ -265,6 +266,7 @@ async function evalManifest(c, ctx) {
       const ir = await cachedFetch(ctx, iconUrl, { method: "HEAD", timeoutMs: 15_000 });
       checked += 1; if (!ir.ok || ir.status !== 200) broken += 1;
     }
+    if (checked === 0) return fail("검사 가능한 아이콘 src 없음", "아이콘 ≥ 1 (src 유효)"); // 거짓 PASS 금지: 0개 검사를 '전부 200'으로 통과시키지 않는다
     return broken ? fail(`아이콘 ${broken}/${checked} 실패`, "전부 200") : pass(`아이콘 ${checked}개 200`, "전부 200");
   }
   const missing = ["name", "start_url"].filter((k) => !manifest[k]);
@@ -390,7 +392,8 @@ async function evalHttpJsonContract(c, ctx, runtimeDir) {
     if (prev?.value && Date.parse(value) < Date.parse(prev.value) - 60_000) return fail(`${value} < 직전 ${prev.value}`, "단조 증가");
     return pass(value, "단조 증가");
   }
-  if (!c.config.assertions?.length) return pass(`HTTP 200 JSON`, "계약 충족");
+  // 거짓 PASS 금지: assertion이 없어도 본문이 실제 JSON으로 파싱되는지는 확인한다(200인데 깨진 본문을 '충족'으로 넘기지 않음).
+  if (!c.config.assertions?.length) { try { JSON.parse(r.bodyText); } catch { return fail("JSON parse 실패", "유효한 JSON"); } return pass(`HTTP 200 JSON`, "계약 충족"); }
   let json; try { json = JSON.parse(r.bodyText); } catch { return fail("JSON parse 실패", "유효한 JSON"); }
   // 항목 경로 후보를 고정 순서로 해석(결정론) — 배열을 찾은 첫 후보 사용
   let items = null;
@@ -493,7 +496,8 @@ const DATA_VALIDATORS = {
     if (!r.ok || r.status !== 200) return unavailable("화면 접근 불가", "가용성 계약이 담당");
     const counts = [...r.bodyText.matchAll(/(\d{2,4})\s*(?:개|곳|종)/g)].map((m) => Number(m[1]));
     if (!counts.length) return pass("마케팅 숫자 문구 없음", "parity 위반 없음");
-    return pass(`화면 숫자 ${counts.slice(0, 5).join(",")} 확인(데이터 대조는 source registry 계약과 연동)`, "parity 관찰");
+    // 거짓 PASS 금지: 여기서는 화면 숫자를 실제 데이터 수와 대조하지 않는다 → 관찰만 했음을 정직하게 UNAVAILABLE로 표기(가짜 통과 금지).
+    return unavailable(`화면 숫자 ${counts.slice(0, 5).join(",")} 관찰 — 데이터 대조 미수행`, "데이터 parity 계약 필요");
   },
 };
 
@@ -708,7 +712,9 @@ function evalHqRuntime(c, ctx, env) {
         if (parseFail || dup) return fail(`parse 실패 ${parseFail}·중복 ${dup}`, "무결");
         return pass(`패킷 ${ids.size}개 무결`, "무결");
       }
-      case "stale-lease": return pass("lease 회수는 hq-status 경로에서 매 요청 실행", "동작");
+      // 거짓 PASS 금지: 여기서 실제 stale lease 유무를 실측하지 않는다(회수는 hq-status 요청 경로에서 수행).
+      // 검증하지 못하는 항목을 '동작함'으로 통과시키지 않고 점검 불가로 정직하게 표기한다.
+      case "stale-lease": return unavailable("lease 회수는 요청 경로에서 수행 — 이 점검에서 실측 안 함", "실측 미구현");
       case "control-flags": {
         const f = join(resolve(runtimeDir), "queue", "control.json");
         if (!existsSync(f)) return pass("기본값(제어 플래그 없음)", "parse 유효");
@@ -807,7 +813,7 @@ function evalHqRuntime(c, ctx, env) {
       case "office-family-actors": { const m = JSON.parse(readFileSync(join(repoRoot, "ops/control-center/app/office-map.json"), "utf8")); const fam = (m.visitors || []).filter((v) => v.life); return fam.length >= 5 ? pass(`생활 연출 인원 ${fam.length}`, "≥ 5") : fail(`생활 인원 ${fam.length}`, "≥ 5"); }
       case "office-staff-parity": { const m = JSON.parse(readFileSync(join(repoRoot, "ops/control-center/app/office-map.json"), "utf8")); const r = loadRoster(repoRoot); const ids = new Set(r.staff.map((x) => x.id)); const orphan = (m.desks || []).filter((d) => !ids.has(d.id) && !["room-01", "room-02", "room-03", "out", "home", "run", "cert", "cal", "note"].includes(d.id)); return orphan.length ? degraded(`정본 밖 데스크 ${orphan.length}`, "조직 정합") : pass("오피스 데스크 조직 정합", "조직 정합"); }
       case "office-logo": { const m = readFileSync(join(repoRoot, "ops/control-center/app/office.html"), "utf8"); return m.includes("./icon.svg") ? pass("공식 로고 사용", "robom 로고") : fail("임시 로고", "robom 로고"); }
-      case "wf-mode-6": { return pass("가동 모드 6종", "6종"); }
+      case "wf-mode-6": { return COMPANY_MODES.length >= 6 ? pass(`가동 모드 ${COMPANY_MODES.length}종`, "≥ 6종") : fail(`가동 모드 ${COMPANY_MODES.length}종`, "≥ 6종"); }
       case "wf-full-coverage": {
         const apps = readApps(repoRoot).filter((a) => a.registered !== false);
         const cs = buildContractCatalog({ registryApps: apps, siteVersion: "0.0.0" }).filter((x) => !x.needNewSource);

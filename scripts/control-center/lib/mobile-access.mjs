@@ -12,10 +12,16 @@ export const DEFAULT_MOBILE_PORT = Number(process.env.ROBOM_HQ_MOBILE_PORT || 43
 
 // 폰으로 입력할 수도 있게 짧고 헷갈리는 글자(0/O·1/l) 없는 토큰. 총 17자 ≥ 12자 요건 충족.
 export function generateMobileToken() {
-  const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
-  const bytes = randomBytes(11);
+  const alphabet = "abcdefghjkmnpqrstuvwxyz23456789"; // 31자(헷갈리는 0/O·1/l 제외)
+  // 거부 표집(rejection sampling): 256 % 31 ≠ 0 이라 단순 b%31은 앞 글자에 편향이 생긴다.
+  // 31의 최대 배수(248) 이상 바이트는 버려 균등 분포를 보장한다.
+  const limit = 256 - (256 % alphabet.length); // 248
   let body = "";
-  for (const b of bytes) body += alphabet[b % alphabet.length];
+  while (body.length < 11) {
+    for (const b of randomBytes(11 - body.length)) {
+      if (b < limit) body += alphabet[b % alphabet.length];
+    }
+  }
   return `robom-${body}`;
 }
 

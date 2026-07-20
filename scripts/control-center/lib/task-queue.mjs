@@ -170,7 +170,11 @@ export function readControl(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR) {
 export function writeControl(changes, { runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR, now = () => new Date() } = {}) {
   ensureDirs(runtimeDir);
   const next = { ...readControl(runtimeDir), ...changes, updatedAt: new Date(now()).toISOString() };
-  writeFileSync(controlFile(runtimeDir), `${JSON.stringify(next, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+  // 원자적 쓰기: 쓰는 도중 크래시로 파일이 잘려 일시정지(paused)·접수중지가 몰래 false로 되돌아가는 fail-open을 막는다.
+  const file = controlFile(runtimeDir);
+  const tmp = `${file}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify(next, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+  renameSync(tmp, file);
   return next;
 }
 export function readRunnerStatus(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR) {

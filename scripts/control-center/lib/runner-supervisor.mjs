@@ -11,6 +11,21 @@ import { writeRunnerStatus } from "./task-queue.mjs";
 
 const RUNNER_SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "..", "codex-runner.mjs");
 
+// 러너 자식 트리 전체를 종료한다. 러너는 codex CLI를 손자로 띄우므로(spawnSync), 러너만 kill하면
+// codex 손자가 고아로 남아 회장이 앱을 껐는데도 계속 코드 작업·quota를 쓸 수 있다. 그룹/트리째 종료한다.
+function killChildTree(child, signal = "SIGTERM") {
+  if (!child) return;
+  const pid = child.pid;
+  try {
+    if (process.platform === "win32") {
+      if (Number.isInteger(pid)) spawn("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
+    } else if (Number.isInteger(pid)) {
+      process.kill(-pid, signal); // detached로 만든 프로세스 그룹 전체(러너 + codex 손자)
+    }
+  } catch { /* 이미 종료했거나 그룹 없음 */ }
+  try { child.kill?.(signal); } catch { /* fallback */ }
+}
+
 // GUI(로그인 항목·Electron)에서 실행되면 PATH가 최소화되어 codex CLI를 못 찾을 수 있다.
 // 흔한 설치 경로를 보강한다(없어도 무해).
 function augmentedPath() {
@@ -73,7 +88,8 @@ export function startRunnerSupervisor({ runtimeDir, snapDir, repoRoot = discover
     startedAt = Date.now();
     markStarting();
     try {
-      child = spawnProcess(process.execPath, [RUNNER_SCRIPT], { env: childEnv(), stdio: ["ignore", "pipe", "pipe"] });
+      // detached: 러너를 새 프로세스 그룹의 리더로 띄운다 → 종료 시 그룹째(codex 손자 포함) kill 가능(POSIX).
+      child = spawnProcess(process.execPath, [RUNNER_SCRIPT], { env: childEnv(), stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32" });
     } catch (error) {
       markDown(`실행 실패: ${error.message}`);
       scheduleRestart(true, `실행 실패: ${error.message}`);
@@ -109,7 +125,7 @@ export function startRunnerSupervisor({ runtimeDir, snapDir, repoRoot = discover
     stop() {
       stopped = true;
       if (timer) clearTimeout(timer);
-      if (child) { try { child.kill("SIGTERM"); } catch { /* 이미 종료 */ } }
+      if (child) killChildTree(child, "SIGTERM"); // 러너 + codex 손자까지 그룹/트리째 종료
       markDown("감독기 중지");
     },
   };
