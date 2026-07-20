@@ -206,11 +206,12 @@ export function computeWorkforce({ report = null, tasks = [], authority = { mode
       current = { id: f.contractId, what: f.what, target: f.target, status: "FAIL", auto: false, note: f.human.note };
     }
     else if (failingAuto.length && !monitorOnly) {
-      // 자동 수정 대상: executor 연결 시 '수정 중', 미연결 시 '수정 대기(자동 큐)'.
-      state = executorConnected ? "REPAIRING" : "TRIAGING";
+      // 실제 작업(myTasks)이 없으면 REPAIRING으로 위장하지 않는다. 실행기는 1대라 큐에서 순차 처리 →
+      // 담당 계약이 실패라도 지금 이 사람이 '고치는 중'인 건 아니고 '자동 수정 대기(큐)'다(거짓 병렬 진행 금지).
+      state = "TRIAGING";
       const f = failingAuto[(bucket + hash(s.id)) % failingAuto.length];
-      work = `${executorConnected ? "자동 수정 중" : "자동 수정 대기(Codex 큐)"} · ${f.what || f.contractId}`;
-      current = { id: f.contractId, what: f.what, target: f.target, status: "FAIL", auto: true, note: executorConnected ? "Codex 자동 수정 진행" : "Codex 실행기 연결 시 자동 시작" };
+      work = `${executorConnected ? "자동 수정 대기(Codex 큐 · 순차)" : "자동 수정 대기(실행기 연결 시 시작)"} · ${f.what || f.contractId}`;
+      current = { id: f.contractId, what: f.what, target: f.target, status: "FAIL", auto: true, note: executorConnected ? "Codex 큐에서 순차 수정 대기" : "Codex 실행기 연결 시 자동 시작" };
     }
     else if (failingAuto.length) { // monitorOnly: 수정 금지, 관제만
       state = "MONITORING"; const f = failingAuto[0]; work = `관제 · 수정 보류(관제 모드) · ${f.what || f.contractId}`;
@@ -253,6 +254,13 @@ export function computeWorkforce({ report = null, tasks = [], authority = { mode
       contracts: owned.slice(0, 16).map((r) => ({ id: r.contractId, target: r.target, what: r.what, status: r.status, auto: !r.human, note: r.human?.note || null })),
     };
   });
+
+  // needNewSource 계약은 소유자 배정에서 제외돼(buildAssignment) 어느 직원 레인에도 안 잡힌다.
+  // 이는 회장이 데이터 소스를 선언해야만 풀리는 '사람 확인' 안건이므로, 실패·사람확인 총계에 더해
+  // '✋ 사람 확인 필요' 레인에서 사라지지 않게 한다(숨은 회장 조치 항목 = 거짓 all-clear 방지).
+  const sourceNeeded = results.filter((r) => r.needNewSource).length;
+  failingTotal += sourceNeeded;
+  needHuman += sourceNeeded;
 
   const count = (pred) => staff.filter(pred).length;
   const summary = {

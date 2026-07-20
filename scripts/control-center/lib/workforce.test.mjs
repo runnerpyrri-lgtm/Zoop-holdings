@@ -124,3 +124,23 @@ test("막힘 계약 자동수정/사람확인 구분 — 비밀키는 사람 확
   assert.ok(out.contractsNeedHuman >= 1, "비밀키는 사람 확인 필요");
   assert.ok(out.contractsAutoFixing >= 1, "운영 장애는 자동 수정 대기");
 });
+
+test("실행기가 연결돼도 실제 작업(task)이 없으면 '수정 중'으로 위장하지 않는다(거짓 병렬 진행 금지)", () => {
+  const report = { runAt: new Date().toISOString(), results: [
+    { contractId: "c:outbom:production-home", target: "outbom", category: "production", status: "FAIL", what: "운영 첫 화면", needNewSource: false },
+    { contractId: "c:homebom:ci-latest", target: "homebom", category: "data", status: "FAIL", what: "CI", needNewSource: false },
+  ] };
+  // executorConnected=true 이지만 tasks=[] (실행기 유휴). 실행기는 1대뿐이라 병렬 '수정 중'은 거짓이다.
+  const out = computeWorkforce({ report, tasks: [], authority: { mode: "RUNNING" }, now: new Date("2026-07-19T04:00:00Z"), executorConnected: true });
+  assert.equal(out.summary.repairing, 0, "실제 작업이 없으면 REPAIRING 0");
+  assert.ok(out.contractsAutoFixing >= 2, "실패 계약은 자동 수정 '대기'로는 잡힌다");
+});
+
+test("needNewSource 계약은 어느 레인에도 사라지지 않고 '사람 확인 필요'로 집계된다", () => {
+  const report = { runAt: new Date().toISOString(), results: [
+    { contractId: "c:certbom:new-source", target: "certbom", category: "data", status: "FAIL", what: "새 데이터 소스 필요", needNewSource: true },
+  ] };
+  const out = computeWorkforce({ report, tasks: [], authority: { mode: "RUNNING" }, now: new Date("2026-07-19T04:00:00Z"), executorConnected: true });
+  assert.ok(out.contractsNeedHuman >= 1, "소스 선언 필요는 회장 확인 항목으로 집계");
+  assert.ok(out.contractsFailing >= 1, "실패 총계에도 포함 — '전 계약 정상' 위장 금지");
+});

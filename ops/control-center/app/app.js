@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="3.3.3"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="3.3.4"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -248,6 +248,8 @@ function renderToday(){
   const attn=attentionItems(),autos=pendingApprovals().filter(a=>a.requestedBy==="auto-review"&&a.id);
   const cx=codexState(),acts=recentActivity();
   const blocked=records("tasks").filter(t=>t.status==="blocked").length+familyApps().filter(a=>a.health==="down").length;
+  // 거짓 all-clear 금지: 앱 상태가 하나도 확인 안 됐으면(전부 unknown·예시·지연) 0을 초록으로 포장하지 않는다.
+  const healthKnown=!snapFreshness()?.stale&&familyApps().some(a=>["ok","down","warn"].includes(a.health));
   const review=records("tasks").filter(t=>["in_review","approval_pending"].includes(t.status)).length+pendingApprovals().length;
   const dateLine=new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",dateStyle:"full"}).format(new Date());
   return `${title("MISSION CONTROL","오늘",dateLine,`${HQ?.control?.paused?button("자동작업 다시 시작","resume-all","secondary","","play"):button("모든 자동작업 일시정지","pause-all","danger","","pause")}`)}
@@ -256,7 +258,7 @@ function renderToday(){
     ${kpi(HQ?HQ.pending??0:openCount("tasks"),"대기 중 요청",HQ?.pending?"accent":"","","#/tasks")}
     ${kpi(HQ?.running??0,"Codex 작업 중",HQ?.running?"accent":"","","#/automation")}
     ${kpi(review,"회장 확인 필요",review?"warn":"","","#/records/approvals")}
-    ${kpi(blocked,"막힘·장애",blocked?"bad":"good",blocked?"먼저 확인하세요":undefined,"#/automation")}
+    ${kpi(blocked,"막힘·장애",blocked?"bad":healthKnown?"good":"",blocked?"먼저 확인하세요":healthKnown?undefined:"상태 확인 중","#/automation")}
   </div>
   <div class="grid main-side">
     <div>
@@ -287,7 +289,7 @@ function matrixTable(){
   ${apps.map(a=>{const[hl,tone]=HEALTH[a.health]||HEALTH.unknown;const run=appRunning(a.id);const ot=openTasksFor(a.id);
     return `<tr data-go="#/apps/${attr(a.id)}" tabindex="0" role="link" aria-label="${attr(a.name)} 상세">
     <td><span class="mx-app"><span class="mx-mark" style="--app:${accent(a.id)}">${esc(a.name[0])}</span><span><b>${esc(a.name)}</b><small>${esc(a.id)}</small></span></span></td>
-    <td>${tonePill(run?"accent":tone,run?"작업 중":hl)}</td>
+    <td>${a.health==="down"?tonePill("bad",hl):run?tonePill("accent","작업 중"):tonePill(tone,hl)}</td>
     <td class="mx-num">v${esc(a.version||"—")}</td>
     <td class="mx-num">${ot||"·"}</td>
     <td class="mx-next">${esc(a.nextActions?.[0]||"안정 운영")}</td></tr>`;}).join("")}
@@ -519,7 +521,7 @@ function renderCompany(){
       ${wf?panel(`인력 현황 · 80명 (계약 ${wf.contractsAssigned??"—"}개 배정)`,`
         <div class="kpi-row" style="margin-bottom:9px">${kpi(wf.summary.onDuty,"근무 중","good")}${kpi(wf.summary.checking,"점검 중",wf.summary.checking?"accent":"")}${kpi(wf.summary.repairing+wf.summary.deploying,"수정 중",wf.summary.repairing?"accent":"")}${kpi(wf.summary.verifying,"검증 중")}${kpi(wf.summary.blocked,"막힘",wf.summary.blocked?"bad":"")}</div>
         ${(wf.contractsFailing||wf.contractsAutoFixing||wf.contractsNeedHuman)?`<div class="fix-lanes">
-          <div class="fix-lane auto"><div class="fl-n">${wf.contractsAutoFixing??0}</div><div class="fl-t">🤖 자동 수정 진행/대기<br>${wf.executorConnected?"코덱스가 고치는 중":"코덱스 연결되면 자동 시작 — 회장님 조치 불필요"}</div></div>
+          <div class="fix-lane auto"><div class="fl-n">${wf.contractsAutoFixing??0}</div><div class="fl-t">🤖 자동 수정 진행/대기<br>${wf.executorConnected?"코덱스가 대기열에서 순차로 처리(1건씩)":"코덱스 연결되면 자동 시작 — 회장님 조치 불필요"}</div></div>
           <div class="fix-lane human"><div class="fl-n">${wf.contractsNeedHuman??0}</div><div class="fl-t">✋ 사람 확인 필요<br>${(wf.contractsNeedHuman??0)?"'오늘' 화면 → 내가 확인할 일에서 처리":"지금은 없음"}</div></div>
         </div><p class="fine" style="margin:2px 0 8px">막힌 계약은 자동으로 <b>코덱스 수정 대기열</b>에 올라갑니다. 비밀키·개인정보 같은 건만 회장님 확인을 기다립니다 — 나머지는 알아서 고쳐집니다.</p>`:`<p class="fine" style="margin-top:0">막힌 계약이 없습니다 — 전 계약 정상.</p>`}
         <div class="simple-list">${(wf.byDivision||[]).filter(d=>d.total).slice(0,14).map(d=>`<div><b>${esc(d.divisionName||d.division)}</b>${tonePill(d.blocked?"bad":d.checking?"accent":"good",`${d.onDuty}/${d.total}명 근무 · 계약 ${d.ownedContracts}${d.blocked?` · 막힘 ${d.blocked}`:""}`)}</div>`).join("")}</div>
@@ -549,7 +551,7 @@ function renderCompany(){
         <div><b>기술개발·품질본부 · CI/코드 흐름</b>${tonePill(health.degraded?"warn":"good",health.degraded?`확인 ${health.degraded}`:"통과")}</div>
         <div><b>전사 열린 사건</b>${tonePill(health.openIncidents?"warn":"good",String(health.openIncidents??0))}</div>
         <div><b>점검 불가(신호 부족)</b>${tonePill("neutral",String(health.unavailable??0))}</div>
-        ${health.contracts?`<div><b>심층 계약 진단(정의 ${health.contracts.totalContracts??health.contracts.executed??0}건)</b>${tonePill(health.contracts.fail?"bad":health.contracts.degraded?"warn":"good",health.contracts.fail?`장애 ${health.contracts.fail}`:health.contracts.degraded?`확인 ${health.contracts.degraded}`:"전 계약 정상")}</div>`:""}
+        ${health.contracts?(()=>{const c=health.contracts;const defined=c.totalContracts??c.executed??0;const notVerified=(c.unavailable??0)+(c.blocked??0)+Math.max(0,defined-(c.executed??defined));const cls=c.fail?"bad":(c.degraded||notVerified)?"warn":"good";const txt=c.fail?`장애 ${c.fail}`:c.degraded?`확인 ${c.degraded}`:notVerified?`정상(점검 불가 ${notVerified})`:"전 계약 정상";return `<div><b>심층 계약 진단(정의 ${defined}건)</b>${tonePill(cls,txt)}</div>`;})():""}
       </div><p class="fine">마지막 점검 ${ago(health.runAt)} · 같은 문제는 반복 상신하지 않고, 회복되면 자동으로 닫힙니다. <a href="#/automation">진단 상세 보기</a></p>`:empty("아직 점검 결과가 없습니다."))}
       ${panel("복지시설 (생활 연출)",ORG?`<div class="simple-list">${(ORG.facilities||[]).map(f=>`<div><b>${esc(f.name)}</b><span class="status neutral">${esc(f.floor)}</span></div>`).join("")}</div><p class="fine">시설과 생활 모습은 회사 세계관 연출이며 실제 업무 성과와 분리 집계됩니다.</p>`:"")}
     </div>

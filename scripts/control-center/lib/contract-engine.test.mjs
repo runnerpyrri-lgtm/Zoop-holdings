@@ -23,6 +23,7 @@ function startFixture() {
     if (path === "/stale.json") return send(200, "application/json", "[]", { "x-verified-at": new Date().toISOString(), "x-data-stale": "1" });
     if (path === "/error-page") return send(200, "text/html", "<html>Application Error</html>");
     if (path === "/empty-title") return send(200, "text/html", `<html><head><title>   </title></head><body>${"내용".repeat(300)}</body></html>`);
+    if (path === "/bare") return send(200, "text/html", `<html><head><title>bare</title></head><body>${"내용".repeat(300)}</body></html>`); // 동일 출처 js/css 자산 없음
     return send(404, "text/plain", "not found");
   });
   return new Promise((resolvePromise) => server.listen(0, "127.0.0.1", () => resolvePromise({ server, base: `http://127.0.0.1:${server.address().port}` })));
@@ -71,6 +72,21 @@ test("http_html·surface_marker·manifest·sw evaluator가 fixture에서 정확�
     assert.equal(by["t:sw"].status, C_STATUS.PASS);
     assert.equal(by["t:404"].status, C_STATUS.FAIL);
     assert.ok(report.coverage.totalContracts === 11);
+  } finally { server.close(); }
+});
+
+test("surface_assets — 동일 출처 자산이 하나도 없으면 '자산 0개 전부 200'으로 위장하지 않고 UNAVAILABLE", async () => {
+  const { server, base } = await startFixture();
+  const runtimeDir = tempRuntime();
+  try {
+    const contracts = [
+      base_contract({ id: "t:assets-real", target: "t", category: "production", evaluator: "surface_assets", config: { url: `${base}/`, baseUrl: `${base}/` } }),
+      base_contract({ id: "t:assets-bare", target: "t", category: "production", evaluator: "surface_assets", config: { url: `${base}/bare`, baseUrl: `${base}/bare` } }),
+    ];
+    const report = await runContractEngine({ contracts, runtimeDir, repoRoot: runtimeDir, snapDir: runtimeDir, now: new Date() });
+    const by = Object.fromEntries(report.results.map((r) => [r.contractId, r]));
+    assert.equal(by["t:assets-real"].status, C_STATUS.PASS); // 실제 자산(app.js) 200
+    assert.equal(by["t:assets-bare"].status, C_STATUS.UNAVAILABLE); // 자산 0개 → '전부 200' 위장 금지
   } finally { server.close(); }
 });
 

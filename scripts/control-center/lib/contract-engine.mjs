@@ -93,12 +93,15 @@ async function getSurface(ctx, url, baseUrl) {
   if (ctx.surfaces.has(key)) return ctx.surfaces.get(key);
   const home = await cachedFetch(ctx, url, { timeoutMs: 25_000 });
   const parts = [home.bodyText];
-  let failedAssets = 0; const failedList = [];
+  let failedAssets = 0; const failedList = []; let discovered = 0; let incomplete = false;
   if (home.ok && home.status === 200) {
     const queue = extractAssetUrls(home.bodyText, baseUrl || url).slice(0, 20);
+    discovered = queue.length;
     const seen = new Set();
     for (const asset of queue) {
-      if (seen.has(asset) || seen.size >= 30 || ctx.budgetExhausted()) break;
+      if (seen.size >= 30) break;
+      if (ctx.budgetExhausted()) { incomplete = true; break; } // 예산 소진으로 남은 자산을 못 봄 — '전부 200'으로 위장 금지
+      if (seen.has(asset)) continue;
       seen.add(asset);
       const r = await cachedFetch(ctx, asset, { timeoutMs: 20_000 });
       if (!r.ok || r.status !== 200) { failedAssets += 1; failedList.push(`${r.status || r.errorClass} ${asset.slice(-60)}`); }
@@ -117,7 +120,7 @@ async function getSurface(ctx, url, baseUrl) {
       }
     }
   }
-  const surface = { home, combined: parts.join("\n"), failedAssets, failedList, assetCount: parts.length - 1 };
+  const surface = { home, combined: parts.join("\n"), failedAssets, failedList, assetCount: parts.length - 1, discovered, incomplete };
   ctx.surfaces.set(key, surface);
   return surface;
 }
@@ -211,7 +214,12 @@ async function evalHttpTiming(c, ctx) {
 async function evalSurfaceAssets(c, ctx) {
   const s = await getSurface(ctx, c.config.url, c.config.baseUrl);
   if (!s.home.ok || s.home.status !== 200) return unavailable("home 실패", "가용성 계약이 담당");
-  return s.failedAssets > 0 ? fail(`실패 자산 ${s.failedAssets}개: ${s.failedList.slice(0, 3).join(", ")}`, "0개") : pass(`자산 ${s.assetCount}개 전부 200`, "0개 실패");
+  if (s.failedAssets > 0) return fail(`실패 자산 ${s.failedAssets}개: ${s.failedList.slice(0, 3).join(", ")}`, "0개");
+  // 예산 소진으로 일부 자산을 못 봤으면 '전부 200'으로 위장하지 않는다(미점검을 정상으로 포장 금지).
+  if (s.incomplete) return unavailable("요청 예산 소진 — 일부 자산 미점검", "예산 회복 후 재점검");
+  // 동일 출처 js/css 자산을 하나도 못 찾았으면 '자산 0개 전부 200'이 아니라 점검 대상 없음으로 표기한다.
+  if (!s.discovered) return unavailable("동일 출처 자산(js/css) 없음", "빈 껍데기 여부는 http_html·browser_smoke가 담당");
+  return pass(`자산 ${s.assetCount}개 전부 200`, "0개 실패");
 }
 
 async function evalSurfaceMarker(c, ctx) {
@@ -324,6 +332,14 @@ async function evalGithubActions(c, ctx, runtimeDir) {
   const run = g.payload?.workflow_runs?.[0];
   if (!run) return unavailable("실행 이력 없음", "Actions 미사용과 실패를 구분");
   if (c.config.maxAgeHours) {
+    // workflowFile 없이 조회하면 성공·실패·취소가 섞인 '최신 run'이 온다. 최근성만 보고 '성공 N시간 전'으로
+    // 위장하지 말고 실제 conclusion을 확인한다(실패한 파이프라인이 초록으로 보이던 거짓 성과 차단).
+    if (run.status && run.status !== "completed") return pass(`실행 중(${run.status})`, "완료", "실행 중은 정상");
+    if (run.conclusion && run.conclusion !== "success") {
+      return run.conclusion === "cancelled"
+        ? degraded(`${run.name || "workflow"}: cancelled`, "성공", "취소는 실패와 구분")
+        : fail(`${run.name || "workflow"}: ${run.conclusion}`, "성공");
+    }
     const age = (ctx.nowMs - Date.parse(run.updated_at)) / 3_600_000;
     return age > c.config.maxAgeHours ? fail(`마지막 성공 ${Math.round(age)}시간 전`, `≤ ${c.config.maxAgeHours}시간`) : pass(`성공 ${Math.round(age)}시간 전`, `≤ ${c.config.maxAgeHours}시간`);
   }
@@ -469,9 +485,10 @@ const DATA_VALIDATORS = {
     const url = race.registrationUrl || race.officialUrl;
     const r = await cachedFetch(ctx, url, { timeoutMs: 20_000 });
     if (!r.ok) return degraded(`${r.errorClass}: ${String(url).slice(0, 60)}`, "응답", "외부 사이트 네트워크 요인 가능");
-    if (r.status === 404 || r.status === 410) return fail(`HTTP ${r.status}: ${race.name || ""}`, "유효한 공식 링크");
     if (r.status === 403 || r.status === 429) return pass(`HTTP ${r.status}(source 정책 차단 — 404와 구분)`, "링크 존재");
-    return pass(`HTTP ${r.status}: ${race.name || ""}`, "유효한 공식 링크");
+    if (r.status >= 200 && r.status < 300) return pass(`HTTP ${r.status}: ${race.name || ""}`, "유효한 공식 링크");
+    // 404·410뿐 아니라 5xx·401·400 등 오류 응답도 '유효한 링크'로 위장하지 않는다(깨진 링크는 깨진 링크).
+    return fail(`HTTP ${r.status}: ${race.name || ""}`, "유효한 공식 링크(2xx)");
   },
   // 자격증봄 source registry 심층
   certbom_sources(json) {
