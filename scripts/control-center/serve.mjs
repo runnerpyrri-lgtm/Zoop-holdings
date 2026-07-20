@@ -21,7 +21,7 @@ import { runContractEngine, contractResultsToRaw } from "./lib/contract-engine.m
 import { buildContractCatalog, catalogCoverage } from "./lib/contract-catalog.mjs";
 import { readApps } from "./lib/sources.mjs";
 import { tryActivatePlaywrightDriver } from "./lib/browser-driver.mjs";
-import { readMobileAccess, writeMobileAccess, connectUrls, DEFAULT_MOBILE_PORT } from "./lib/mobile-access.mjs";
+import { readMobileAccess, writeMobileAccess, regenerateMobileToken, connectUrls, DEFAULT_MOBILE_PORT } from "./lib/mobile-access.mjs";
 import { readAuthority, writeAuthority, isDelegable, currentShift, COMPANY_MODES, COMPANY_MODE_LABELS, APPROVAL_MODES } from "./lib/company-authority.mjs";
 import { classifyFix, classifyIncidents, resolutionLine } from "./lib/incident-fix.mjs";
 import { createLoop, transitionLoop, openIteration, findLoopByContract, findLoopByTask, summarizeLoops, pruneClosedLoops } from "./lib/loop-engine.mjs";
@@ -365,7 +365,7 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
       if (existingKeys.has(inc.contractId)) continue;
       if (inc.severity === "info") continue;
       const text = `${inc.userImpact || ""} ${inc.recommendedAction || ""}`;
-      const fixClass = classifyFix({ failureClass: inc.failureClass, text, requestedBy: "auto-review" });
+      const fixClass = classifyFix({ failureClass: inc.failureClass, text, requestedBy: "auto-review", severity: inc.severity });
       if (fixClass === "self_heal") { selfHealed += 1; existingKeys.add(inc.contractId); continue; } // 컴퓨터가 재점검·자동종료로 처리
       if (inc.severity === "warning" && warningBudget-- <= 0) continue;
       const priority = inc.severity === "critical" ? "urgent" : inc.severity === "error" ? "high" : "normal";
@@ -661,10 +661,16 @@ async function handleApi(req, res, path, store, maxBodyBytes, snapDir, local) {
     if (req.method !== "POST") { sendText(res, 405, "method not allowed", { Allow: "GET, POST" }); return; }
     if (!local) throw new HttpError("휴대폰 연결 설정은 이 컴퓨터에서만 바꿀 수 있습니다.", 403, "LOCAL_ONLY");
     const body = await readJsonBody(req, maxBodyBytes);
-    if (typeof body.enabled !== "boolean") throw new HttpError("enabled(boolean)가 필요합니다.", 400, "INVALID_BODY");
-    MOBILE_STATE = writeMobileAccess({ enabled: body.enabled });
-    if (body.enabled) await startMobileListener(store);
-    else stopMobileListener();
+    if (body.regenerate === true) {
+      // 토큰 재발급(다른 기기 연결 끊기): 기존 폰 쿠키·QR를 즉시 무효화하고 새 토큰으로 다시 켠다.
+      MOBILE_STATE = regenerateMobileToken();
+      await startMobileListener(store);
+    } else {
+      if (typeof body.enabled !== "boolean") throw new HttpError("enabled(boolean) 또는 regenerate(true)가 필요합니다.", 400, "INVALID_BODY");
+      MOBILE_STATE = writeMobileAccess({ enabled: body.enabled });
+      if (body.enabled) await startMobileListener(store);
+      else stopMobileListener();
+    }
     sendJson(res, 200, { ok: true, enabled: Boolean(MOBILE_STATE.enabled), port: MOBILE_STATE.port, token: MOBILE_STATE.enabled ? MOBILE_STATE.token : null, urls: connectUrls(MOBILE_STATE), listening: Boolean(mobileServer) });
     return;
   }

@@ -282,12 +282,20 @@ async function readJsonLines(path, { strict = false } = {}) {
 
 function foldEvents(events) {
   const records = new Map();
+  let orphaned = 0;
   for (const event of events) {
     if (event.action === "created" && event.record) records.set(event.id, event.record);
-    else if (event.action === "status_changed" && records.has(event.id)) {
-      records.set(event.id, { ...records.get(event.id), ...event.changes });
+    else if (event.action === "status_changed") {
+      if (records.has(event.id)) records.set(event.id, { ...records.get(event.id), ...event.changes });
+      else {
+        // created 이벤트가 유실·손상돼 부모 없는 status_changed가 온 경우: 조용히 버리지 않는다.
+        // 최소 레코드를 복구해 화면에 보이게 하고(_recovered), 로그로 알린다 — 침묵 유실 = 데이터 사고.
+        orphaned += 1;
+        records.set(event.id, { id: event.id, _recovered: true, ...event.changes });
+      }
     }
   }
+  if (orphaned) console.error(`[company-store] 부모(created) 없는 status_changed ${orphaned}건 — 손상 의심, 최소 복구로 보존`);
   return [...records.values()].sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
 }
 
@@ -375,7 +383,9 @@ export function createCompanyStore({
     const records = {};
     const counts = {};
     for (const collection of COMPANY_COLLECTIONS) {
-      records[collection] = await readCollectionNow(collection);
+      // 컬렉션 하나의 읽기 실패(권한·EIO 등)가 화면 전체를 하얗게 만들지 않게 컬렉션 단위로 격리한다.
+      try { records[collection] = await readCollectionNow(collection); }
+      catch (error) { console.error(`[company-store] ${collection} 읽기 실패 — 빈 목록으로 격리`, error?.message); records[collection] = []; }
       counts[collection] = records[collection].length;
     }
     return { schemaVersion: 1, generatedAt: isoNow(), counts, records };

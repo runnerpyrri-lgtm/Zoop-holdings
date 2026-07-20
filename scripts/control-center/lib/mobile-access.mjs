@@ -44,6 +44,12 @@ export function writeMobileAccess(changes, runtimeDir = DEFAULT_COMPANY_RUNTIME_
   return next;
 }
 
+// 토큰 재발급(다른 기기 연결 끊기): 새 토큰을 강제로 발급해 기존에 연결됐던 폰의 쿠키·QR를 즉시 무효화한다.
+// (끄기는 편의상 토큰을 보존하므로, 분실 기기를 실제로 끊으려면 이 재발급을 쓴다.)
+export function regenerateMobileToken(runtimeDir = DEFAULT_COMPANY_RUNTIME_DIR) {
+  return writeMobileAccess({ enabled: true, token: generateMobileToken() }, runtimeDir);
+}
+
 // 같은 사설망에서 접속 가능한 이 컴퓨터의 IPv4 주소들(공인망·가상 인터페이스 제외 우선순위 정렬)
 export function lanAddresses() {
   const out = [];
@@ -62,8 +68,10 @@ export function lanAddresses() {
 
 export function connectUrls(state) {
   if (!state?.enabled || !state.token) return [];
-  return lanAddresses().map((a) => ({
+  // 사설망(와이파이)·Tailscale 주소만 노출한다. 공인 IP가 있는 호스트에서 토큰이 박힌 인터넷 접근 URL을
+  // QR/화면에 내보내지 않는다(주석의 '공인망 제외' 의도를 코드로 강제 — 토큰 노출 방지).
+  return lanAddresses().filter((a) => a.isPrivate || a.isTailscale).map((a) => ({
     url: `http://${a.ip}:${state.port}/?token=${encodeURIComponent(state.token)}`,
-    kind: a.isTailscale ? "tailscale" : a.isPrivate ? "wifi" : "other",
+    kind: a.isTailscale ? "tailscale" : "wifi",
   }));
 }

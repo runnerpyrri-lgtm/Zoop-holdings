@@ -27,6 +27,21 @@ test("사람이 올린 안건은 항상 회장 판단", () => {
   assert.equal(classifyFix({ failureClass: "availability", text: "단순 확인", requestedBy: "chairman" }), "human");
 });
 
+test("critical/error인 self_heal 계열은 codex로 올린다(침묵 자동처리 금지)", () => {
+  // 경미하면 그대로 자동 재점검
+  assert.equal(classifyFix({ failureClass: "availability", text: "응답 지연", severity: "warning" }), "self_heal");
+  // 치명·오류 장애(사이트 다운 등)는 재점검만으로 회복 안 됨 → codex Loop로 escalate
+  assert.equal(classifyFix({ failureClass: "availability", text: "화면이 뜨지 않음", severity: "critical" }), "codex");
+  assert.equal(classifyFix({ failureClass: "production", text: "배포 실패", severity: "error" }), "codex");
+});
+
+test("보안·사용량·인증서·키 교체 단어는 self_heal 계열이어도 회장 확인으로 샌다(경계 방어)", () => {
+  assert.equal(classifyFix({ failureClass: "availability", text: "보안 인증서 만료로 접속 실패" }), "human");
+  assert.equal(classifyFix({ failureClass: "transport", text: "TLS 인증서 갱신 필요" }), "human");
+  assert.equal(classifyFix({ failureClass: "freshness", text: "API 사용량 한도 초과" }), "human");
+  assert.equal(classifyFix({ failureClass: "schema", text: "카카오 로그인 키 재발급 필요" }), "human");
+});
+
 test("해결방안 문구는 갈래별로 구체적이다", () => {
   assert.match(resolutionLine("self_heal", {}), /재점검|자동/);
   assert.match(resolutionLine("codex", { codexReady: true }), /승인/);

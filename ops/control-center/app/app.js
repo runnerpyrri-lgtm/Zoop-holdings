@@ -73,7 +73,7 @@ const accent=(id)=>appAccent[id]||"#64748b";
 const APP_ROLE={robom:"로봄 지주회사 허브 — 계열사 소개·설치 진입",outbom:"날씨·대기질 기반 야외활동 추천",homebom:"청약 공고 탐색·접수 시작/마감 알림",runningbom:"러닝 대회 탐색·접수 알림",calendarbom:"계열사 일정 통합 캘린더",certbom:"자격증 시험 탐색·접수/시험 일정",notebom:"빠른 메모·기록 정리"};
 const roleOf=(a)=>a.role||a.note||APP_ROLE[a.id]||"";
 
-const HQ_VERSION="3.2.0"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
+const HQ_VERSION="3.2.1"; // 빌드 시 version.json이 실제 앱 버전으로 덮어씀(=다운로드한 버전)
 let APP_VERSION=HQ_VERSION;
 let SNAP=null, LOCAL={records:{},audit:[],mode:"portable"}, HQ=null;
 let CURRENT="today", SELECTED_APP=null, REC_TAB="approvals", MEMORY_Q="";
@@ -646,7 +646,8 @@ function mobilePanel(){
         </ol>
         ${wifi?`<p class="fine">직접 입력 시: <code>${esc(wifi.url)}</code></p>`:`<p class="fine">네트워크 주소를 찾지 못했습니다. 와이파이 연결을 확인하세요.</p>`}
         <p class="fine">맥이 켜져 있고 ROBOM HQ 창이 열려 있을 때 접속됩니다. 집 밖에서도 보려면 맥·폰에 Tailscale을 설치하면 같은 방식으로 연결됩니다.</p>
-        <div class="today-actions">${button("연결 끄기","mobile-off","danger")}</div>
+        <div class="today-actions">${button("연결 끄기","mobile-off","danger")}${button("다른 기기 연결 끊기(재발급)","mobile-regen","ghost","","refresh")}</div>
+        <p class="fine">폰을 잃어버렸거나 남에게 보였다면 <b>재발급</b>을 누르세요 — 새 QR이 나오고 기존 연결은 즉시 끊깁니다.</p>
       </div>
     </div>`);
 }
@@ -764,6 +765,9 @@ document.addEventListener("click",async e=>{
     else if(a==="mobile-on"||a==="mobile-off"){
       MOBILE=await fetchJson("/api/mobile-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({enabled:a==="mobile-on"})});
       showToast(a==="mobile-on"?"휴대폰 연결을 켰습니다 — QR을 폰 카메라로 비추세요.":"휴대폰 연결을 껐습니다.","good");renderScreen();}
+    else if(a==="mobile-regen"){
+      MOBILE=await fetchJson("/api/mobile-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({regenerate:true})});
+      showToast("새 연결 코드를 발급했습니다 — 기존 기기는 끊겼습니다. 새 QR을 폰으로 다시 비추세요.","good");renderScreen();}
     else if(a==="run-health"){await fetchJson("/api/health-run",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});showToast("전체 재점검을 시작했습니다(심층 포함). 결과는 1~3분 안에 이 화면에 반영됩니다.","good");CONTRACTS=null;CONTRACTS_LOADING=false;setTimeout(()=>{CONTRACTS=null;CONTRACTS_LOADING=false;loadContracts();},90_000);}
     else if(a==="set-company-mode"){const data=await fetchJson("/api/company-mode",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:action.dataset.mode})});try{HQ=await fetchJson("/api/hq-status");}catch{}showToast({RUNNING:"회사를 가동했습니다 — 상시 관제·자동 복구·전결이 켜집니다.",MONITOR_ONLY:"관제만 모드 — 점검·기안만 하고 수정은 하지 않습니다.",PAUSED:"회사를 안전하게 일시정지했습니다."}[data.mode]||"반영했습니다.","good");updateChrome();renderScreen();}
     else if(a==="set-delegation"){const data=await fetchJson("/api/delegation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({approvalMode:action.dataset.approval})});try{HQ=await fetchJson("/api/hq-status");}catch{}showToast(data.approvalMode==="VICE_CHAIR_DELEGATED"?"수석부회장 전결을 위임했습니다 — 위임 가능 안건은 자동 재가됩니다.":"전결을 해제했습니다 — 새 안건은 회장 직접결재입니다.","good");updateChrome();renderScreen();}
