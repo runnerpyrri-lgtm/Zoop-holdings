@@ -13,10 +13,10 @@ rmSync(payload, { recursive: true, force: true });
 mkdirSync(payload, { recursive: true });
 
 const copies = [
-  // 서버·수집기·러너·라이브러리 (테스트 포함: 용량 작고 현장 진단에 유용)
-  ["scripts/control-center", "scripts/control-center"],
-  // 화면(경영 OS + 오피스 + 스프라이트)
-  ["ops/control-center/app", "ops/control-center/app"],
+  // 서버·수집기·러너·라이브러리 (테스트 포함: 용량 작고 현장 진단에 유용) — 필수: 없으면 앱이 뜨지 않는다.
+  ["scripts/control-center", "scripts/control-center", "required"],
+  // 화면(경영 OS + 오피스 + 스프라이트) — 필수: 없으면 회장이 볼 화면이 없다.
+  ["ops/control-center/app", "ops/control-center/app", "required"],
   ["ops/control-center/schemas", "ops/control-center/schemas"],
   // 스냅샷 수집기가 쓰는 본사 공용 라이브러리
   ["ops/scripts/lib", "ops/scripts/lib"],
@@ -33,16 +33,27 @@ const copies = [
   ["ops/state", "ops/state"],
   ["ops/HUMAN-TASKS.md", "ops/HUMAN-TASKS.md"],
   ["ops/ROADMAP.md", "ops/ROADMAP.md"],
-  // 예시 스냅샷(정직: runs 0) — 첫 실행 화면용
+  // 예시 스냅샷(정직: runs 0) — 첫 실행 화면용. 없어도 앱은 뜬다(선택).
   ["ops/control-center/snapshots/example.json", "ops/control-center/snapshots/example.json"],
   // 본사 웹 버전 표시용(코드 아님, 버전 메타만)
   ["site/package.json", "site/package.json"],
 ];
 
+// 필수 항목이 빠지면 console.warn만 하고 넘어가던 것 → 데스크톱 앱 빌드는 그대로 성공하고, 릴리스
+// "산출물 확인" 스텝도 dmg/zip/exe 파일 존재만 보므로, 서버·화면 없는 껍데기 설치본이 그대로
+// 릴리스되는데도 CI는 초록불로 끝나는 조용한 거짓 성공이 될 수 있었다(이번 세션에 반복 발견된 패턴).
+// 필수 항목만 즉시 실패시켜 이 경로를 원천 차단한다.
 let copied = 0;
-for (const [from, to] of copies) {
+for (const [from, to, requirement] of copies) {
   const src = join(repoRoot, from);
-  if (!existsSync(src)) { console.warn(`[payload] 건너뜀(없음): ${from}`); continue; }
+  if (!existsSync(src)) {
+    if (requirement === "required") {
+      console.error(`[payload] 필수 항목 없음: ${from} — 서버·화면이 빠진 채 빌드가 성공한 것처럼 보일 수 있어 중단합니다.`);
+      process.exit(1);
+    }
+    console.warn(`[payload] 건너뜀(없음): ${from}`);
+    continue;
+  }
   const dest = join(payload, to);
   mkdirSync(dirname(dest), { recursive: true });
   cpSync(src, dest, { recursive: true });
