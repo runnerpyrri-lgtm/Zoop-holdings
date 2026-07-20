@@ -1,6 +1,6 @@
 // 로봄 Company OS의 회의·결재·요청·작업 기록을 로컬 JSONL로 안전하게 저장한다.
 import { createHash, randomUUID } from "node:crypto";
-import { appendFile, chmod, mkdir, open, readFile, stat, writeFile } from "node:fs/promises";
+import { appendFile, chmod, mkdir, open, readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import { REPO_ROOT } from "./sources.mjs";
 
@@ -467,7 +467,15 @@ export function createCompanyStore({
         const backup = { schemaVersion: 1, createdAt: at, state, eventStreams, audit };
         const filename = `company-backup-${timestampForFile(at)}-${randomUUID().slice(0, 8)}.json.local`;
         const file = join(backupsDir, filename);
-        await writeFile(file, `${JSON.stringify(backup, null, 2)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
+        const tmp = `${file}.tmp`;
+        const body = `${JSON.stringify(backup, null, 2)}\n`;
+        // 원자적·검증된 백업: tmp에 쓰고 fsync로 디스크에 확정 → 다시 읽어 JSON 파싱 검증 → rename으로 확정.
+        // 잘린 백업이 mtime상 '최신'으로 위장해 24h 동안 다음 자동 백업을 막던 사고를 방지한다(안전망은 신뢰 가능해야 함).
+        const fh = await open(tmp, "w", 0o600);
+        try { await fh.writeFile(body, "utf8"); await fh.sync(); } finally { await fh.close(); }
+        try { JSON.parse(await readFile(tmp, "utf8")); }
+        catch (error) { try { await unlink(tmp); } catch { /* skip */ } throw new CompanyStoreError("백업 검증 실패(파일 손상) — 성공으로 기록하지 않음", { code: "BACKUP_VERIFY_FAILED", statusCode: 500 }); }
+        await rename(tmp, file);
         await appendAudit({ action: "company_backed_up", payload: { filename, counts: state.counts } });
         return { filename, createdAt: at, counts: state.counts };
       });
