@@ -376,11 +376,13 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
       const recByContract = new Map(health.recoveries.map((r) => [r.contractId, r]));
       const recoveredKeys = new Set(health.recoveries.map((r) => r.contractId));
       for (const a of (st0.records.approvals || [])) {
-        if ((!a.status || a.status === "pending") && a.requestedBy === "auto-review" && recoveredKeys.has(a.proposalKey)) {
-          const orphan = recByContract.get(a.proposalKey)?.reason === "orphan_pruned";
-          const comment = orphan ? "원래 계약이 더 이상 방출되지 않아 정리(재검증 불가 — 성공 아님)" : "신호 회복 — 컴퓨터가 자동 종료";
-          try { await store.updateStatus("approvals", a.id, { status: "resolved", comment }); autoClosed += 1; } catch { /* skip */ }
-        }
+        if (!((!a.status || a.status === "pending") && a.requestedBy === "auto-review")) continue;
+        // 승격 결재(proposalKey=contractId#escalated)도 원래 계약이 회복되면 함께 닫는다(안 그러면 회복 후에도 '수정 필요'가 영원히 대기).
+        const baseKey = String(a.proposalKey || "").replace(/#escalated$/, "");
+        if (!(recoveredKeys.has(a.proposalKey) || recoveredKeys.has(baseKey))) continue;
+        const orphan = recByContract.get(baseKey)?.reason === "orphan_pruned";
+        const comment = orphan ? "원래 계약이 더 이상 방출되지 않아 정리(재검증 불가 — 성공 아님)" : "신호 회복 — 컴퓨터가 자동 종료";
+        try { await store.updateStatus("approvals", a.id, { status: "resolved", comment }); autoClosed += 1; } catch { /* skip */ }
       }
       // 회귀 기준선: 현재 확정 실패 계약을 앱별로 모아, 회복된 계약의 수정이 '다른 걸 깨뜨렸는지' 본다.
       const recFailByApp = {};
@@ -403,12 +405,13 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
             transitionLoop(loop.loopId, "CLOSED", { now, note: "원래 계약이 더 이상 방출되지 않아 정리 — 재검증 불가(성공 아님)", evidence: { origin_recheck: "UNVERIFIED_RETIRED" } });
             continue;
           }
-          if (loop.fixClass !== "self_heal" && recHasRegression(loop)) {
+          // createLoop은 fixClass 입력을 authorityClass로 저장한다(loop.fixClass는 존재하지 않음) → authorityClass로 판정.
+          if (loop.authorityClass !== "self_heal" && recHasRegression(loop)) {
             try { openIteration(loop.loopId, { now, failureSignature: `regression-on-recovery:${appTarget(loop.targetApp || "")}` }); } catch { /* skip */ }
             regressionHeld += 1;
             continue; // 성공으로 닫지 않음 — task 경로/다음 iteration이 처리
           }
-          transitionLoop(loop.loopId, "CLOSED", { now, note: "신호 회복 자동 종료", evidence: { origin_recheck: "PASS", regression_guard: loop.fixClass === "self_heal" ? "N/A" : "PASS" } });
+          transitionLoop(loop.loopId, "CLOSED", { now, note: "신호 회복 자동 종료", evidence: { origin_recheck: "PASS", regression_guard: loop.authorityClass === "self_heal" ? "N/A" : "PASS" } });
         } catch { /* skip */ }
       }
     } catch { /* 회복 자동종료 실패는 무시 */ }
@@ -459,6 +462,9 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
       if (!r.confirmed || r.severity === "info") continue;
       const escKey = `${r.contractId}#escalated`;
       if (existingKeys.has(escKey) || existingKeys.has(r.contractId)) continue;
+      // existingKeys는 승인·종결된 결재를 놓쳐(승격 결재가 approved되면 빠져) 매 실행마다 중복 승격을 냈다.
+      // 이 계약으로 이미 열린 Loop가 있으면(승격이 이미 진행 중) 재승격하지 않는다 — 회복 시 Loop가 닫히므로 그 뒤엔 r.confirmed=false로 자연히 멈춘다.
+      try { if (findLoopByContract(r.contractId)) continue; } catch { /* skip */ }
       const text = `${r.userImpact || ""} ${r.recommendedAction || ""} ${r.actual || ""} ${r.expected || ""}`;
       if (classifyFix({ failureClass: r.failureClass, text, requestedBy: "auto-review", severity: r.severity }) !== "self_heal") continue;
       const firstMs = Date.parse(r.firstFailedAt || "");
