@@ -7,7 +7,9 @@
 // 회장 확인 필수 신호(전결 위임 금지와 동일 기준) — 비밀값·권한·결제·법률·계약·삭제·마이그레이션.
 // NON_DELEGABLE(company-authority)와 동일 신호를 유지한다 — self_heal 경로엔 전결 2차 방어가 없으므로
 // 보안·사용량·인증서·키 교체 같은 경계 단어가 여기서 누락되면 조용히 자동 처리로 새어나간다.
-export const HUMAN_TEXT = /결제|구독료|유료|요금|청구|사용량|한도|quota|billing|광고|홍보 게시|외부 게시|캠페인|개인정보|법률|약관|계약|스토어 제출|App Store|Play Store|출시|도메인|소유권|계정|권한|보안|security|비밀값|secret|시크릿|토큰|자격증명|credentials|OAuth|인증서|키 교체|키 재발급|키 회전|API 키|구매|환불|삭제(?!된)|마이그레이션|이전(?:합니다| 작업)/;
+// case-insensitive(/i): oauth·App store·api key 같은 대소문자 변형이 새어나가지 않게 한다. 영문 결제·스토어·자격증명
+// 동의어(payment·stripe·paypal·app store·api key)와 한글 무공백 변형(앱스토어)도 포함 — 이 범주는 항상 회장 확인이 안전(전결 escape 방지).
+export const HUMAN_TEXT = /결제|구독료|유료|요금|청구|사용량|한도|quota|billing|payment|stripe|paypal|광고|홍보 게시|외부 게시|캠페인|개인정보|법률|약관|계약|스토어 제출|앱스토어|App Store|Play Store|출시|도메인|소유권|계정|권한|보안|security|비밀값|secret|시크릿|토큰|자격증명|credentials|OAuth|인증서|키 교체|키 재발급|키 회전|API 키|API key|구매|환불|삭제(?!된)|마이그레이션|이전(?:합니다| 작업)/i;
 
 // 컴퓨터가 시간을 두고 스스로 재점검·회복 처리하는 계열(코드 변경 불필요).
 export const SELF_HEAL_CLASSES = new Set([

@@ -229,8 +229,19 @@ async function evalSurfaceMarker(c, ctx) {
   const any = c.config.markersAny || [];
   if (any.length && !any.some((m) => s.combined.includes(m))) problems.push(`marker 누락(any): ${any.slice(0, 3).join("|")}`);
   for (const m of c.config.markersAll || []) if (!s.combined.includes(m)) problems.push(`marker 누락: ${m}`);
-  for (const m of c.config.forbiddenMarkers || []) if (s.combined.includes(m)) problems.push(`금지 패턴 발견: ${m}`);
-  return problems.length ? fail(problems.join(" · "), "marker 계약 충족") : pass(`표면 ${s.assetCount + 1}개 파일 검사 통과`, "marker 계약 충족");
+  const forbidden = c.config.forbiddenMarkers || [];
+  let forbiddenHit = false;
+  for (const m of forbidden) if (s.combined.includes(m)) { problems.push(`금지 패턴 발견: ${m}`); forbiddenHit = true; }
+  if (problems.length) return fail(problems.join(" · "), "marker 계약 충족");
+  // 금지 marker(비밀키·analytics 등)의 '없음=PASS'는 표면 전체를 실제로 봤을 때만 유효하다. 자산 일부가
+  // 안 떠서(실패/예산 소진) 못 본 채로 통과시키면 비밀 노출을 초록으로 가린다(거짓 성과). evalSurfaceAssets와
+  // 동일한 가드를 금지 marker에도 적용 — 미점검이면 PASS가 아니라 UNAVAILABLE.
+  if (forbidden.length && !forbiddenHit) {
+    if (s.incomplete) return unavailable("요청 예산 소진 — 표면 일부 미점검", "금지 marker 부재를 확정할 수 없음(예산 회복 후 재점검)");
+    if (s.failedAssets > 0) return unavailable(`자산 ${s.failedAssets}개 미수신: ${s.failedList.slice(0, 2).join(", ")}`, "금지 marker 부재를 확정할 수 없음");
+    if (!s.discovered) return unavailable("동일 출처 자산(js/css) 없음 — HTML만 검사", "번들 내 금지 marker 존재 여부 확정 불가");
+  }
+  return pass(`표면 ${s.assetCount + 1}개 파일 검사 통과`, "marker 계약 충족");
 }
 
 async function evalTls(c, ctx) {
@@ -251,7 +262,15 @@ async function evalTls(c, ctx) {
     if (days < 21) return degraded(`잔여 ${Math.floor(days)}일`, "≥ 21일");
     return pass(`잔여 ${Math.floor(days)}일`, "≥ 21일");
   } catch (error) {
-    return degraded(String(error?.message || error).slice(0, 80), "TLS 연결", "조회 실패는 만료 임박과 구분(네트워크 오탐 방지)");
+    // 인증서 자체 문제(만료·자가서명·호스트 불일치)는 rejectUnauthorized로 secureConnect 전에 error가 나
+    // valid_to 검사에 도달하지 못한다. 이걸 네트워크 오탐과 뭉뚱그려 degraded로 삼키면 "만료돼 접속 차단"이라는
+    // 이 계약이 존재 이유(하드다운)를 놓친다 → 인증서 오류는 critical FAIL, 순수 연결 실패만 degraded.
+    const code = String(error?.code || "");
+    const msg = String(error?.message || error);
+    const certInvalid = /CERT|_SSL|SIGNATURE|ALTNAME|SELF_SIGNED|EXPIRED|UNTRUSTED|HOSTNAME/i.test(code) || /expired|certificate|self.?signed|altname|인증서/i.test(msg);
+    return certInvalid
+      ? { ...fail(msg.slice(0, 80), "유효한 인증서", "인증서 자체 오류(만료·자가서명 등) — 접속 차단"), severity: "critical" }
+      : degraded(msg.slice(0, 80), "TLS 연결", "조회 실패는 만료 임박과 구분(네트워크 오탐 방지)");
   }
 }
 
@@ -344,9 +363,11 @@ async function evalGithubActions(c, ctx, runtimeDir) {
     return age > c.config.maxAgeHours ? fail(`마지막 성공 ${Math.round(age)}시간 전`, `≤ ${c.config.maxAgeHours}시간`) : pass(`성공 ${Math.round(age)}시간 전`, `≤ ${c.config.maxAgeHours}시간`);
   }
   if (run.status !== "completed") return pass(`실행 중(${run.status})`, "완료", "실행 중은 정상");
-  if (run.conclusion === "failure") return fail(`${run.name || "workflow"}: failure`, "success");
+  // maxAgeHours 분기와 동일 규칙: success만 통과. failure뿐 아니라 timed_out·startup_failure 등
+  // 완료 못한 종료 결론을 success로 위장하지 않는다(거짓 성과 차단). cancelled(의도적)만 degraded로 구분.
+  if (run.conclusion === "success") return pass("success", "success");
   if (run.conclusion === "cancelled") return degraded(`${run.name || "workflow"}: cancelled`, "success", "취소는 실패와 구분");
-  return pass(run.conclusion || "success", "success");
+  return fail(`${run.name || "workflow"}: ${run.conclusion || "미상"}`, "success");
 }
 
 async function evalGithubPrs(c, ctx, runtimeDir) {
@@ -397,9 +418,13 @@ async function evalHttpJsonContract(c, ctx, runtimeDir) {
   // 헤더 계약
   const headerFailed = runAssertions(r.headers, c.config.headerAssertions || [], { nowMs: ctx.nowMs });
   if (headerFailed.length) return fail(headerFailed.map((f) => `${f.label || f.path}: ${f.op} 실패(${f.actual})`).join(" · "), "헤더 계약");
-  // stale 헤더가 있으면 DEGRADED(정직한 강등 — LKG 표시)
-  if (c.config.staleHeaderDegraded && r.headers[c.config.staleHeaderDegraded]) {
-    return degraded(`${c.config.staleHeaderDegraded}=${r.headers[c.config.staleHeaderDegraded]}`, "신선한 데이터", "LKG 제공 중 — 업스트림 수집 확인 필요");
+  // stale 헤더가 '실제 stale을 뜻하는 값'일 때만 DEGRADED. 서버가 x-data-stale: 0(명시적 fresh)을 보내면
+  // "0"은 truthy 문자열이라 예전엔 신선한 데이터를 stale로 오표기했다 → 0/false/no/off는 fresh로 취급.
+  if (c.config.staleHeaderDegraded) {
+    const sv = String(r.headers[c.config.staleHeaderDegraded] ?? "").trim().toLowerCase();
+    if (sv && !["0", "false", "no", "off", "fresh"].includes(sv)) {
+      return degraded(`${c.config.staleHeaderDegraded}=${r.headers[c.config.staleHeaderDegraded]}`, "신선한 데이터", "LKG 제공 중 — 업스트림 수집 확인 필요");
+    }
   }
   // 단조 증가(state 비교)
   if (c.config.monotonicHeader) {
@@ -892,9 +917,12 @@ function evalHqRuntime(c, ctx, env) {
       }
       case "engine-self": {
         if (!expectedContracts) return pass("첫 실행", "완결");
-        return executedContracts >= expectedContracts
-          ? pass(`계약 ${executedContracts}/${expectedContracts} 실행`, "전체 실행")
-          : degraded(`계약 ${executedContracts}/${expectedContracts} 실행(예산 소진 등)`, "전체 실행");
+        // engine-self는 항상 마지막에 실행되고 executedContracts 증가는 각 evaluator '이후'에 일어난다.
+        // 따라서 자기 차례엔 executedContracts = expected-1 이다 → 자신(+1)을 세어 비교(정상 run이 늘 degraded로
+        // 오표기되던 off-by-one 제거). 그래도 부족하면 루프가 중간에 끊긴 것 → degraded.
+        return executedContracts + 1 >= expectedContracts
+          ? pass(`계약 ${executedContracts + 1}/${expectedContracts} 실행`, "전체 실행")
+          : degraded(`계약 ${executedContracts + 1}/${expectedContracts} 실행(예산 소진 등)`, "전체 실행");
       }
       case "redaction-selftest": {
         const sample = redactEvidence("token sk-proj-abcdefghijklmnop and Bearer abcdefghijklmnopqrstuvwx end");

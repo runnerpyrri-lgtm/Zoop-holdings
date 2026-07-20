@@ -421,6 +421,40 @@ async function runDailyReviewIfDue({ store = createCompanyStore(), snapDir = SNA
       } catch { /* 개별 실패는 건너뛴다 */ }
     }
     healthSummary.selfHealed = selfHealed;
+    // self_heal이 오래(기본 3일) 회복 못 하면 재점검만으로는 안 낫는 실제 결함이다(예: 오프라인 셸 프리캐시 누락 같은
+    // 코드/설정 결함, 3일째 stale 데이터). 영구 '컴퓨터가 자동 처리 중'으로 방치하면 회장 화면에 거짓 안전으로 남는다
+    // → codex 결재로 승격해 사람이 볼 수 있게 한다(거짓 성과 금지). proposalKey에 #escalated를 붙여 재생성 방지.
+    const SELF_HEAL_ESCALATE_MS = 3 * 24 * 3600_000;
+    let selfHealEscalated = 0;
+    for (const r of healthResults) {
+      if (!r.confirmed || r.severity === "info") continue;
+      const escKey = `${r.contractId}#escalated`;
+      if (existingKeys.has(escKey) || existingKeys.has(r.contractId)) continue;
+      const text = `${r.userImpact || ""} ${r.recommendedAction || ""} ${r.actual || ""} ${r.expected || ""}`;
+      if (classifyFix({ failureClass: r.failureClass, text, requestedBy: "auto-review", severity: r.severity }) !== "self_heal") continue;
+      const firstMs = Date.parse(r.firstFailedAt || "");
+      if (!Number.isFinite(firstMs) || (now.getTime() - firstMs) < SELF_HEAL_ESCALATE_MS) continue;
+      const ageDays = Math.floor((now.getTime() - firstMs) / 86_400_000);
+      try {
+        const rec = await store.createRecord("approvals", {
+          title: `${r.userImpact || r.contractId} — 자동 재점검 ${ageDays}일째 미회복`,
+          appId: appTarget(r.target),
+          body: `${ageDays}일 동안 컴퓨터 재점검으로 회복되지 않았습니다. 재점검만으로 낫지 않는 결함으로 보여 코드 수정이 필요합니다. 확인된 값: ${r.actual || "-"}${r.expected ? ` / 기대: ${r.expected}` : ""}`,
+          recommendation: r.recommendedAction, priority: r.severity === "critical" ? "urgent" : "high", requestedBy: "auto-review",
+          proposalKey: escKey, fixClass: "codex", failureClass: r.failureClass || "", detectedAt: r.firstFailedAt || null, status: "pending",
+        });
+        try {
+          const loop = createLoop({
+            objective: `${r.userImpact || r.contractId} — 재점검 미회복, 코드 수정 필요`, contractId: r.contractId, fixClass: "codex",
+            appId: appTarget(r.target), userImpact: r.userImpact, expected: r.expected, severity: r.severity,
+            loopType: loopTypeFor(r.failureClass), approvalId: rec.id, nextAction: "회장 승인 대기(재점검으로 안 나아 코드 수정으로 전환)",
+          }, { now });
+          await store.updateStatus("approvals", rec.id, { loopId: loop.loopId });
+        } catch { /* loop 생성 실패는 결재를 막지 않는다 */ }
+        created.push(rec.id); existingKeys.add(escKey); selfHealEscalated += 1;
+      } catch { /* 개별 실패는 건너뛴다 */ }
+    }
+    healthSummary.selfHealEscalated = selfHealEscalated;
   } catch (error) { console.error("[robom-hq] health 엔진 실행 실패", error?.message); }
 
   // §7 핵심: Codex가 작업을 끝냈다(in_review)고 해결이 아니다. 원래 실패했던 계약이 이번 점검에서

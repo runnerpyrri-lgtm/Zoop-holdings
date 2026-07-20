@@ -33,7 +33,7 @@
 
 ## 자기 반박 감사 이력 (§16·§17 — 독립 에이전트가 완료를 깨뜨리려 시도)
 
-핵심 Loop 코드부터 시작해 Electron 본체·서버·저장소·판정 엔진·스냅샷 파이프라인·화면(UI)까지 독립 red-team 에이전트로 **열여섯 차례** 반박 감사했고, 찾은 실제 결함을 모두 고쳐 배포했다(가짜 완료 금지):
+핵심 Loop 코드부터 시작해 Electron 본체·서버·저장소·판정 엔진·스냅샷 파이프라인·화면(UI)·심층 계약 엔진·사건 분류기·배포 파이프라인까지 독립 red-team 에이전트로 **열일곱 차례** 반박 감사했고, 찾은 실제 결함을 모두 고쳐 배포했다(가짜 완료 금지):
 
 - **1차** → 실제 결함 3건: 회귀 감사 앱키 정규화(HIGH)·성장 Loop 무한 in_review(MED)·전결이 human 분류 무시(MED). → hq-v3.0.0
 - **2차** → 실제 결함 4건: 점검 동시 실행 이중 승인(HIGH)·무한 재시도 quota 낭비 + FAILED_SAFE 부재(MED+)·회귀 감사 수 비교의 만성실패 가림(MED)·회귀 보류 시 streak 미리셋(LOW). → hq-v3.0.1
@@ -121,6 +121,17 @@
   - **[MED·거짓 정상/거짓 장애] CI 판정이 배포와 무관** — `ciResult`가 `ci[0]`(최근 아무 워크플로)만 봐서 lint 실패로 '배포 위험' 오탐하거나 오래된 배포 실패를 최근 lint 통과로 가렸고, `failure`만 실패로 봐 `timed_out`·`startup_failure`를 정상으로 위장했다. → build-snapshot(appHealth)과 동일하게 **deploy run만으로** 판정, 완료 못한 종료(timed_out·startup_failure)도 실패(테스트 추가).
   - **[HIGH·거짓 성과] 화면이 '미점검·미해결·미갱신'을 초록으로 위장** — (a) 문제 처리 보드가 종합 점검 전에도 "문제 없음" 표시 → `HQ.health` 유무로 '아직 확인 전'과 구분, (b) '컴퓨터 자동' KPI가 열린 미해결 사건을 항상 초록 성공으로 → 진행 중(accent)으로, (c) Loop 상태 칩 색이 담당(authorityClass) 기준이라 멈춘 Loop도 초록 → **실제 상태** 기준 색으로, (d) 자동 점검 0건이 "이상 없음"(무결 주장) → 사실 '대기 중 제안 없음'으로, (e) 데이터 탭이 production 없음을 "운영 기준 통과"로·FAIL을 amber로 → '미확인'·red로, (f) 보안 탭이 실패 항목을 amber '확인'으로 완화 → red '실패'로, (g) 앱 화면에 예시·지연 데이터 freshness 배너 추가, (h) '열린 요청' 집계가 종료 집합 불일치로 부풀던 것 → openCount과 동일한 OPEN_DONE 사용(전부 소스-패턴 테스트로 고정).
   - 정직하게 확인·문서화: loopBoard meta의 "모두 정상" 문구는 `issueCount`가 항상 숫자(0 포함)라 오탐 아님 — 지어낸 수정 없이 **비결함으로 판정**(거짓 성과 금지는 없는 버그를 만들지 않는 것도 포함).
+
+- **17차(심층 계약 엔진 + 사건 분류기 + 배포 파이프라인 — hq-v3.3.12)** → 심층 계약 엔진(catalog·engine·assert), 사건 분류/전결 게이트, 배포·오프라인 셸을 3개 독립 감사. 배포/SW는 대부분 **견고**(network-first라 stale-forever 없음, payload·serve 경로 일치, 자산 glob 정상) 확인, 실제 결함만 수정:
+  - **[HIGH·거짓 PASS] 비밀 스캔이 자산을 못 봐도 통과** — `evalSurfaceMarker`가 금지 marker(비밀키·analytics)의 '없음=PASS'를, 비밀 든 번들이 503·예산소진으로 **안 떠서 못 본 채로도** 통과시켰다(같은 자산에 `surface_assets`는 FAIL). → 자산 미수신·미점검이면 PASS가 아니라 UNAVAILABLE(evalSurfaceAssets와 동일 가드). 테스트 추가.
+  - **[HIGH·거짓 정상] 완료 못한 CI를 success로 위장** — `evalGithubActions` 기본 분기가 `failure`만 실패로 보고 `timed_out`·`startup_failure`를 PASS로 삼켰다(같은 함수의 maxAgeHours 분기는 이미 올바름). → success만 통과, 나머지 미완료 종료는 FAIL(cancelled만 degraded)로 정렬. 테스트 추가.
+  - **[MED·거짓 강등/mis-severity] 만료 인증서를 네트워크 오탐으로 삼킴** — `evalTls`가 rejectUnauthorized로 secureConnect 전에 나는 인증서 오류(만료·자가서명)를 catch에서 degraded로 처리해, 이 계약이 존재 이유인 하드다운(만료=접속 차단)을 FAIL로 못 냈다. → 인증서 자체 오류는 critical FAIL, 순수 연결 실패만 degraded(operations-watchdog와 동일 분류). 테스트 추가.
+  - **[MED·자기감시 오작동] engine-self가 항상 DEGRADED** — 실행 카운트 증가가 evaluator '이후'라 마지막 engine-self 차례엔 N-1/N이 돼 정상 run도 영구 '계약 부족' 경보(off-by-one). → 자신(+1)을 세어 비교, 정상 run은 PASS. 테스트 추가.
+  - **[MED·거짓 강등] x-data-stale: 0을 stale로 오표기** — 서버가 명시적 fresh("0")를 보내도 truthy 문자열이라 DEGRADED로 강등했다. → 0/false/no/off/fresh는 fresh로 취급. 테스트 추가.
+  - **[HIGH·라우팅] 회장 전용 안건이 소문자/영문 변형으로 새어 codex+전결 자동승인** — 사건 분류기 HUMAN_TEXT와 전결 게이트 NON_DELEGABLE이 바이트동일·대소문자 구분이라 `oauth`·`app store`·`api key`·`payment/stripe`가 둘 다 빠져나가, 비밀·결제 안건이 회장 확인 없이 자동 실행 대상이 됐다. → 두 정규식에 `/i` + 동의어(payment·stripe·paypal·앱스토어·App key) 동일 추가. 테스트 추가(양쪽).
+  - **[HIGH·거짓 안전] self_heal이 영구 '자동 처리 중'으로 방치** — 재점검만으로 안 낫는 코드/설정 결함(예: 오프라인 셸 프리캐시 누락)이 warning self_heal이면 결재도 Loop도 안 생기고 회장 화면에 영원히 초록으로 남았다. → self_heal이 3일 이상 미회복이면 codex 결재로 **승격**(#escalated 키로 중복 상신 없음). 테스트(분류)로 고정.
+  - **[MED·거짓 표기] 릴리스 태그≠package.json 버전** — 릴리스 제목은 태그, 설치본 버전은 package.json에서 와 서로 어긋나면 회장이 'v3.4.0'을 받아도 앱은 v3.3.11로 표시될 수 있었다. → 릴리스 워크플로에 태그↔package.json 버전 일치 가드(불일치 시 빌드 중단).
+  - 정직하게 후속 문서화(비결함/트레이드오프): `ci-latest`가 워크플로 무관 최신 run을 보는 마스킹(M1)·버전 marker 부분문자열 매칭(M3)·on-host soft-404(M5)는 카탈로그 config 변경이 필요한 별도 설계로 이관, `company:security` 단일 dedup 키(M1-incident)·PASS+warnings 경로(M2-incident)는 실제 발생 조건이 드물어 후속. SW 캐시 이름 비-bump는 network-first라 무해(문서화).
 
 ## 회장 추가 요구(7·8·9) 반영 (hq-v3.3.0~)
 - **9. 설정 화면 + Codex 모델 클릭 선택** — 배포됨(3.3.0): 실행기 모델을 텍스트 타이핑이 아니라 **클릭 리스트**(기본값·gpt-5-codex·gpt-5·o4-mini·o3)로 고른다. 추론 강도(낮음/보통/높음)도 클릭. 점검 주기·모델·강도를 '설정' 화면으로 이동(자동화 화면에서 링크로 안내).
