@@ -7,6 +7,9 @@ import { REPO_ROOT } from "./sources.mjs";
 export const STALE_MINUTES = 30;
 
 const TERMINAL = new Set(["run_completed", "run_failed", "rollback_completed"]);
+// 사람 승인 대기·외부 작업 대기는 heartbeat 없이 오래 걸리는 게 정상(사람이 30분 넘게 결재를 안 할 수 있고,
+// 스토어 심사 등 외부 대기는 며칠 간다). 이를 시간 경과로 '상태 확인 필요'로 낮추면 회장 승인함에서 조용히 사라진다(승인 게이트 붕괴).
+const WAIT_EXEMPT = new Set(["approval_pending", "external_wait"]);
 
 // createdAt을 숫자 시각으로 판정한다. 없거나 깨진 값은 -Infinity(가장 과거)로 취급해
 // 절대 '가장 최신 이벤트(last)'로 정렬돼 실제 최종 상태를 덮어쓰지 못하게 한다.
@@ -53,8 +56,9 @@ export function deriveRuns(events, nowIso) {
     let status = (last.status && STATUS_LABEL[last.status]) ? last.status : inferStatus(types, last.type);
     const lastAt = Date.parse(last.createdAt || "");
     const terminal = TERMINAL.has(last.type);
-    // 터미널이 아닌데 활동 시각이 없거나(깨짐) 만료됐으면 '상태 확인 필요'로 정직하게 낮춘다(정상·작업중으로 위장 금지).
-    if (!terminal) {
+    // 사람 승인 대기·외부 작업 대기는 정상적으로 오래 걸린다 → 시간 경과·시각 부재로 강등해 승인함에서 사라지게 하지 않는다.
+    // (그 외 '작업 중'류는 heartbeat가 끊기면 러너가 죽은 것일 수 있어 정직하게 '상태 확인 필요'로 낮춘다.)
+    if (!terminal && !WAIT_EXEMPT.has(status)) {
       if (!Number.isFinite(lastAt)) status = "needs_check";
       else if (now && (now - lastAt) > STALE_MINUTES * 60000) status = "needs_check";
     }
@@ -78,8 +82,10 @@ export function deriveRuns(events, nowIso) {
       timeline: list.map((e) => ({ at: e.createdAt, type: e.type, message: e.message || "" })),
     });
   }
-  // 최근 활동 순
-  runs.sort((a, b) => String(b.lastActivity).localeCompare(String(a.lastActivity)));
+  // 최근 활동 순 — 문자열 localeCompare는 lastActivity가 null인 항목("null")을 실제 ISO 시각보다 뒤로 정렬해
+  // 순서를 오염시킨다(이 파일이 last 판정에서 이미 버린 안티패턴). 시각으로 비교하고 깨진 값은 가장 과거로 둔다.
+  const activityMs = (r) => { const v = Date.parse(r.lastActivity || ""); return Number.isFinite(v) ? v : -Infinity; };
+  runs.sort((a, b) => activityMs(b) - activityMs(a));
   return runs;
 }
 
