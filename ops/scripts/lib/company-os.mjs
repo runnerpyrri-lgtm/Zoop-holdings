@@ -52,7 +52,16 @@ export function validateCompanyOs({ document, version, compatibility, registrySo
     if (!source.includes("ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md")) errors.push(`Company OS loader 참조가 누락됐습니다: ${path}`);
   }
   for (const [path, source] of workflowSources) {
-    if (/uses:\s*[^\s]+@(v\d+|main|master)\s*(?:#.*)?$/m.test(source)) errors.push(`변경 가능한 GitHub Action 참조가 남아 있습니다: ${path}`);
+    // 기존 blocklist(@v\d+|main|master)는 @v4.1.0·@develop·@1.2.3 같은 다른 mutable 형태를 전부 놓쳤다.
+    // "40-hex commit SHA로 고정됐는가"를 직접 확인하는 allowlist로 뒤집어 모든 구멍을 한 번에 막는다.
+    for (const line of source.split(/\r?\n/)) {
+      const ref = line.match(/^\s*(?:-\s*)?uses:\s*(\S+)/)?.[1];
+      if (!ref) continue;
+      if (ref.startsWith("./") || ref.startsWith("../")) continue; // 같은 저장소 로컬 참조(@ref 없음)
+      if (ref.startsWith("docker://")) continue; // 컨테이너 이미지는 다이제스트(@sha256:)로 별도 고정 — 이 계약 범위 밖
+      const sha = ref.slice(ref.lastIndexOf("@") + 1);
+      if (!/^[0-9a-f]{40}$/.test(sha)) errors.push(`변경 가능한 GitHub Action 참조가 남아 있습니다: ${path} (${ref})`);
+    }
   }
   return errors;
 }
