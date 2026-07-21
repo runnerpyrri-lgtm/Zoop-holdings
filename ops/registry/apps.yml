@@ -25,9 +25,9 @@ apps:
     pwa_install_url: https://robom-labs.github.io/outbom/
     stable_install_url: https://robom.kr/get/outbom
     mobile_status: pwa
-    family_spec_version: 1.0.0
+    family_spec_version: 1.1.0
     last_verified_at: "2026-07-19T15:10:00+09:00"
-    last_deployed_sha: 6f9058691d97fe17417b34d74821d22f216572a4
+    last_deployed_sha: 0947cb66b6a7f341f034f4d81a8871b83a20c67e
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: runtime
     freshness_slo_hours: 48
@@ -92,9 +92,9 @@ apps:
     pwa_install_url: https://robom-labs.github.io/runningbom/
     stable_install_url: https://robom.kr/get/runningbom
     mobile_status: pwa
-    family_spec_version: 1.0.0
+    family_spec_version: 1.1.0
     last_verified_at: "2026-07-19T22:40:00+09:00"
-    last_deployed_sha: 4aaa43cade5923a3a8a03160d200a575de4e5a51
+    last_deployed_sha: 5a82a18a2106af882789bb4a25b1b0de8a7418e9
     last_data_sync_at: "2026-07-12T00:00:00+09:00"
     freshness_status: fresh
     freshness_slo_hours: 168
@@ -124,9 +124,9 @@ apps:
     pwa_install_url: https://robom-labs.github.io/calendarbom/
     stable_install_url: https://robom.kr/get/calendarbom
     mobile_status: pwa
-    family_spec_version: 1.0.0
+    family_spec_version: 1.1.0
     last_verified_at: "2026-07-19T23:05:00+09:00"
-    last_deployed_sha: ff7231f457f763143b32b8b59f396a1bda83b85b
+    last_deployed_sha: f8d12517de3dc15decec147bd4fe801d6aafef3e
     last_data_sync_at: "2026-07-16T13:42:23+09:00"
     freshness_status: local-only
     freshness_slo_hours: 720
@@ -156,9 +156,9 @@ apps:
     pwa_install_url: https://certbom.vercel.app/
     stable_install_url: https://robom.kr/get/certbom
     mobile_status: pwa
-    family_spec_version: 1.0.0
+    family_spec_version: 1.1.0
     last_verified_at: "2026-07-19T15:10:00+09:00"
-    last_deployed_sha: 3e3fae526810350adc1fa13f9883ddbaf458a045
+    last_deployed_sha: 351abe6ed6389281552be7ae5bb3db73092b9e80
     last_data_sync_at: "2026-07-16T15:00:00+09:00"
     freshness_status: last-known-good
     freshness_slo_hours: 48
@@ -188,9 +188,9 @@ apps:
     pwa_install_url: https://robom-labs.github.io/notebom/
     stable_install_url: https://robom.kr/get/notebom
     mobile_status: pwa
-    family_spec_version: 1.0.0
+    family_spec_version: 1.1.0
     last_verified_at: "2026-07-20T18:40:00+09:00"
-    last_deployed_sha: 5465cbb3a83ee44e6de7534e49479c6d6890643d
+    last_deployed_sha: 0217f7f5df15209ee3d1cc32bc4f977786da5248
     last_data_sync_at: "2026-07-17T23:59:39+09:00"
     freshness_status: local-only
     freshness_slo_hours: 720

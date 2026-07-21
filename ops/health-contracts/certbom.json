@@ -375,7 +375,7 @@
     "url": "https://certbom.vercel.app/",
     "baseUrl": "https://certbom.vercel.app/",
     "markersAny": [
-     "3e3fae5"
+     "351abe6"
     ]
    },
    "severityIfFail": "warning",

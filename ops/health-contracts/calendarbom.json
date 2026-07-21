@@ -375,7 +375,7 @@
     "url": "https://robom-labs.github.io/calendarbom/",
     "baseUrl": "https://robom-labs.github.io/calendarbom/",
     "markersAny": [
-     "ff7231f"
+     "f8d1251"
     ]
    },
    "severityIfFail": "warning",

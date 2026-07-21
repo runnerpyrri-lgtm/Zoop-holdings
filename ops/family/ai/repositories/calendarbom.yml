@@ -13,7 +13,7 @@ deploy_contract: "github-pages · base /calendarbom/"
 production_url: "https://robom-labs.github.io/calendarbom/"
 health_contract: "https://robom-labs.github.io/calendarbom/"
 family_ui_adapter: vanilla
-family_spec_deployed: "1.0.0"
+family_spec_deployed: "1.1.0"
 stable_install_url: "https://robom.kr/get/calendarbom"
 context_topics: ["저장 키", "migration", "반복 일정", "알람", "백업", "ICS", "시니어 UX"]
 critical_invariants: ["기존 저장 키·내부 ID는 migration 없이 변경 금지", "알람 계산은 로컬 타임존 정확성 유지"]

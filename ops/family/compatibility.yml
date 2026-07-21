@@ -5,12 +5,12 @@ policy:
 
 apps:
   outbom:
-    family_spec: 1.0.0
-    generated_commit: fe655b865edb5ad2c037e117143684c6dae9f5eb
+    family_spec: 1.1.0
+    generated_commit: 75d4f9d4c803e1dbaa6dda67e48b6ed23960520f
     build: pass
     visual: pass
     analytics: pass
-    deployed_sha: 6f9058691d97fe17417b34d74821d22f216572a4
+    deployed_sha: 0947cb66b6a7f341f034f4d81a8871b83a20c67e
   homebom:
     family_spec: 1.1.0
     generated_commit: 75d4f9d4c803e1dbaa6dda67e48b6ed23960520f
@@ -19,30 +19,30 @@ apps:
     analytics: pass
     deployed_sha: 777f34eb67c98c379fed1af4c3f232d1def59665
   runningbom:
-    family_spec: 1.0.0
-    generated_commit: 4aaa43cade5923a3a8a03160d200a575de4e5a51
+    family_spec: 1.1.0
+    generated_commit: 75d4f9d4c803e1dbaa6dda67e48b6ed23960520f
     build: pass
     visual: pass
     analytics: pass
-    deployed_sha: 4aaa43cade5923a3a8a03160d200a575de4e5a51
+    deployed_sha: 5a82a18a2106af882789bb4a25b1b0de8a7418e9
   calendarbom:
-    family_spec: 1.0.0
-    generated_commit: ff7231f457f763143b32b8b59f396a1bda83b85b
+    family_spec: 1.1.0
+    generated_commit: 75d4f9d4c803e1dbaa6dda67e48b6ed23960520f
     build: pass
     visual: pass
     analytics: pass
-    deployed_sha: ff7231f457f763143b32b8b59f396a1bda83b85b
+    deployed_sha: f8d12517de3dc15decec147bd4fe801d6aafef3e
   certbom:
-    family_spec: 1.0.0
-    generated_commit: 5a63eab4f6930837f9877efd187562b85530a81a
+    family_spec: 1.1.0
+    generated_commit: 75d4f9d4c803e1dbaa6dda67e48b6ed23960520f
     build: pass
     visual: pass
     analytics: pass
-    deployed_sha: 3e3fae526810350adc1fa13f9883ddbaf458a045
+    deployed_sha: 351abe6ed6389281552be7ae5bb3db73092b9e80
   notebom:
-    family_spec: 1.0.0
-    generated_commit: 14848f542144c1e0e25a0c173661af4854dc8134
+    family_spec: 1.1.0
+    generated_commit: 75d4f9d4c803e1dbaa6dda67e48b6ed23960520f
     build: pass
     visual: pass
     analytics: pass
-    deployed_sha: 5465cbb3a83ee44e6de7534e49479c6d6890643d
+    deployed_sha: 0217f7f5df15209ee3d1cc32bc4f977786da5248
