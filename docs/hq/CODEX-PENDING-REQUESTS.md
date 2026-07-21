@@ -107,3 +107,17 @@
   - [calendarbom#6](https://github.com/robom-labs/calendarbom/pull/6): 하단 탭바(0.85 투과)가 뒤 텍스트를 유령처럼 비추던 것 → 0.96로 상향(프로스티드 유지). 회장 "뒤에 있어서 헷갈려" 지적의 한 축.
   - [notebom#13](https://github.com/robom-labs/notebom/pull/13): 온보딩 "바로 시작 가능" 3줄 깨짐·설정 "전체 백업 받기" 줄바꿈·상세 "일정으로 보내기" 아이콘이 깨진 □ → nowrap·⊞ 교체.
   - 러닝봄·야외봄은 앞서 이미 검증·보완 완료. 4개 PR 전부 로컬 테스트·타입체크 통과 후 머지·배포. **"건전하니 안 고친다"던 초기 판단이 틀렸음을 실측으로 확인하고 정정**.
+- **노트봄 ASR 전면 업그레이드(회장 정본 ZIP `NOTEBOM_CLAUDE_CODE_FULL_HANDOFF_v1.0.0`, 전권 승인)**:
+  MANIFEST 52/52 검증 → 정본 전량 정독(read-ledger·READ_COMPLETE) → 연구 수치 원시 재계산 일치 확인 →
+  최신 GitHub 재확인(main 0217f7f=0.6.1, 연구 PR #14/#15/#16 open·draft·운영코드 무변경 → 무검증 병합 안 함).
+  **진짜 원인 = 언어 강제**(검증된 독립 벤치마크 n=8: Turbo ko HiKE CER 0.33·영어재현 0.59·환각 12.5%
+  vs auto 0.20·0.77·0; 순수 한국어는 동일). 웹 워커가 `language:"korean"` 고정 + 반복붕괴 때만 복구라
+  흔한 "영어만 흘리는" 경우를 놓침.
+  → [notebom#17](https://github.com/robom-labs/notebom/pull/17) **머지·배포(0.7.0)**: 짧은 메모(≤45초)는
+  자동 언어 인식으로 한 번 더 비교, 영문 8자 이상 복구 시에만 채택(순수 한국어 회귀 0 가드), 사용 언어 모드
+  note 정직 표기. `chooseCodeSwitchTranscript` 순수함수 분리+유닛 4개. 로컬 전 검증 그린
+  (타입·린트·유닛 69·빌드·family drift0·e2e 16 chromium) + CI verify·family·browser 그린 + deploy-pages 실행.
+  버전 0.6.1→0.7.0은 package.json+app-meta.json+family.lock 일관 갱신(중앙 생성 규칙과 동일, drift 0).
+  **BLOCKED_EXTERNAL(정직 보고)**: 네이티브 ko→auto(Android NDK+whisper.cpp 빌드 불가 → docs에 설계 명세만),
+  실기기 마이크·발열(Galaxy/iPhone/Buds/AirPods), iOS(WhisperKit) 빌드(맥 없음), FLEURS·HiKE ≥30 대규모
+  재측정(컴퓨트). 측정 안 한 정확도 수치는 만들지 않음.
