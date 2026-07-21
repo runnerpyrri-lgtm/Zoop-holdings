@@ -257,9 +257,7 @@
     "mustNotContainAny": [
      "outbom-",
      "homebom-",
-     "runningbom-",
-     "calendarbom-",
-     "notebom-"
+     "runningbom-"
     ]
    },
    "severityIfFail": "warning",

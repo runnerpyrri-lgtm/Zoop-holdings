@@ -1,27 +1,14 @@
 {
-  "generatedAt": "2026-07-16T09:39:39.206Z",
-  "sourceCommit": "46ac6c563837bb807a17305b00a0bd9ed106256a",
+  "generatedAt": "2026-07-21T22:25:46.740Z",
+  "sourceCommit": "c0bbe5f6ca1d3cc17c1a4737ecaa7f47b1caccd6",
   "files": {
-    "ops/registry/apps.yml": "sha256:f7874f0feccae7e4e8f76c632a3f5ca9e239679973693492bfb8a9b6ec174c60",
-    "ops/family/family-version.json": "sha256:fb14fa9ab0217c345f35c99635514ce33f2ef028307889617a569095341d969a",
+    "ops/registry/apps.yml": "sha256:d638cbf3b763199a1ac65fe42ca10a7dd2dc7c1cdf5d25b61c1a6ded570605cc",
+    "ops/family/family-version.json": "sha256:2690c10d9f1c8f6d42981f8d2b77a2ff5b2ea9e146039e2a556589b6f8941203",
     "ops/family/contracts/analytics.yml": "sha256:7bbac0683e187ae6fbff287c56ad4021ea96d4014dd988fb301d5d3fbce80678",
     "ops/family/contracts/install.yml": "sha256:76b64da7c383c9b60fd54b874f37671fb7bf0d1e6bdf5d5de0acaedde7a39836",
-    "ops/family/compatibility.yml": "sha256:01345e38b984b200e3d0754b71fbfb9e02f15289e8ccde848b9fd7631d94fbf0"
+    "ops/family/compatibility.yml": "sha256:fd5dbffa49475a084389d39d7e6c1af06dd895a9d5b715a881459d95170e265e"
   },
-  "tests": [
-    "robom registry+watchdog+lint+build+Chromium/WebKit E2E+family surfaces+production axe+QR",
-    "OutBom typecheck+120 unit+build+mobile export",
-    "HomeBom typecheck+122 unit+build+11 E2E",
-    "RunningBom 37 tests+data validation+mobile export",
-    "CalendarBom 33 unit+Chromium/WebKit E2E+mobile check",
-    "CertBom typecheck+lint+unit+68 E2E+source 400-day simulation"
-  ],
-  "productionSmoke": [
-    "OutBom 0.25.1 build 0addaa7",
-    "HomeBom 0.14.1 build 40151b5",
-    "RunningBom 0.17.2 build 94667c2",
-    "CalendarBom 0.5.1 build 997f13e",
-    "CertBom 0.6.2 build ceff179 summary+group+preparation Chromium/WebKit"
-  ],
-  "nextDiffBase": "46ac6c563837bb807a17305b00a0bd9ed106256a"
+  "tests": [],
+  "productionSmoke": [],
+  "nextDiffBase": "c0bbe5f6ca1d3cc17c1a4737ecaa7f47b1caccd6"
 }

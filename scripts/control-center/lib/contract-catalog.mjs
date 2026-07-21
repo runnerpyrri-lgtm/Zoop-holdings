@@ -7,7 +7,7 @@ export const CONTRACT_SCHEMA_VERSION = "2.2.0";
 
 // 계약 최소 수(프롬프트 명시) — 게이트 테스트가 검증한다.
 export const MIN_CONTRACTS = Object.freeze({
-  outbom: 18, homebom: 22, runningbom: 20, calendarbom: 22, certbom: 24, notebom: 26,
+  outbom: 18, homebom: 22, runningbom: 20, certbom: 24,
   robom: 20, "robom-hq": 20,
 });
 
@@ -387,51 +387,6 @@ function runningbomContracts(app) {
   ];
 }
 
-// ── 캘린더봄 전용(§15) ──
-function calendarbomContracts(app) {
-  const id = "calendarbom"; const s = (cid, ...rest) => C(`c:${id}:${cid}`, id, ...rest);
-  return [
-    // ── 저장 키 불변 계약(앱 스스로 선언한 '저장 키 불변' 원칙 — 무민리파이 배포라 번들에 리터럴 그대로 존재) ──
-    s("storage-keys-full", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAll: ["calendarbom:events:v1", "calendarbom:data:v2", "calendarbom:recovery:v2", "calendarbom:lkg", "calendarbom:migrated", "calendarbom:draft:v2"] },
-      { required: true, severityIfFail: "critical", failureClass: "storage", consecutiveFailures: 1, what: "6개 저장 키(events:v1·data:v2·recovery:v2·lkg·migrated·draft:v2) 전부 번들에 보존", userImpact: "저장 키가 하나라도 바뀌면 기존 사용자 일정이 사라져 보입니다.", recommendedAction: "저장 키 리터럴을 마이그레이션 없이 바꾸지 않습니다." }),
-    s("backup-import-ui", "user_surface", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAll: ["exportJsonButton", "exportIcsButton", "importButton"] },
-      { severityIfFail: "warning", failureClass: "storage", what: "백업(JSON)·달력(ICS) 내보내기·가져오기 버튼 존재", userImpact: "백업/가져오기가 빠지면 기기 교체 때 일정을 잃습니다.", recommendedAction: "내보내기·가져오기 UI를 유지합니다." }),
-    s("storage-keys-preserved", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAll: ["calendarbom:events:v1", "calendarbom:data:v2"] },
-      { required: true, severityIfFail: "critical", failureClass: "storage", consecutiveFailures: 1,
-        what: "기존 저장 키 문자열(calendarbom:events:v1·data:v2)이 번들에 보존", userImpact: "키가 바뀌면 기존 사용자 일정이 사라져 보입니다.", recommendedAction: "마이그레이션 없이 키를 바꾸지 않습니다." }),
-    s("js-syntax", "production", "service_worker_contract", { baseUrl: app.web_url, scriptPath: "app.js", syntax: true },
-      { severityIfFail: "critical", failureClass: "availability", what: "핵심 app.js 문법 오류 0(vm compile)", userImpact: "문법 오류면 앱 전체가 죽습니다.", recommendedAction: "배포 전 문법 검사를 통과시킵니다." }),
-    s("schema-v3-marker", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAny: ["schemaVersion"] },
-      { severityIfFail: "warning", failureClass: "schema", what: "저장 스키마 버전 관리 코드 존재", userImpact: "스키마 버전 없이는 안전한 마이그레이션이 불가능합니다.", recommendedAction: "schemaVersion 관리를 유지합니다." }),
-    s("boot-clean", "user_surface", "browser_smoke", { url: app.web_url, viewports: [{ width: 390, height: 844 }], maxConsoleErrors: 0, checkOverflow: true, bodyMinTextLength: 20 },
-      { runTier: "deep", severityIfFail: "warning", failureClass: "user_flow", requiredCapabilities: ["network", "browser"], timeoutMs: 45_000,
-        what: "부팅 smoke(콘솔 오류 0·넘침 0·본문 렌더)", userImpact: "부팅 실패는 모든 기능 상실입니다.", recommendedAction: "부팅 오류를 수정합니다." }),
-    s("corrupt-v2-recovery", "storage", "browser_smoke", {
-      url: app.web_url, viewports: [{ width: 390, height: 844 }], bodyMinTextLength: 20,
-      seedStorage: { "calendarbom:data:v2": "{corrupt-not-json" },
-      storageAssertions: [
-        { key: "calendarbom:data:v2", op: "not_eq_empty_overwrite", label: "손상 원문을 빈 값으로 덮지 않음" }],
-    }, { runTier: "deep", severityIfFail: "error", failureClass: "storage", requiredCapabilities: ["network", "browser"], timeoutMs: 45_000,
-      what: "손상된 저장 데이터 fixture에서 앱이 부팅하고 원문을 빈 값으로 덮어쓰지 않음",
-      userImpact: "손상 시 덮어쓰면 사용자 일정이 영구 소실됩니다.", recommendedAction: "recovery 보존 로직을 유지합니다." }),
-    // 'storage' 문자열은 localStorage에도 들어 있어 storage 이벤트 핸들러 존재를 증명 못 함(거짓 green) → 정직하게 need_new_source.
-    s("multi-tab-safety-static", "storage", "need_new_source", {},
-      { severityIfFail: "info", failureClass: "storage", needNewSource: true,
-        sourceNeeded: "multi-tab storage 이벤트 처리 실측 신호",
-        whyNeeded: "번들의 'storage' 문자열만으론 window 'storage' 이벤트 핸들러 존재를 확정 불가(localStorage에도 포함)",
-        privacyRisk: "없음", freeImplementationOption: "앱이 storage 이벤트 처리 여부를 노출하는 신호 제공",
-        fallbackStatus: "표면 substring으론 확정 불가(UNAVAILABLE)",
-        what: "multi-tab storage 이벤트 처리 — 실측 신호 필요", userImpact: "두 탭 동시 사용 시 데이터가 덮일 수 있습니다.", recommendedAction: "storage event 처리를 유지하고 확인 신호를 노출합니다." }),
-    s("backup-roundtrip-static", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAny: ["backup", "내보내기"] },
-      { severityIfFail: "warning", failureClass: "storage", what: "JSON 백업 내보내기 기능 존재", userImpact: "백업이 없으면 기기 교체 때 일정을 잃습니다.", recommendedAction: "백업 기능을 유지합니다." }),
-    s("ics-static", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAny: ["BEGIN:VCALENDAR", "ics", "ICS"] },
-      { severityIfFail: "info", failureClass: "storage", what: "ICS 내보내기·가져오기 코드 존재", userImpact: "캘린더 앱 연동이 끊깁니다.", recommendedAction: "ICS 지원을 유지합니다." }),
-    s("user-storage-health", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAll: ["diagnosticsOptIn", "calendarbom:diagnostics-optin"] },
-      { severityIfFail: "info", failureClass: "observability",
-        what: "개인정보 보호형 진단 옵트인(숫자만·기본 꺼짐·자동전송 없음)이 배포 번들에 존재", userImpact: "사용자가 원할 때 저장 건강(손상·개수·용량)을 숫자만으로 진단할 수 있습니다.", recommendedAction: "캘린더봄 옵트인 진단 배포(PR #1)가 반영되면 자동 점검됩니다." }),
-  ];
-}
-
 // ── 자격증봄 전용(§16) ──
 function certbomContracts(app) {
   const id = "certbom"; const s = (cid, ...rest) => C(`c:${id}:${cid}`, id, ...rest);
@@ -493,53 +448,6 @@ function certbomContracts(app) {
       { severityIfFail: "info", failureClass: "observability", timeoutMs: 25_000,
         what: "공식 출처 콘텐츠 모니터(source-hashes.json: 출처별 sha256·상태·확인시각) — 출처 문서 변경 감지",
         userImpact: "출처 개편을 늦게 발견하면 일정이 틀린 채 방치됩니다.", recommendedAction: "source-monitor 워크플로(PR #8) 병합 후 자동 점검됩니다." }),
-  ];
-}
-
-// ── 노트봄 전용(§17): 다른 팀 개발 가능성 — main 읽기 전용, 절대 수정 금지 ──
-function notebomContracts(app) {
-  const id = "notebom"; const s = (cid, ...rest) => C(`c:${id}:${cid}`, id, ...rest);
-  return [
-    s("no-external-model-cdn", "security", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, forbiddenMarkers: ["huggingface.co", "cdn.jsdelivr.net", "unpkg.com"] },
-      { required: true, severityIfFail: "error", failureClass: "security",
-        what: "전사 모델을 외부 CDN에서 받지 않음(same-origin 계약)", userImpact: "외부 CDN 의존은 프라이버시·가용성 위험입니다.", recommendedAction: "모델 자산을 same-origin으로 유지합니다." }),
-    s("model-not-precached", "pwa", "service_worker_contract", { baseUrl: app.web_url, mustNotContainAny: [".onnx"] },
-      { severityIfFail: "warning", failureClass: "availability", what: "대형 모델이 SW 초기 프리캐시에 없음", userImpact: "초기 설치가 수백 MB가 되면 안 됩니다.", recommendedAction: "모델은 지연 다운로드로 유지합니다." }),
-    s("recording-capabilities", "production", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAll: ["MediaRecorder", "indexedDB"] },
-      { severityIfFail: "error", failureClass: "schema", what: "녹음·저장 핵심 capability 코드(MediaRecorder·IndexedDB)가 번들에 존재", userImpact: "핵심 코드가 빠지면 녹음 자체가 불가합니다.", recommendedAction: "빌드 구성을 확인합니다." }),
-    s("checksum-integrity-code", "storage", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, markersAny: ["SHA-256", "sha-256", "digest"] },
-      { severityIfFail: "warning", failureClass: "integrity", what: "chunk checksum(SHA-256) 검증 코드 존재", userImpact: "checksum 없이는 손상 녹음을 정상으로 재생할 위험이 있습니다.", recommendedAction: "무결성 검증을 유지합니다." }),
-    s("no-upload-endpoint", "security", "surface_marker", { url: app.healthcheck_url, baseUrl: app.web_url, forbiddenMarkers: ["/upload-audio", "audio/upload"] },
-      { severityIfFail: "error", failureClass: "security", what: "원음 업로드 endpoint 없음(로컬 전용 계약)", userImpact: "원음이 서버로 가면 프라이버시 약속 위반입니다.", recommendedAction: "로컬 전용 구조를 유지합니다." }),
-    s("privacy-link-page", "security", "http_html", { url: app.healthcheck_url, markers: ["privacy"] },
-      { severityIfFail: "info", failureClass: "security", what: "개인정보 링크가 첫 화면에 연결", userImpact: "프라이버시 안내 접근성이 떨어집니다.", recommendedAction: "푸터에 개인정보 링크를 유지합니다." }),
-    // 'worker'는 serviceWorker 등록만으로도 존재해 전사용 Web Worker 존재를 증명 못 함(거짓 green) → 정직하게 need_new_source.
-    s("worker-wasm-refs", "production", "need_new_source", {},
-      { severityIfFail: "info", failureClass: "availability", needNewSource: true,
-        sourceNeeded: "Web Worker 전사 구조 실측 신호",
-        whyNeeded: "'worker' 문자열은 serviceWorker 등록에도 존재해 전사용 Web Worker 사용을 증명 못 함",
-        privacyRisk: "없음", freeImplementationOption: "앱이 Worker 사용 여부를 노출하는 신호 제공",
-        fallbackStatus: "표면 substring으론 확정 불가(UNAVAILABLE)",
-        what: "전사 Web Worker 구조 — 실측 신호 필요", userImpact: "메인 스레드 전사는 UI를 얼립니다.", recommendedAction: "Worker 분리를 유지하고 확인 신호를 노출합니다." }),
-    s("boot-smoke", "user_surface", "browser_smoke", { url: app.web_url, viewports: [{ width: 360, height: 800 }, { width: 390, height: 844 }], maxConsoleErrors: 0, checkOverflow: true, bodyMinTextLength: 20 },
-      { runTier: "deep", severityIfFail: "warning", failureClass: "user_flow", requiredCapabilities: ["network", "browser"], timeoutMs: 45_000,
-        what: "노트봄 360·390 smoke(렌더·콘솔 오류 0·넘침 0)", userImpact: "부팅이 깨지면 녹음 접근이 불가합니다.", recommendedAction: "부팅 오류를 수정합니다." }),
-    s("user-recording-health", "storage", "need_new_source", {},
-      { severityIfFail: "info", failureClass: "observability", needNewSource: true,
-        sourceNeeded: "노트봄이 사용자 동의 후 로컬로 출력하는 비식별 진단 JSON(interrupted 수·checksum 실패 수·저장공간 버킷·마지막 백업 나이)",
-        whyNeeded: "HQ는 다른 origin의 IndexedDB·마이크 상태를 직접 읽을 수 없음(§18.1)",
-        privacyRisk: "원음·전사문·노트 제목은 절대 포함 금지 — 숫자만",
-        freeImplementationOption: "설정에 '진단 데이터 보내기' 옵트인(localhost HQ로 숫자만 전달)",
-        fallbackStatus: "UNAVAILABLE",
-        what: "실사용자 녹음 데이터 건강(중단 복구·checksum 실패·백업 나이)", userImpact: "사용자 기기의 녹음 손상을 원격에서 알 수 없습니다.", recommendedAction: "옵트인 진단 브리지를 구현하면 자동 점검됩니다." }),
-    s("native-session-planned", "production", "need_new_source", {},
-      { severityIfFail: "info", failureClass: "observability", needNewSource: true,
-        sourceNeeded: "native(Capacitor) 녹음 세션 journal·권한 상태 정본",
-        whyNeeded: "native 기반이 main에 준비되기 전에는 Production 지원으로 표시하지 않음(§17.2 planned)",
-        privacyRisk: "세션 id·상태만 — 원음 금지",
-        freeImplementationOption: "native 구현 시 session journal 스키마를 계약에 연결",
-        fallbackStatus: "UNAVAILABLE",
-        what: "native 녹음 세션 계약(백그라운드 녹음·process 재생성 복구)", userImpact: "native 출시 전 과잉 표시를 막습니다.", recommendedAction: "native 준비 시 계약을 활성화합니다." }),
   ];
 }
 
@@ -680,9 +588,7 @@ export function buildContractCatalog({ registryApps = [], siteVersion = "" } = {
   if (byId.outbom) contracts.push(...outbomContracts(byId.outbom));
   if (byId.homebom) contracts.push(...homebomContracts(byId.homebom));
   if (byId.runningbom) contracts.push(...runningbomContracts(byId.runningbom));
-  if (byId.calendarbom) contracts.push(...calendarbomContracts(byId.calendarbom));
   if (byId.certbom) contracts.push(...certbomContracts(byId.certbom));
-  if (byId.notebom) contracts.push(...notebomContracts(byId.notebom));
   contracts.push(...siteContracts({ registryApps, siteVersion }));
   contracts.push(...hqContracts({ registryApps }));
   contracts.push(...companyOpsContracts()); // 18A 회사 운영·인력·오피스 자체 점검

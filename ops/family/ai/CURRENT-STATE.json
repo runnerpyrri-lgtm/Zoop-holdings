@@ -1,29 +1,29 @@
 {
-  "generatedAt": "2026-07-16T09:39:39.206Z",
-  "familySpecVersion": "1.0.0",
-  "sourceCommit": "46ac6c563837bb807a17305b00a0bd9ed106256a",
+  "generatedAt": "2026-07-21T22:25:46.740Z",
+  "familySpecVersion": "1.1.0",
+  "sourceCommit": "c0bbe5f6ca1d3cc17c1a4737ecaa7f47b1caccd6",
   "robom": {
-    "mainSha": "46ac6c563837bb807a17305b00a0bd9ed106256a",
-    "version": "2.1.4",
+    "mainSha": "c0bbe5f6ca1d3cc17c1a4737ecaa7f47b1caccd6",
+    "version": "2.2.1",
     "productionUrl": "https://robom.kr",
     "deployProvider": "sites+github-pages",
-    "serviceWorkerCache": "robom-site-v2.1.4",
-    "lastSuccessfulCI": "https://github.com/robom-labs/robom/actions/runs/29487808410",
-    "lastDeployment": "Sites production; verify live marker with operations watchdog"
+    "serviceWorkerCache": "robom-site-v2.2.1",
+    "lastSuccessfulCI": "unavailable",
+    "lastDeployment": "unavailable"
   },
   "apps": [
     {
       "id": "outbom",
       "repo": "robom-labs/outbom",
-      "mainSha": "0addaa70cd5fa8e197682c6e43b28962ba620f65",
-      "version": "0.25.1",
+      "mainSha": "unavailable",
+      "version": "0.25.6",
       "productionUrl": "https://robom-labs.github.io/outbom/",
       "deployProvider": "github-pages",
-      "serviceWorkerCache": "outbom-v0.25.1",
-      "familySpecVersion": "1.0.0",
-      "lastSuccessfulCI": "https://github.com/robom-labs/outbom/actions/runs/29470524005",
-      "lastDeployment": "https://github.com/robom-labs/outbom/actions/runs/29470523936",
-      "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
+      "serviceWorkerCache": "not-declared",
+      "familySpecVersion": "1.1.0",
+      "lastSuccessfulCI": "unavailable",
+      "lastDeployment": "unavailable",
+      "lastVerifiedAt": "2026-07-19T15:10:00+09:00",
       "keyEntrypoints": [
         "app/page.tsx",
         "app/globals.css",
@@ -32,20 +32,20 @@
       ],
       "testCommand": "pnpm typecheck && pnpm test",
       "buildCommand": "pnpm build",
-      "workingTree": "clean"
+      "workingTree": "dirty"
     },
     {
       "id": "homebom",
       "repo": "robom-labs/homebom",
-      "mainSha": "40151b53b77e40c03ad61815c65cc1f7a2b23278",
-      "version": "0.14.1",
+      "mainSha": "unavailable",
+      "version": "0.14.8",
       "productionUrl": "https://robom-labs.github.io/homebom/",
       "deployProvider": "github-pages",
-      "serviceWorkerCache": "zzc-v0.14.1",
-      "familySpecVersion": "1.0.0",
-      "lastSuccessfulCI": "https://github.com/robom-labs/homebom/actions/runs/29470478807",
-      "lastDeployment": "https://github.com/robom-labs/homebom/actions/runs/29470478355",
-      "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
+      "serviceWorkerCache": "not-declared",
+      "familySpecVersion": "1.1.0",
+      "lastSuccessfulCI": "unavailable",
+      "lastDeployment": "unavailable",
+      "lastVerifiedAt": "2026-07-19T15:10:00+09:00",
       "keyEntrypoints": [
         "apps/web/src/App.tsx",
         "apps/web/src/styles.css",
@@ -53,20 +53,20 @@
       ],
       "testCommand": "pnpm typecheck && pnpm test",
       "buildCommand": "pnpm build",
-      "workingTree": "clean"
+      "workingTree": "dirty"
     },
     {
       "id": "runningbom",
       "repo": "robom-labs/runningbom",
-      "mainSha": "94667c20dcf0cfde1ef27437fcb23b329316067d",
-      "version": "0.17.2",
+      "mainSha": "unavailable",
+      "version": "0.17.13",
       "productionUrl": "https://robom-labs.github.io/runningbom/",
-      "deployProvider": "github-pages+vercel",
-      "serviceWorkerCache": "pushrun-v0.17.2",
-      "familySpecVersion": "1.0.0",
-      "lastSuccessfulCI": "https://github.com/robom-labs/runningbom/actions/runs/29471774936",
-      "lastDeployment": "https://github.com/robom-labs/runningbom/actions/runs/29471774773",
-      "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
+      "deployProvider": "github-pages",
+      "serviceWorkerCache": "not-declared",
+      "familySpecVersion": "1.1.0",
+      "lastSuccessfulCI": "unavailable",
+      "lastDeployment": "unavailable",
+      "lastVerifiedAt": "2026-07-19T22:40:00+09:00",
       "keyEntrypoints": [
         "outputs/pushrun-site/index.html",
         "outputs/pushrun-site/styles.css",
@@ -75,42 +75,20 @@
       ],
       "testCommand": "npm test",
       "buildCommand": "none",
-      "workingTree": "clean"
-    },
-    {
-      "id": "calendarbom",
-      "repo": "robom-labs/calendarbom",
-      "mainSha": "997f13ef4221723658bc5d8827d4dde8be9d2a19",
-      "version": "0.5.1",
-      "productionUrl": "https://robom-labs.github.io/calendarbom/",
-      "deployProvider": "github-pages",
-      "serviceWorkerCache": "calendarbom-pwa-v0.5.1",
-      "familySpecVersion": "1.0.0",
-      "lastSuccessfulCI": "https://github.com/robom-labs/calendarbom/actions/runs/29470479461",
-      "lastDeployment": "https://github.com/robom-labs/calendarbom/actions/runs/29470479461",
-      "lastVerifiedAt": "2026-07-16T13:42:23+09:00",
-      "keyEntrypoints": [
-        "app/index.html",
-        "app/styles.css",
-        "app/app.js",
-        "app/schedule-core.js"
-      ],
-      "testCommand": "npm test && npm run test:e2e",
-      "buildCommand": "none",
-      "workingTree": "clean"
+      "workingTree": "dirty"
     },
     {
       "id": "certbom",
       "repo": "robom-labs/certbom",
-      "mainSha": "ceff17921012bad6fb956d21260821368266e9c9",
-      "version": "0.6.2",
+      "mainSha": "unavailable",
+      "version": "0.7.4",
       "productionUrl": "https://certbom.vercel.app/",
       "deployProvider": "vercel",
-      "serviceWorkerCache": "certbom-0.6.2",
-      "familySpecVersion": "1.0.0",
-      "lastSuccessfulCI": "https://github.com/robom-labs/certbom/actions/runs/29486344245",
-      "lastDeployment": "Vercel deployment 5470818759",
-      "lastVerifiedAt": "2026-07-16T18:13:31+09:00",
+      "serviceWorkerCache": "not-declared",
+      "familySpecVersion": "1.1.0",
+      "lastSuccessfulCI": "unavailable",
+      "lastDeployment": "unavailable",
+      "lastVerifiedAt": "2026-07-19T15:10:00+09:00",
       "keyEntrypoints": [
         "apps/web/src/App.tsx",
         "apps/web/src/styles.css",
@@ -119,7 +97,7 @@
       ],
       "testCommand": "pnpm typecheck && pnpm test && pnpm test:e2e",
       "buildCommand": "pnpm build",
-      "workingTree": "clean"
+      "workingTree": "dirty"
     }
   ],
   "openHighRiskWork": [

@@ -26,7 +26,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "snapshot-exists",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "error",
    "failureClass": "observability",
@@ -53,7 +53,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "snapshot-age",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "freshness",
@@ -80,11 +80,11 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "snapshot-app-count",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "error",
    "failureClass": "parity",
-   "what": "스냅샷 앱 수 == registry(6) + 본사",
+   "what": "스냅샷 앱 수 == registry(4) + 본사",
    "userImpact": "앱이 누락되면 그 앱은 무점검 상태가 됩니다.",
    "recommendedAction": "수집 실패 앱을 확인합니다(전체 삭제 금지 구조)."
   },
@@ -107,7 +107,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "queue-integrity",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "error",
    "failureClass": "automation",
@@ -134,7 +134,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "stale-lease",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "automation",
@@ -161,7 +161,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "control-flags",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "info",
    "failureClass": "automation",
@@ -188,7 +188,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "authority-valid",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "error",
    "failureClass": "automation",
@@ -215,7 +215,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "review-marker",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "automation",
@@ -242,7 +242,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "settings-parity",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "info",
    "failureClass": "observability",
@@ -269,7 +269,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "runner-status",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "automation",
@@ -296,7 +296,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "codex-cli",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "automation",
@@ -323,7 +323,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "disk-free",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "availability",
@@ -350,7 +350,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "backup-age",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "storage",
@@ -377,7 +377,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "health-history-size",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "info",
    "failureClass": "observability",
@@ -404,7 +404,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "version-triad",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "error",
    "failureClass": "parity",
@@ -431,7 +431,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "org-canon",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "schema",
@@ -458,7 +458,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "runtime-permissions",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "security",
@@ -485,7 +485,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "clock-seoul",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "info",
    "failureClass": "freshness",
@@ -512,7 +512,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "engine-self",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "observability",
@@ -539,7 +539,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "redaction-selftest",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "error",
    "failureClass": "security",
@@ -566,7 +566,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "remote-optin",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "security",
@@ -647,7 +647,7 @@
    "evaluator": "hq_runtime",
    "config": {
     "check": "login-item-status",
-    "appCount": 6
+    "appCount": 4
    },
    "severityIfFail": "warning",
    "failureClass": "observability",

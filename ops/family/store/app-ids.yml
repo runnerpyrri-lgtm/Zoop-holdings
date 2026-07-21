@@ -10,12 +10,6 @@ apps:
   runningbom:
     android: kr.robom.runningbom
     ios: kr.robom.runningbom
-  calendarbom:
-    android: kr.robom.calendarbom
-    ios: kr.robom.calendarbom
   certbom:
     android: kr.robom.certbom
     ios: kr.robom.certbom
-  notebom:
-    android: kr.robom.notebom
-    ios: kr.robom.notebom

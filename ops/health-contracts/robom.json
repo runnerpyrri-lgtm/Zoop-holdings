@@ -150,12 +150,8 @@
      "/get/homebom",
      "/apps/runningbom",
      "/get/runningbom",
-     "/apps/calendarbom",
-     "/get/calendarbom",
      "/apps/certbom",
-     "/get/certbom",
-     "/apps/notebom",
-     "/get/notebom"
+     "/get/certbom"
     ],
     "maxUrls": 200
    },
@@ -187,9 +183,7 @@
      "https://robom.kr/apps/outbom",
      "https://robom.kr/apps/homebom",
      "https://robom.kr/apps/runningbom",
-     "https://robom.kr/apps/calendarbom",
-     "https://robom.kr/apps/certbom",
-     "https://robom.kr/apps/notebom"
+     "https://robom.kr/apps/certbom"
     ],
     "uniqueTitles": true
    },
@@ -221,9 +215,7 @@
      "https://robom.kr/get/outbom",
      "https://robom.kr/get/homebom",
      "https://robom.kr/get/runningbom",
-     "https://robom.kr/get/calendarbom",
-     "https://robom.kr/get/certbom",
-     "https://robom.kr/get/notebom"
+     "https://robom.kr/get/certbom"
     ]
    },
    "severityIfFail": "error",
@@ -254,9 +246,7 @@
      "https://robom.kr/privacy/outbom",
      "https://robom.kr/privacy/homebom",
      "https://robom.kr/privacy/runningbom",
-     "https://robom.kr/privacy/calendarbom",
-     "https://robom.kr/privacy/certbom",
-     "https://robom.kr/privacy/notebom"
+     "https://robom.kr/privacy/certbom"
     ]
    },
    "severityIfFail": "error",
@@ -318,14 +308,12 @@
      "야외봄",
      "청약봄",
      "러닝봄",
-     "캘린더봄",
-     "자격증봄",
-     "노트봄"
+     "자격증봄"
     ]
    },
    "severityIfFail": "error",
    "failureClass": "parity",
-   "what": "홈에 6개 앱 이름 전부 노출(client JS 없이)",
+   "what": "홈에 4개 앱 이름 전부 노출(client JS 없이)",
    "userImpact": "앱이 빠지면 신규 사용자가 발견하지 못합니다.",
    "recommendedAction": "홈 앱 목록을 registry에서 생성합니다."
   },
@@ -444,9 +432,7 @@
      "야외봄",
      "청약봄",
      "러닝봄",
-     "캘린더봄",
-     "자격증봄",
-     "노트봄"
+     "자격증봄"
     ],
     "botUserAgent": "Mozilla/5.0 (compatible; Yeti/1.1; +https://naver.me/spd)"
    },

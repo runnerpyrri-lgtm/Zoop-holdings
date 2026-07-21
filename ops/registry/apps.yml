@@ -102,38 +102,6 @@ apps:
     test: npm test
     build: none
 
-  - id: calendarbom
-    name: 캘린더봄
-    english_name: CalendarBom
-    repo: robom-labs/calendarbom
-    version: 0.7.2
-    data_version: local-schema-v3
-    version_source: https://raw.githubusercontent.com/robom-labs/calendarbom/main/package.json
-    web_url: https://robom-labs.github.io/calendarbom/
-    healthcheck_url: https://robom-labs.github.io/calendarbom/
-    deploy_provider: github-pages
-    base_path: /calendarbom/
-    privacy_url: https://robom.kr/privacy/calendarbom
-    support_url: https://robom.kr/support
-    android_app_id: kr.robom.calendarbom
-    ios_bundle_id: kr.robom.calendarbom
-    google_play_url: ""
-    google_play_status: planned
-    app_store_url: ""
-    app_store_status: planned
-    pwa_install_url: https://robom-labs.github.io/calendarbom/
-    stable_install_url: https://robom.kr/get/calendarbom
-    mobile_status: pwa
-    family_spec_version: 1.1.0
-    last_verified_at: "2026-07-19T23:05:00+09:00"
-    last_deployed_sha: f8d12517de3dc15decec147bd4fe801d6aafef3e
-    last_data_sync_at: "2026-07-16T13:42:23+09:00"
-    freshness_status: local-only
-    freshness_slo_hours: 720
-    stack: static HTML + CSS + JavaScript
-    test: npm test && npm run test:e2e
-    build: none
-
   - id: certbom
     name: 자격증봄
     english_name: CertBom
@@ -164,36 +132,4 @@ apps:
     freshness_slo_hours: 48
     stack: Vite + React
     test: pnpm typecheck && pnpm test && pnpm test:e2e
-    build: pnpm build
-
-  - id: notebom
-    name: 노트봄
-    english_name: NoteBom
-    repo: robom-labs/notebom
-    version: 0.6.1
-    data_version: local-schema-v1
-    version_source: https://raw.githubusercontent.com/robom-labs/notebom/main/package.json
-    web_url: https://robom-labs.github.io/notebom/
-    healthcheck_url: https://robom-labs.github.io/notebom/
-    deploy_provider: github-pages
-    base_path: /notebom/
-    privacy_url: https://robom.kr/privacy/notebom
-    support_url: https://robom.kr/support
-    android_app_id: kr.robom.notebom
-    ios_bundle_id: kr.robom.notebom
-    google_play_url: ""
-    google_play_status: planned
-    app_store_url: ""
-    app_store_status: planned
-    pwa_install_url: https://robom-labs.github.io/notebom/
-    stable_install_url: https://robom.kr/get/notebom
-    mobile_status: pwa
-    family_spec_version: 1.1.0
-    last_verified_at: "2026-07-20T18:40:00+09:00"
-    last_deployed_sha: 0217f7f5df15209ee3d1cc32bc4f977786da5248
-    last_data_sync_at: "2026-07-17T23:59:39+09:00"
-    freshness_status: local-only
-    freshness_slo_hours: 720
-    stack: Vite + React
-    test: pnpm typecheck && pnpm lint && pnpm test && pnpm test:e2e
     build: pnpm build

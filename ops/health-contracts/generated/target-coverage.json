@@ -1,11 +1,11 @@
 {
  "generatedNote": "진단률(정의) 집계",
  "coverage": {
-  "total": 356,
-  "defined": 356,
+  "total": 271,
+  "defined": 271,
   "definedRate": 1,
-  "executable": 344,
-  "needNewSource": 12,
+  "executable": 265,
+  "needNewSource": 6,
   "byTarget": {
    "company": {
     "total": 8,
@@ -31,22 +31,10 @@
     "needNewSource": 1,
     "browserGated": 2
    },
-   "calendarbom": {
-    "total": 43,
-    "executable": 41,
-    "needNewSource": 2,
-    "browserGated": 3
-   },
    "certbom": {
     "total": 45,
     "executable": 43,
     "needNewSource": 2,
-    "browserGated": 2
-   },
-   "notebom": {
-    "total": 42,
-    "executable": 38,
-    "needNewSource": 4,
     "browserGated": 2
    },
    "robom": {
