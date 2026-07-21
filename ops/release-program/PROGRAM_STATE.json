@@ -85,7 +85,14 @@
           "pages_build": "success (run 29814830587)",
           "google_verification": "Google Digital Asset Links API 확인: https://robom-labs.github.io 에서 kr.robom.homebom·kr.robom.outbom 둘 다 statements 반환, 오류 없음(2026-07-21)."
         },
-        "FOLLOW_UP_app_signing_key": "현재 assetlinks에는 PWABuilder 업로드키 지문만 등록. Play App Signing 활성 → 설치 앱은 Google 앱서명키로 서명됨. AAB 업로드 후 Play Console→설정→앱 무결성/앱 서명의 '앱 서명 키 인증서 SHA-256'을 각 앱 배열에 추가(업로드키와 함께 2개씩)해야 설치 앱에서 검증 100% 통과. 미추가 시 주소창 노출 위험."
+        "app_signing_keys_DONE": {
+          "note": "두 앱 모두 AAB를 비공개테스트 트랙 업로드 → Play 앱서명키 SHA-256 확보 → assetlinks에 업로드키와 함께 등록 완료(e18bcc8). 설치 앱 검증 완비.",
+          "kr.robom.homebom_appsigning": "91:0C:7E:D4:F2:B1:54:AD:49:6D:B1:AE:55:4E:AB:5C:76:41:0E:34:51:0E:FD:DD:48:CC:60:C0:3A:E0:9C:07",
+          "kr.robom.outbom_appsigning": "BA:7B:9B:21:9F:04:48:6D:24:4A:10:1A:0F:B5:0A:26:28:58:05:AC:C7:52:1D:37:A6:80:19:46:BA:D6:35:04",
+          "aab_uploaded": "두 앱 v1(1.0.0.0), target SDK 35(2026-08-31 이전 신규 제출 OK), 비공개테스트 Alpha 트랙 초안 저장됨."
+        },
+        "remaining_before_test_live": "각 앱 대시보드 '앱 설정' 5개 오류: 전체설명·국가/지역(대한민국)·금융기능 선언(없음)·건강 선언(없음)·앱 콘텐츠(개인정보처리방침·데이터보안·콘텐츠등급·대상연령·광고) + 비공개테스트 테스터 12명(구글계정) 지정.",
+        "tester_blocker": "CEO가 아직 테스터 12명 미확보(네이버카페 모집 예정). 14일 비공개테스트 시계는 테스터 옵트인+롤아웃 후 시작. 그 외 등록정보·설문·업로드는 테스터 없이 선행 가능."
       },
       "policy_reminder": {
         "closed_testing": "개인 계정(2023-11-13 이후 생성)은 Production 전 12테스터·14일 비공개 테스트 필요 — 즉시 프로덕션 공개 아님(약 2주 파이프라인).",
