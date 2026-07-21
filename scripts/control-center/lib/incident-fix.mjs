@@ -27,9 +27,11 @@ export function classifyFix({ failureClass = "", text = "", requestedBy = "auto-
   if (requestedBy && requestedBy !== "auto-review") return "human"; // 사람이 올린 안건은 항상 회장 판단
   if (HUMAN_TEXT.test(text) || HUMAN_CLASSES.has(failureClass)) return "human";
   if (SELF_HEAL_CLASSES.has(failureClass)) {
-    // self_heal은 경미(warning/info)일 때만. critical/error인데 self_heal 계열이면, 재점검만으로는 회복되지
-    // 않는 실제 장애(재배포·롤백 필요)다 → codex로 올려 Loop·에스컬레이션을 만든다(침묵 방치=거짓 성과 금지).
-    if (severity === "critical" || severity === "error") return "codex";
+    // self_heal은 '경미'(info/warning)일 때만. 그보다 심각하면 재점검만으로 회복 안 되는 실제 장애다
+    // → codex로 올려 Loop·에스컬레이션을 만든다(침묵 방치=거짓 성과 금지). severity는 자유 문자열이라
+    // critical·error를 나열하는 대신 '경미가 아니면 승격'으로 판정해, major·fatal 같은 미지의 심각도까지
+    // 조용히 자동처리로 새지 않게 한다(빠뜨림보다 과승격이 안전).
+    if (severity && severity !== "info" && severity !== "warning") return "codex";
     return "self_heal";
   }
   return "codex";
