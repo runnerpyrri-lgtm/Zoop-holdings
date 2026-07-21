@@ -4,7 +4,7 @@
 // 사용:
 //   node scripts/control-center/codex-runner.mjs --once     # 대기 작업 1개만 처리
 //   node scripts/control-center/codex-runner.mjs            # 상주(30초 폴링, Ctrl+C 종료)
-import { spawnSync } from "node:child_process";
+import { spawnSync, spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -52,6 +52,61 @@ export function classifyCodexFailure(stderr = "", stdout = "") {
   }
   return { kind: "error", detail: String(stderr || "실패").slice(-300) };
 }
+
+// v1.1-K: 장시간 codex 실행을 async spawn으로 돌린다. spawnSync는 이벤트루프를 막아 heartbeat
+// setInterval이 실제로 못 뛰었고(파일 상단 주석 참조), lease가 만료돼 이중 실행 위험이 있었다.
+// spawn은 await 동안 이벤트루프가 살아 있어 heartbeat가 실제로 갱신된다. 출력은 상한까지만 버퍼링,
+// timeout 시 SIGTERM→(유예)→SIGKILL로 자식 트리를 정리한다.
+export function execCodexAsync(command, args, { timeoutMs, maxOutputBytes = 16 * 1024 * 1024, killGraceMs = 5_000, spawnImpl = spawn } = {}) {
+  return new Promise((resolveExec) => {
+    let child;
+    try {
+      child = spawnImpl(command, args, { encoding: "utf8" });
+    } catch (err) {
+      resolveExec({ status: null, stdout: "", stderr: String(err?.message || err), timedOut: false, spawnError: true });
+      return;
+    }
+    let stdout = "";
+    let stderr = "";
+    let outBytes = 0;
+    let errBytes = 0;
+    let timedOut = false;
+    let settled = false;
+    const cap = (buf, cur, bytes) => {
+      if (bytes >= maxOutputBytes) return [cur, bytes];
+      const s = buf.toString();
+      const room = maxOutputBytes - bytes;
+      const slice = s.length > room ? s.slice(0, room) : s;
+      return [cur + slice, bytes + Buffer.byteLength(slice)];
+    };
+    child.stdout?.on("data", (d) => { [stdout, outBytes] = cap(d, stdout, outBytes); });
+    child.stderr?.on("data", (d) => { [stderr, errBytes] = cap(d, stderr, errBytes); });
+    const settle = (payload) => { if (settled) return; settled = true; clearTimeout(timer); clearTimeout(killTimer); resolveExec(payload); };
+    let killTimer;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      try { child.kill("SIGTERM"); } catch {}
+      // 유예 후에도 안 죽으면 강제 종료(자식 트리 정리).
+      killTimer = setTimeout(() => { try { child.kill("SIGKILL"); } catch {} }, killGraceMs);
+    }, timeoutMs);
+    child.on("error", (err) => settle({ status: null, stdout, stderr: stderr || String(err?.message || err), timedOut, spawnError: true }));
+    child.on("close", (code, signal) => settle({ status: code, signal, stdout, stderr, timedOut }));
+  });
+}
+
+// v1.1-L: quota 소진 시 30초 폴링 대신 제한된 지수 backoff. provider가 명시 reset을 안 주면 이 표를 쓴다.
+// 결정론적 base(분) + 작은 지터. 재시도 attempt(1부터)에 따라 상한 4시간.
+export const QUOTA_BACKOFF_MINUTES = [15, 30, 60, 120, 240];
+export function computeQuotaBackoffMs(attempt, { jitterMs = 0 } = {}) {
+  const idx = Math.max(0, Math.min(attempt - 1, QUOTA_BACKOFF_MINUTES.length - 1));
+  return QUOTA_BACKOFF_MINUTES[idx] * 60_000 + Math.max(0, jitterMs);
+}
+
+// 상주 프로세스 동안 유지되는 quota 게이트(메모리). retryAt 이전에는 provider를 호출하지 않는다.
+let quotaGateUntil = 0;
+let quotaAttempt = 0;
+export function _quotaGateState() { return { quotaGateUntil, quotaAttempt }; }
+export function _resetQuotaGate() { quotaGateUntil = 0; quotaAttempt = 0; }
 
 // 작업 대상 저장소의 로컬 경로: robom은 이 저장소, 앱은 형제 폴더(../<repo이름>)를 찾는다.
 export function resolveWorkdir(packet, repoRoot = REPO_ROOT) {
@@ -109,6 +164,12 @@ export async function runOne({ codex = detectCodexCli() } = {}) {
     writeRunnerStatus({ state: "paused", codex: codex.connected ? "connected" : "not_connected" }, { runtimeDir: RUNTIME });
     return { skipped: "paused" };
   }
+  // v1.1-L: quota backoff 대기 중이면 provider를 호출하지 않는다(작업을 claim하지도 않음).
+  if (quotaGateUntil && Date.now() < quotaGateUntil) {
+    const retryAt = new Date(quotaGateUntil).toISOString();
+    writeRunnerStatus({ state: "idle", codex: "quota_exhausted", codexDetail: `사용량 회복 대기 — 다음 재시도 ${retryAt}`, retryAt }, { runtimeDir: RUNTIME });
+    return { skipped: "waiting_quota", retryAt };
+  }
   const packet = claimNextTask(RUNTIME, { runner: "codex-runner" });
   if (!packet) {
     writeRunnerStatus({ state: "idle", codex: codex.connected ? "connected" : "not_connected", codexDetail: codex.version || codex.reason }, { runtimeDir: RUNTIME });
@@ -161,11 +222,11 @@ export async function runOne({ codex = detectCodexCli() } = {}) {
     if (["low", "medium", "high"].includes(effort)) args.push("-c", `model_reasoning_effort="${effort}"`);
     args.push("--cd", workdir, buildCodexPrompt(packet));
     log(taskId, `codex exec 시작 (cwd=${workdir}, model=${model || "기본"}, effort=${effort || "기본"}, timeout=${TASK_TIMEOUT_MS / 60000}분)`);
-    const result = spawnSync("codex", args, {
-      encoding: "utf8", timeout: TASK_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024,
-    });
-    log(taskId, `codex 종료 코드 ${result.status}\n--- stdout(끝 4000자) ---\n${String(result.stdout || "").slice(-4000)}\n--- stderr(끝 2000자) ---\n${String(result.stderr || "").slice(-2000)}`);
+    // v1.1-K: async spawn — 실행 동안 heartbeat setInterval이 실제로 갱신된다(이벤트루프 미차단).
+    const result = await execCodexAsync("codex", args, { timeoutMs: TASK_TIMEOUT_MS });
+    log(taskId, `codex 종료 코드 ${result.status}${result.timedOut ? " (제한시간 초과 종료)" : ""}\n--- stdout(끝 4000자) ---\n${String(result.stdout || "").slice(-4000)}\n--- stderr(끝 2000자) ---\n${String(result.stderr || "").slice(-2000)}`);
     if (result.status === 0) {
+      quotaAttempt = 0; quotaGateUntil = 0; // 성공하면 quota backoff 리셋
       completeTask(taskId, { exitCode: 0, logTail: String(result.stdout || "").slice(-1500) }, { runtimeDir: RUNTIME }); // 패킷은 done/으로(러너 스탈·재실행 방지)
       // 실행 중 회장이 취소·보류했으면 상태를 in_review로 되돌리지 않는다(거짓 되돌림 금지). 코덱스가 이미 코드를 바꿨을 수 있음을 로그로 남긴다.
       const postStatus = await readTaskStatus(taskId);
@@ -185,8 +246,16 @@ export async function runOne({ codex = detectCodexCli() } = {}) {
     if (cause.kind === "quota" || cause.kind === "auth") {
       releaseTask(taskId, { runtimeDir: RUNTIME });
       await markRecord(taskId, "queued");
-      writeRunnerStatus({ state: "idle", codex: cause.kind === "quota" ? "quota_exhausted" : "not_connected", codexDetail: cause.detail, lastTask: taskId, lastResult: cause.kind }, { runtimeDir: RUNTIME });
-      return { retryLater: taskId, cause: cause.kind };
+      // v1.1-L: quota는 30초 폴링 대신 제한된 지수 backoff로 다음 재시도 시각을 정한다.
+      // auth는 사람이 로그인해야 풀리므로 게이트를 걸지 않는다(연결되면 즉시 재개).
+      let retryAt = null;
+      if (cause.kind === "quota") {
+        quotaAttempt += 1;
+        quotaGateUntil = Date.now() + computeQuotaBackoffMs(quotaAttempt);
+        retryAt = new Date(quotaGateUntil).toISOString();
+      }
+      writeRunnerStatus({ state: "idle", codex: cause.kind === "quota" ? "quota_exhausted" : "not_connected", codexDetail: retryAt ? `${cause.detail} (다음 재시도 ${retryAt})` : cause.detail, retryAt, lastTask: taskId, lastResult: cause.kind }, { runtimeDir: RUNTIME });
+      return { retryLater: taskId, cause: cause.kind, retryAt };
     }
     failTask(taskId, { exitCode: result.status, reason: `${cause.kind}: ${cause.detail}`.slice(-500) }, { runtimeDir: RUNTIME });
     await markRecord(taskId, "blocked");
