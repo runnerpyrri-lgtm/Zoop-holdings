@@ -63,7 +63,22 @@
       "assetlinks_origin_root_finding": {
         "issue": "두 앱 모두 origin=robom-labs.github.io 공유. TWA Digital Asset Links는 항상 origin 루트 https://robom-labs.github.io/.well-known/assetlinks.json 에서 검증됨(서브패스 무관). 현재 org 루트 pages 저장소(robom-labs.github.io)가 세션 스코프에 없음 → 별도 생성/배치 필요.",
         "resolution_plan": "AI가 org 루트 pages 저장소에 .well-known/assetlinks.json(두 앱 package_name + Play App Signing SHA-256 다중 엔트리) 배치·배포. 최종 SHA-256은 PWABuilder 서명키 또는 Play Console→앱 서명 페이지에서 확보(HUMAN이 전달). 그 전까지는 미완료.",
-        "human_input_needed": "PWABuilder 생성 후 assetlinks 안의 sha256_cert_fingerprints 값(또는 Play Console 앱 서명 페이지의 SHA-256) 2개를 채팅으로 전달(키스토어 파일 자체는 금지)."
+        "human_input_needed": "PWABuilder 생성 후 assetlinks 안의 sha256_cert_fingerprints 값(또는 Play Console 앱 서명 페이지의 SHA-256) 2개를 채팅으로 전달(키스토어 파일 자체는 금지).",
+      "fingerprints_received": {
+        "note": "PWABuilder 업로드키 SHA-256 (2026-07-21 CEO 전달). Play App Signing 활성 → 업로드 후 Play 앱서명키 SHA-256 추가 필요(구글 재서명 대응, 둘 다 배열에 포함).",
+        "kr.robom.homebom_uploadkey": "FE:1A:A4:33:5F:AF:70:F3:31:5B:DA:03:10:06:17:98:3F:34:C3:52:A6:0E:29:8C:5B:23:B7:6E:8E:AC:B3:61",
+        "kr.robom.outbom_uploadkey": "DE:CC:AC:A6:4B:2B:DD:C1:5B:4B:2A:48:C0:CA:C4:8E:A8:B6:24:1A:10:F9:34:EA:F7:DD:B5:0D:00:14:0C:69",
+        "play_app_signing_keys": "PENDING — 각 AAB를 내부테스트 업로드 후 Play Console→설정→앱 무결성/앱 서명의 '앱 서명 키 인증서 SHA-256' 확보 필요"
+      },
+      "hosting_finding_2026-07-21": {
+        "site_serves": "robom hub는 robom-labs.github.io/robom/ (프로젝트 페이지) + robom.kr (커스텀 도메인)에 배포. 실제 앱(/homebom/, /outbom/)은 각 앱 저장소의 프로젝트 페이지로 별도 호스팅.",
+        "existing_assetlinks": "site/public/.well-known/assetlinks.json 존재하나 내용 []. 이 파일은 robom.kr/.well-known/ 와 robom-labs.github.io/robom/.well-known/ 로만 배포됨 → github.io ORIGIN 루트가 아님.",
+        "problem": "PWABuilder를 robom-labs.github.io/homebom/ · /outbom/ 로 실행 → TWA origin=robom-labs.github.io. Digital Asset Links는 https://robom-labs.github.io/.well-known/assetlinks.json (ORIGIN 루트)에서만 검증. 현재 org 루트 pages 저장소(robom-labs.github.io) 부재 → 루트에 파일 배치 불가.",
+        "resolution_options": {
+          "A_org_root_repo": "org에 robom-labs.github.io 저장소 신설 → /.well-known/assetlinks.json (두 앱) + 허브 리다이렉트. 최소·정확. 저장소 신설=사람 승인 항목이라 CEO OK 필요. (권장)",
+          "B_move_to_robom_kr": "앱 canonical을 robom.kr/<app>/로 이전 후 재패키징 — 대규모 라우팅/호스팅 마이그레이션, 이번 목표엔 과함."
+        },
+        "chosen": "A 대기(CEO 승인 필요) — 저장소 신설은 CLAUDE.md 승인경계의 '저장소 변경' 항목."
       },
       "policy_reminder": {
         "closed_testing": "개인 계정(2023-11-13 이후 생성)은 Production 전 12테스터·14일 비공개 테스트 필요 — 즉시 프로덕션 공개 아님(약 2주 파이프라인).",
