@@ -263,7 +263,7 @@ em { font-style: normal; }
 }
 
 @media (min-width: 391px) and (max-width: 430px) {
-  /* CI 글꼴 차이에도 여섯 앱 선택지가 첫 화면 안에 유지되도록 소개 행만 한 단계 압축한다. */
+  /* CI 글꼴 차이에도 네 앱 선택지가 첫 화면 안에 유지되도록 소개 행만 한 단계 압축한다. */
   .quick-install-grid { gap: 6px; }
   .quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { padding: 7px 10px; }
   .quick-install-card > p { display: none; }
@@ -271,11 +271,11 @@ em { font-style: normal; }
 
 @media (max-width: 390px) {
   .site-header { padding-inline: 16px; }.family-hero { padding-inline: 16px; }.hero-actions { display: grid; }.preview-head { align-items: flex-start; }.preview-head .live-badge { max-width: 86px; text-align: center; }
-  /* 좁은 화면에서도 여섯 앱 행이 첫 viewport 안팎에 이어지도록 세로 간격을 한 단계 더 압축한다. */
+  /* 좁은 화면에서도 네 앱 행이 첫 viewport 안팎에 이어지도록 세로 간격을 한 단계 더 압축한다. */
   .hero-intro { margin-bottom: 14px; }.quick-install-grid { gap: 6px; }
   .hero-intro h1 { font-size: clamp(30px, 9.5vw, 38px); }.hero-intro .hero-lead { font-size: 14px; line-height: 1.55; }
   .quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { padding: 7px 10px; }
-  /* 390px 이하는 설명보다 앱 이름과 48px 설치 행동을 우선해 여섯 앱을 짧은 스크롤 안에 둔다. */
+  /* 390px 이하는 설명보다 앱 이름과 48px 설치 행동을 우선해 네 앱을 짧은 스크롤 안에 둔다. */
   .quick-install-card > p { display: none; }
   .quick-app-name { grid-template-columns: 30px minmax(0, 1fr); }.quick-app-name .app-glyph { width: 30px; height: 30px; border-radius: 10px; }.quick-app-name .wordmark { font-size: 17px; }
   .quick-install-card > div:last-child a { padding: 0 8px; font-size: 10px; }
