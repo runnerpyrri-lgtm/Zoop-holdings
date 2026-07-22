@@ -59,25 +59,23 @@ try {
     });
     await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
     await page.locator(".quick-install-card").first().waitFor();
+    // QR 전용 허브: 카드마다 설치 QR 이미지와 바뀌지 않는 robom.kr/get 주소만 노출한다.
     assert.equal(await page.locator(".quick-install-card").count(), familyAppCount, `${width}: 앱 카드 수`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), true, `${width}: 가로 스크롤`);
-    const installLinks = page.locator(".quick-install-card > div:last-child a:first-child");
-    for (let index = 0; index < await installLinks.count(); index += 1) {
-      const box = await installLinks.nth(index).boundingBox();
-      assert.ok(box && box.height >= 48 && box.width >= 48, `${width}: 설치 CTA ${index + 1} 터치 영역`);
-    }
-    const firstCta = await installLinks.first().boundingBox();
-    assert.ok(firstCta && firstCta.y < Math.max(height, 620), `${width}: 첫 설치 CTA가 첫 화면 가까이에 있어야 함`);
-    if (width >= 1024) {
-      const lastCta = await installLinks.last().boundingBox();
-      assert.ok(lastCta && lastCta.y + lastCta.height <= height + 20, `${width}: 데스크톱 첫 viewport에 모든 앱 행동 노출`);
-    }
-    const lastCard = await page.locator(".quick-install-card").last().boundingBox();
-    if (width >= 390 && width <= 430) {
-      assert.ok(lastCard && lastCard.y + lastCard.height <= height, `${width}: 모바일 첫 viewport에 모든 앱 카드 전부 노출`);
-    } else if (width === 360) {
-      assert.ok(lastCard && lastCard.y <= height - 40, `${width}: 마지막 앱 카드가 첫 화면에 걸쳐 보여야 함`);
-    }
+    const cardQr = page.locator(".quick-install-card img.prelaunch-qr");
+    assert.equal(await cardQr.count(), familyAppCount, `${width}: 카드 QR 이미지 수`);
+    const cardQrSources = await cardQr.evaluateAll((imgs) => imgs.map((img) => img.getAttribute("src")));
+    for (const src of cardQrSources) assert.match(src ?? "", /\/install\/qr\/[a-z]+\.svg/, `${width}: 카드 QR 주소 ${src}`);
+    // 각 카드가 안내하는 /get/<id> 설치 링크가 페이지에 존재해야 한다(푸터 패밀리 링크).
+    const getLinks = page.locator('a[href*="/get/"]');
+    assert.ok(await getLinks.count() >= familyAppCount, `${width}: /get 설치 링크 노출`);
+    const cardAddresses = await page.locator(".quick-install-card .install-address").allInnerTexts();
+    assert.equal(cardAddresses.length, familyAppCount, `${width}: 카드 설치 주소 수`);
+    for (const address of cardAddresses) assert.match(address, /robom\.kr\/get\/[a-z]+/, `${width}: 카드 설치 주소 ${address}`);
+    // 첫 카드의 행동(설치 QR)이 첫 화면 가까이에 있어야 한다.
+    const firstAction = await cardQr.first().boundingBox();
+    assert.ok(firstAction && firstAction.y < Math.max(height, 620), `${width}: 첫 카드 설치 QR가 첫 화면 가까이에 있어야 함`);
+    // 하단 탭바(mobile-tabbar)는 QR 전용 개편 후에도 유지되며 48px 터치 영역을 지킨다.
     const navLinks = page.locator(".mobile-tabbar a:visible");
     for (let index = 0; index < await navLinks.count(); index += 1) {
       const box = await navLinks.nth(index).boundingBox();
@@ -92,10 +90,15 @@ try {
     }
     await page.screenshot({ path: resolve(outputDir, `home-${width}x${height}.png`), fullPage: true });
     await page.goto(`${baseUrl}/get/outbom`, { waitUntil: "domcontentloaded" });
+    // 출시 준비 단계의 설치 안내 페이지: QR·준비 중 안내·공식 주소·홈 링크만 노출한다.
     assert.equal(await page.locator(".qr-card img").isVisible(), true, `${width}: QR 표시`);
-    const primary = await page.locator(".store-action.primary").boundingBox();
-    assert.ok(primary && primary.height >= 48, `${width}: 설치 주 CTA 48px`);
-    assert.match(await page.locator(".qr-card a").textContent(), /https:\/\/robom\.kr\/get\/outbom/);
+    const installBody = await page.locator("body").innerText();
+    assert.ok(installBody.includes("준비 중"), `${width}: 설치 페이지 준비 중 안내`);
+    assert.ok(installBody.includes("2026년 8월 초 출시 예정"), `${width}: 설치 페이지 출시 예정 안내`);
+    assert.ok(installBody.includes("robom.kr/get/outbom"), `${width}: 설치 페이지 공식 주소`);
+    assert.equal(await page.locator('a:has-text("로봄 홈으로")').count(), 1, `${width}: 로봄 홈으로 링크`);
+    assert.equal(await page.locator(".store-action").count(), 0, `${width}: 스토어 버튼 없음`);
+    assert.equal(await page.locator(".manual-install-guide").count(), 0, `${width}: 수동 설치 안내 없음`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), true, `${width}: 설치 페이지 가로 스크롤`);
     if (width === 390) {
       await page.addScriptTag({ content: axeSource });
@@ -105,24 +108,21 @@ try {
     await page.screenshot({ path: resolve(outputDir, `install-outbom-${width}x${height}.png`), fullPage: true });
     assert.deepEqual(errors, [], `${width}: console errors`);
     const vitals = await page.evaluate(() => window.__robomVitals);
-    results.push({ width, height, ...vitals, firstCtaY: Math.round(firstCta.y) });
+    results.push({ width, height, ...vitals, firstActionY: Math.round(firstAction.y) });
     await context.close();
   }
 
-  const iosContext = await browser.newContext({ viewport: { width: 390, height: 844 }, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1" });
-  const iosPage = await iosContext.newPage();
-  await iosPage.goto(`${baseUrl}/get/outbom`, { waitUntil: "domcontentloaded" });
-  await iosPage.locator(".store-action.primary", { hasText: "Safari에서 야외봄 열기" }).waitFor();
-  assert.match(await iosPage.locator(".store-action.primary").textContent(), /Safari에서 야외봄 열기/);
-  assert.match(await iosPage.locator(".manual-install-guide").textContent(), /홈 화면에 추가/);
-  await iosContext.close();
-
-  const androidContext = await browser.newContext({ viewport: { width: 412, height: 915 }, userAgent: "Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 Chrome/128.0.0.0 Mobile Safari/537.36" });
-  const androidPage = await androidContext.newPage();
-  await androidPage.goto(`${baseUrl}/get/runningbom`, { waitUntil: "domcontentloaded" });
-  await androidPage.locator(".store-action.primary", { hasText: "러닝봄 열고 설치" }).waitFor();
-  assert.match(await androidPage.locator(".store-action.primary").textContent(), /러닝봄 열고 설치/);
-  await androidContext.close();
+  // QR 전용 개편 후에는 스토어/수동 설치 UI가 사라졌다. 모든 /get 페이지가 QR·준비 중만 노출하는지 확인한다.
+  for (const id of ["outbom", "runningbom"]) {
+    const prelaunchContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const prelaunchPage = await prelaunchContext.newPage();
+    await prelaunchPage.goto(`${baseUrl}/get/${id}`, { waitUntil: "domcontentloaded" });
+    assert.equal(await prelaunchPage.locator(".qr-card img").isVisible(), true, `${id}: QR 표시`);
+    assert.ok((await prelaunchPage.locator("body").innerText()).includes("준비 중"), `${id}: 준비 중 안내`);
+    assert.ok((await prelaunchPage.locator(".qr-card .install-address").innerText()).includes(`robom.kr/get/${id}`), `${id}: 공식 주소`);
+    assert.equal(await prelaunchPage.locator(".store-action").count(), 0, `${id}: 스토어 버튼 없음`);
+    await prelaunchContext.close();
+  }
 
   const zoomContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const zoomPage = await zoomContext.newPage();

@@ -93,7 +93,8 @@ jobs:
             HOME="$(curl -fsSL "${BASE}" || true)"
             INSTALL="$(curl -fsSL "${BASE}get/outbom/" || true)"
             QR="$(curl -fsSL "${BASE}install/qr/outbom.svg" || true)"
-            if grep -q "설치·휴대폰 사용" <<<"$HOME" \
+            if grep -q "준비 중" <<<"$HOME" \
+              && grep -q "2026년 8월 초 출시 예정" <<<"$HOME" \
               && grep -q "https://robom.kr/get/outbom" <<<"$INSTALL" \
               && grep -q "<svg" <<<"$QR" \
               && grep -q "${GITHUB_SHA::7}" <<<"$HOME"; then
