@@ -27,15 +27,6 @@ apps:
     ios_bundle_id: kr.robom.runningbom
     support_url: https://robom.kr/support
     privacy_url: https://robom.kr/privacy/runningbom
-  calendarbom:
-    name: 캘린더봄
-    subtitle: 큰 달력에서 쉽게 저장하는 가족 일정과 알람
-    category: productivity
-    native_value: reliable-local-notification-and-device-calendar
-    android_app_id: kr.robom.calendarbom
-    ios_bundle_id: kr.robom.calendarbom
-    support_url: https://robom.kr/support
-    privacy_url: https://robom.kr/privacy/calendarbom
   certbom:
     name: 자격증봄
     subtitle: 시험 발견부터 접수·시험일·준비물까지 한 번에
@@ -45,12 +36,3 @@ apps:
     ios_bundle_id: kr.robom.certbom
     support_url: https://robom.kr/support
     privacy_url: https://robom.kr/privacy/certbom
-  notebom:
-    name: 노트봄
-    subtitle: 원음을 먼저 보존하고 필요한 곳으로 직접 넘기는 음성 메모
-    category: productivity
-    native_value: background-recording-and-home-screen-widget
-    android_app_id: kr.robom.notebom
-    ios_bundle_id: kr.robom.notebom
-    support_url: https://robom.kr/support
-    privacy_url: https://robom.kr/privacy/notebom
