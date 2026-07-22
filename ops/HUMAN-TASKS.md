@@ -1,11 +1,9 @@
 # 사용자 계정 소유자만 가능한 최종 작업
 
-캘린더봄 독립 저장소 이전은 2026-07-16에 완료했습니다. 코드·테스트·Pages 활성화·새 URL·기존 주소 이전 화면까지 자동화되어 추가 이전 작업은 없습니다.
-
 ## 스토어와 서명
 
-- [ ] Apple Developer Program 계약과 여섯 iOS Bundle ID 등록.
-- [ ] Google Play Console 계약과 여섯 Android App ID 등록.
+- [ ] Apple Developer Program 계약과 활성 4앱 iOS Bundle ID 등록.
+- [ ] Google Play Console 계약과 활성 4앱 Android App ID 등록.
 - [ ] 실제 signing fingerprint·Apple Team ID를 제공한 뒤 App Links·Universal Links 정본 파일 활성화.
 - [ ] registry 등록 앱의 Data Safety·App Privacy·심사 메모를 법률 검토 후 제출.
 

@@ -37,24 +37,12 @@
 - Vercel 미러가 운영 대상이면 Pages와 같은 main SHA만 production으로 승격한다. 그렇지 않으면 registry에서 legacy로 분리한다.
 - 확인: 검색·지역·거리·상태, 공식 접수, 알림 저장값, `races.json`, cache version.
 
-## 캘린더봄
-
-- 저장소: `robom-labs/calendarbom`
-- 정본 배포: GitHub Pages `https://robom-labs.github.io/calendarbom/`.
-- 확인: 기존 localStorage 일정, JSON/ICS 백업·복원, 알림, 서비스워커 scope, `https://robom-labs.github.io/robom/calendarbom/` 이전 안내.
-
 ## 자격증봄
 
 - 저장소: `robom-labs/certbom`
 - 정본 배포: Vercel `https://certbom.vercel.app/`.
 - main revert 뒤 Vercel 자동 배포를 사용한다. 자동 배포가 없으면 직전 정상 deployment를 Promote하고 revert main 배포로 다시 고정한다.
 - 확인: 시험 catalog, 일정·준비물·관심 시험, 공식 출처, cache/data version.
-
-## 노트봄
-
-- 저장소: `robom-labs/notebom`.
-- 정본 배포: GitHub Pages `https://robom-labs.github.io/notebom/`.
-- 되돌린 뒤 원음 청크·중단 녹음 복구·전체 원음 백업/복원·음성 인식 고지·PWA cache version을 확인한다.
 
 ## 복구가 막힐 때
 
