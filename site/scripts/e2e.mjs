@@ -57,7 +57,9 @@ try {
       try { new PerformanceObserver((list) => { for (const entry of list.getEntries()) if (!entry.hadRecentInput) window.__robomVitals.cls += entry.value; }).observe({ type: "layout-shift", buffered: true }); } catch { /* 미지원 */ }
       try { new PerformanceObserver((list) => { for (const entry of list.getEntries()) window.__robomVitals.inp = Math.max(window.__robomVitals.inp, entry.duration ?? 0); }).observe({ type: "event", buffered: true, durationThreshold: 16 }); } catch { /* 미지원 */ }
     });
+    // 운영 Pages의 CSS까지 반영된 뒤 위치·오버플로를 측정해 캐시 전환 순간의 거짓 실패를 막는다.
     await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => [...document.querySelectorAll('link[rel="stylesheet"]')].every((link) => link.sheet));
     await page.locator(".quick-install-card").first().waitFor();
     // QR 전용 허브: 카드마다 설치 QR 이미지와 바뀌지 않는 robom.kr/get 주소만 노출한다.
     assert.equal(await page.locator(".quick-install-card").count(), familyAppCount, `${width}: 앱 카드 수`);
