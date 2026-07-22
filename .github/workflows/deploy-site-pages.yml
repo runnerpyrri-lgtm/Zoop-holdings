@@ -85,6 +85,23 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: robom.kr 커스텀 도메인 실측 진단 (비게이팅)
+        shell: bash
+        run: |
+          echo "== page_url(deploy) = ${{ needs.deploy.outputs.page_url }} =="
+          echo "== https://robom.kr/ HEAD =="
+          curl -sSIL --max-time 25 https://robom.kr/ 2>&1 | head -20 || true
+          echo "== https://robom.kr/ TLS =="
+          curl -sS -o /dev/null -w "http_code=%{http_code} ssl_verify=%{ssl_verify_result} scheme=%{scheme} redirect=%{redirect_url}\n" --max-time 25 https://robom.kr/ 2>&1 || true
+          echo "== http://robom.kr/ (no TLS) HEAD =="
+          curl -sSI --max-time 25 http://robom.kr/ 2>&1 | head -12 || true
+          echo "== robom.kr 홈에 QR-only 문구가 실제로 보이나 =="
+          RK="$(curl -fsSL --max-time 25 https://robom.kr/ 2>/dev/null || true)"
+          if grep -q "준비 중" <<<"$RK" && grep -q "2026년 8월 초 출시 예정" <<<"$RK"; then
+            echo "ROBOMKR_HTTPS_CONTENT=OK"
+          else
+            echo "ROBOMKR_HTTPS_CONTENT=NOT_SERVED_OR_STALE"
+          fi
       - name: 허브·설치·QR·빌드 SHA 확인
         shell: bash
         run: |
