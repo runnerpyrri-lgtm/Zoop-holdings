@@ -6,7 +6,7 @@ const apps = await readRegistry(new URL("../../../ops/registry/apps.yml", import
 const familyVersion = JSON.parse(await readFile(new URL("../../family/family-version.json", import.meta.url), "utf8"));
 const version = familyVersion.familySpecVersion;
 const supported = familyVersion.supported || [version];
-const matrix = await readFile(new URL("../../family/compatibility.yml", import.meta.url), "utf8");
+const matrix = (await readFile(new URL("../../family/compatibility.yml", import.meta.url), "utf8")).replaceAll("\r\n", "\n");
 const errors = [];
 const adopting = [];  // 중앙보다 낮은 supported 스펙(롤아웃 중 채택 대기) — 회귀 아님
 

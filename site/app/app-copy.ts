@@ -26,7 +26,7 @@ export const appCopy = [
     tagline: "다시 오지 않을 그 하루",
     description: "공식 청약 공고의 접수·발표·계약 일정과 다음 행동을 챙기는 앱",
     metadataTitle: "청약봄 | 특별공급·1순위·무순위 청약 일정",
-    metadataDescription: "특별공급·1순위·2순위·무순위·재공급의 접수와 발표·계약 일정을 달력과 알림으로 확인하세요.",
+    metadataDescription: "특별공급·1순위·2순위·무순위·재공급의 접수와 발표·계약 일정, 다음 행동을 알림으로 확인하세요.",
     mobileValue: "다음 접수와 발표 일정",
     mobileAction: "일정 보기",
     tone: "home",

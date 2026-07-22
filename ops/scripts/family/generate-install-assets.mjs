@@ -42,7 +42,10 @@ for (const [path, desired] of outputs) {
   let actual = null;
   try { actual = await readFile(path); } catch { /* 새 생성물 */ }
   const desiredBuffer = Buffer.isBuffer(desired) ? desired : Buffer.from(desired);
-  if (actual?.equals(desiredBuffer)) continue;
+  const matches = Buffer.isBuffer(desired)
+    ? actual?.equals(desiredBuffer)
+    : actual?.toString("utf8").replaceAll("\r\n", "\n") === desired.replaceAll("\r\n", "\n");
+  if (matches) continue;
   changed += 1;
   if (checkOnly) {
     console.error(`drift: ${path.replace(`${root}/`, "")}`);

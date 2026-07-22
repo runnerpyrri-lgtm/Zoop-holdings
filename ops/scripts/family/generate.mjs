@@ -80,7 +80,7 @@ for (const [relative, desired] of outputs) {
   const path = resolve(root, relative);
   let actual = null;
   try { actual = await readFile(path, "utf8"); } catch { /* 새 생성물 */ }
-  if (actual === desired) continue;
+  if (actual?.replaceAll("\r\n", "\n") === desired.replaceAll("\r\n", "\n")) continue;
   changed += 1;
   if (checkOnly) {
     console.error(`drift: ${relative}`);

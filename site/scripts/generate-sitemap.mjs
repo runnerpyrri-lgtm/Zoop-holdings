@@ -24,7 +24,7 @@ const xml = [
 
 if (process.argv.includes("--check")) {
   const current = await readFile(sitemapUrl, "utf8");
-  if (current !== xml) {
+  if (current.replaceAll("\r\n", "\n") !== xml) {
     throw new Error("public/sitemap.xml이 registry 생성물과 다릅니다. npm run sitemap:generate를 실행하세요.");
   }
   console.log(`sitemap drift 0 · ${paths.length} URLs`);
