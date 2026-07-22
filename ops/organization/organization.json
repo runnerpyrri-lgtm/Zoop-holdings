@@ -28,9 +28,7 @@
     { "id": "outbom", "name": "야외봄 제품셀" },
     { "id": "homebom", "name": "청약봄 제품셀" },
     { "id": "runningbom", "name": "러닝봄 제품셀" },
-    { "id": "calendarbom", "name": "캘린더봄 제품셀" },
-    { "id": "certbom", "name": "자격증봄 제품셀" },
-    { "id": "notebom", "name": "노트봄 제품셀" }
+    { "id": "certbom", "name": "자격증봄 제품셀" }
   ],
   "welfareStaff": [
     { "id": "cafeteria-manager", "displayName": "정옥", "title": "회사식당 총괄", "facility": "B2" },
