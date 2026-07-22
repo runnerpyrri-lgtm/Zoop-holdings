@@ -78,19 +78,24 @@ em { font-style: normal; }
 .button.light { background: #fff; color: var(--ink); }
 .trust-copy { max-width: 700px; margin: 30px 0 0; color: var(--muted); font-size: 13px; font-weight: 750; line-height: 1.7; }
 
-.family-hero--install { display: block; min-height: auto; padding-block: clamp(54px, 7vw, 86px) clamp(64px, 8vw, 96px); background: radial-gradient(circle at 10% 0, rgba(199, 119, 46, .13), transparent 30%), radial-gradient(circle at 88% 4%, rgba(217, 154, 78, .14), transparent 27%), var(--paper); }
-.hero-intro { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(330px, .75fr); align-items: end; gap: 48px; max-width: 1450px; margin: 0 auto 38px; }
+.family-hero--install { display: block; min-height: auto; padding-block: clamp(42px, 5vw, 66px) clamp(64px, 7vw, 88px); background: radial-gradient(circle at 10% 0, rgba(199, 119, 46, .13), transparent 30%), radial-gradient(circle at 88% 4%, rgba(217, 154, 78, .14), transparent 27%), var(--paper); }
+.hero-intro { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(330px, .75fr); align-items: end; gap: clamp(32px, 5vw, 68px); max-width: 1320px; margin: 0 auto 30px; }
 .hero-intro .eyebrow { grid-column: 1 / -1; margin-bottom: -24px; }
-.hero-intro h1 { margin: 0; font-size: clamp(50px, 5.5vw, 82px); font-weight: 950; line-height: 1.04; }
+.hero-intro h1 { max-width: 700px; margin: 0; font-size: clamp(46px, 4.9vw, 72px); font-weight: 950; line-height: 1.04; }
 .hero-intro h1 em { color: var(--robom); }
-.hero-intro .hero-lead { margin: 0 0 5px; }
-.quick-install-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; max-width: 1450px; margin: auto; }
-.quick-install-card { --tone: var(--out); --tone-ink: var(--out-strong); --tint: var(--out-soft); display: grid; min-width: 0; min-height: 226px; grid-template-rows: auto 1fr auto; border: 1px solid color-mix(in srgb, var(--tone) 25%, var(--line)); border-radius: 25px; background: rgba(255, 255, 255, .92); padding: 17px; box-shadow: 0 10px 28px rgba(74, 52, 28, .06); }
+.hero-intro .hero-lead { max-width: 520px; margin: 0 0 5px; }
+.quick-install-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; max-width: 1320px; margin: auto; scroll-margin-top: 104px; }
+.quick-install-card { --tone: var(--out); --tone-ink: var(--out-strong); --tint: var(--out-soft); display: grid; min-width: 0; min-height: 406px; grid-template-rows: auto auto auto 1fr auto; align-items: start; border: 1px solid color-mix(in srgb, var(--tone) 25%, var(--line)); border-radius: 25px; background: rgba(255, 255, 255, .92); padding: 20px; box-shadow: 0 10px 28px rgba(74, 52, 28, .06); }
 .quick-install-card.home { --tone: var(--home); --tone-ink: var(--home-strong); --tint: var(--home-soft); }.quick-install-card.run { --tone: var(--run); --tone-ink: var(--run-strong); --tint: var(--run-soft); }.quick-install-card.cal { --tone: var(--cal); --tone-ink: var(--cal-strong); --tint: var(--cal-soft); }.quick-install-card.cert { --tone: var(--cert); --tone-ink: var(--cert-strong); --tint: var(--cert-soft); }.quick-install-card.note { --tone: var(--note); --tone-ink: var(--note-strong); --tint: var(--note-soft); }
 .quick-app-name { display: flex; min-width: 0; align-items: center; gap: 8px; }.quick-app-name .app-glyph { width: 42px; height: 42px; border-radius: 14px; }.quick-app-name .wordmark { min-width: 0; font-size: 23px; }
-.quick-install-card > p { margin: 18px 0; color: var(--muted); font-size: 14px; font-weight: 800; line-height: 1.45; }
-.quick-install-card > div:last-child { display: grid; gap: 7px; }.quick-install-card > div:last-child a { display: flex; min-height: 48px; align-items: center; justify-content: space-between; border-radius: 14px; padding: 0 13px; font-size: 12px; font-weight: 900; }.quick-install-card > div:last-child a:first-child { background: var(--tone-ink); color: #fff; }.quick-install-card > div:last-child a:last-child { justify-content: center; border: 1px solid var(--line); color: var(--muted); }
-.family-hero--install > .trust-copy { max-width: 1450px; margin: 22px auto 0; }
+.quick-install-card > p:not(.prelaunch-status) { min-height: 42px; margin: 16px 0 10px; color: var(--muted); font-size: 14px; font-weight: 800; line-height: 1.45; }
+.prelaunch-status { display: flex; min-height: 42px; flex-wrap: wrap; align-items: center; gap: 7px; margin: 0 0 12px; color: var(--muted); font-size: 12px; font-weight: 900; line-height: 1.4; }
+.prelaunch-status .status-pill { min-height: 34px; background: var(--tint); padding-inline: 11px; color: var(--tone-ink); font-size: 11px; }
+.launch-window { flex: 1 1 116px; }
+.prelaunch-qr { display: block; width: min(100%, 158px); height: auto; align-self: end; justify-self: center; margin: 4px auto 14px; border: 1px solid var(--line); border-radius: 16px; background: #fff; padding: 8px; }
+.install-address { display: flex; min-height: 42px; align-items: center; justify-content: center; border-radius: 13px; background: var(--tint); padding: 0 10px; color: var(--tone-ink); font-size: 11px; font-weight: 900; letter-spacing: -.02em; text-align: center; }
+.install-address:hover { background: var(--tone-ink); color: #fff; }.install-address__mobile { display: none; }
+.family-hero--install > .trust-copy { max-width: 1320px; margin: 22px auto 0; }
 
 /* 모바일 첫 화면 앱 바로 열기(데스크톱은 기본 display:none으로 완전 비노출) */
 .mobile-app-jump, .mobile-jump-label { display: none; }
@@ -204,7 +209,7 @@ em { font-style: normal; }
 
 @media (max-width: 1100px) {
   .family-hero { grid-template-columns: 1fr 420px; gap: 45px; }
-  .family-hero--install { padding-block: 42px 54px; }.hero-intro { grid-template-columns: minmax(0, 1.1fr) minmax(290px, .7fr); gap: 28px; margin-bottom: 24px; }.hero-intro .eyebrow { margin-bottom: -18px; }.hero-intro h1 { font-size: clamp(46px, 5.4vw, 60px); }.hero-intro .hero-lead { font-size: 16px; line-height: 1.65; }.quick-install-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }.quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { min-height: 188px; padding: 12px; }.quick-app-name { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 5px; }.quick-app-name .app-glyph { width: 36px; height: 36px; }.quick-app-name .wordmark { font-size: 19px; }.quick-install-card > p { margin: 11px 0; font-size: 12px; }.quick-install-card > div:last-child a { padding-inline: 9px; font-size: 10px; }
+  .family-hero--install { padding-block: 42px 54px; }.hero-intro { grid-template-columns: minmax(0, 1.1fr) minmax(290px, .7fr); gap: 28px; margin-bottom: 24px; }.hero-intro .eyebrow { margin-bottom: -18px; }.hero-intro h1 { font-size: clamp(46px, 5.4vw, 60px); }.hero-intro .hero-lead { font-size: 16px; line-height: 1.65; }.quick-install-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }.quick-install-card { min-height: 372px; padding: 16px; }.quick-app-name { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 5px; }.quick-app-name .app-glyph { width: 36px; height: 36px; }.quick-app-name .wordmark { font-size: 19px; }.quick-install-card > p:not(.prelaunch-status) { margin: 11px 0 9px; font-size: 12px; }.prelaunch-qr { width: 144px; }
   .install-layout { grid-template-columns: minmax(0, 1fr) 340px; gap: 34px; }
   .app-card-grid { grid-template-columns: 1fr; max-width: 720px; }
   .family-card, .family-card:nth-child(4), .family-card:nth-child(5) { grid-column: auto; }
@@ -212,7 +217,7 @@ em { font-style: normal; }
 }
 
 @media (min-width: 761px) and (max-width: 900px) {
-  .hero-intro { grid-template-columns: 1fr; }.hero-intro .eyebrow { margin-bottom: -3px; }.quick-install-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }.quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { min-height: 192px; }
+  .hero-intro { grid-template-columns: 1fr; }.hero-intro .eyebrow { margin-bottom: -3px; }.quick-install-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.quick-install-card { min-height: 360px; }
 }
 
 @media (max-width: 760px) {
@@ -224,11 +229,11 @@ em { font-style: normal; }
   .family-hero--install { padding-top: 24px; }.hero-intro { display: block; margin-bottom: 18px; }.hero-intro .eyebrow { margin-bottom: 10px; }.hero-intro h1 { margin-bottom: 12px; font-size: clamp(33px, 10vw, 44px); }.hero-intro .hero-lead { font-size: 15px; line-height: 1.6; }
   /* 등록 앱이 390×844 첫 화면 안에 들어오도록 카드 2열 대신 압축 행으로 세운다 */
   .quick-install-grid { grid-template-columns: 1fr; gap: 8px; }
-  .quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { min-height: 0; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 10px; border-radius: 18px; padding: 10px 12px; }
+  .quick-install-card { min-height: 0; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto; align-items: center; column-gap: 10px; border-radius: 18px; padding: 10px 12px; }
   .quick-app-name { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 6px; }.quick-app-name .app-glyph { width: 34px; height: 34px; border-radius: 11px; }.quick-app-name .wordmark { font-size: 19px; }
-  .quick-install-card > p { grid-column: 1; margin: 4px 0 0; font-size: 12px; line-height: 1.4; }
-  .quick-install-card > div:last-child { grid-column: 2; grid-row: 1 / span 2; grid-template-columns: auto auto; align-items: center; gap: 6px; }
-  .quick-install-card > div:last-child a { min-height: 48px; padding: 0 10px; font-size: 11px; }
+  .quick-install-card > p:not(.prelaunch-status) { grid-column: 1; min-height: 0; margin: 4px 0 0; font-size: 12px; line-height: 1.4; }
+  .prelaunch-status { grid-column: 1; min-height: 0; gap: 5px; margin: 4px 0 0; font-size: 11px; }.prelaunch-status .status-pill { min-height: 26px; padding-inline: 8px; font-size: 10px; }.launch-window { flex: 0 1 auto; }
+  .prelaunch-qr { display: none; }.install-address { grid-column: 2; grid-row: 1 / span 3; min-width: 102px; min-height: 48px; padding: 0 10px; font-size: 11px; }.install-address__desktop { display: none; }.install-address__mobile { display: inline-flex; align-items: center; gap: 5px; }.install-address__mobile b { font-size: 15px; }
   .family-hero--install > .trust-copy { margin-top: 14px; }
   .hero-copy { display: flex; flex-direction: column; }
   .hero-copy h1 { order: 1; margin-bottom: 14px; font-size: clamp(40px, 12vw, 54px); }
@@ -265,8 +270,8 @@ em { font-style: normal; }
 @media (min-width: 391px) and (max-width: 430px) {
   /* CI 글꼴 차이에도 네 앱 선택지가 첫 화면 안에 유지되도록 소개 행만 한 단계 압축한다. */
   .quick-install-grid { gap: 6px; }
-  .quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { padding: 7px 10px; }
-  .quick-install-card > p { display: none; }
+  .quick-install-card { padding: 7px 10px; }
+  .quick-install-card > p:not(.prelaunch-status) { display: none; }
 }
 
 @media (max-width: 390px) {
@@ -274,11 +279,11 @@ em { font-style: normal; }
   /* 좁은 화면에서도 네 앱 행이 첫 viewport 안팎에 이어지도록 세로 간격을 한 단계 더 압축한다. */
   .hero-intro { margin-bottom: 14px; }.quick-install-grid { gap: 6px; }
   .hero-intro h1 { font-size: clamp(30px, 9.5vw, 38px); }.hero-intro .hero-lead { font-size: 14px; line-height: 1.55; }
-  .quick-install-card, .quick-install-card:nth-child(4), .quick-install-card:nth-child(5) { padding: 7px 10px; }
+  .quick-install-card { padding: 7px 10px; }
   /* 390px 이하는 설명보다 앱 이름과 48px 설치 행동을 우선해 네 앱을 짧은 스크롤 안에 둔다. */
-  .quick-install-card > p { display: none; }
+  .quick-install-card > p:not(.prelaunch-status) { display: none; }
   .quick-app-name { grid-template-columns: 30px minmax(0, 1fr); }.quick-app-name .app-glyph { width: 30px; height: 30px; border-radius: 10px; }.quick-app-name .wordmark { font-size: 17px; }
-  .quick-install-card > div:last-child a { padding: 0 8px; font-size: 10px; }
+  .install-address { min-width: 94px; padding: 0 8px; font-size: 10px; }
   .app-jump { grid-template-columns: 46px minmax(0, 1fr) auto; padding-inline: 11px; }
   .app-jump-go { min-width: 72px; font-size: 10px; }
   .appbar .status-pill, .product-appbar .status-pill { align-self: flex-start; }.appbar p { max-width: 150px; }.product-appbar p { max-width: 175px; }

@@ -56,11 +56,11 @@ test("registry ID 집합은 정확히 4개 활성 앱이다", async () => {
   assert.deepEqual(apps.map(({ id }) => id), ACTIVE_IDS);
 });
 
-test("첫 화면은 출시 준비 중인 4개 앱을 QR로만 안내한다", async () => {
+test("첫 화면은 출시 준비 중인 4개 앱을 QR와 설치 안내 링크로 안내한다", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /<title>로봄 \| 4개 앱 출시 예정<\/title>/);
+  assert.match(html, /<title>로봄 \| 날씨·청약·러닝·자격증 앱<\/title>/);
   assert.match(html, /곧 출시됩니다/);
   assert.match(html, /본문 바로가기/);
   assert.match(html, /data-build-sha="[^"]+"/);

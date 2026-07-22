@@ -68,15 +68,24 @@ try {
     assert.equal(await cardQr.count(), familyAppCount, `${width}: 카드 QR 이미지 수`);
     const cardQrSources = await cardQr.evaluateAll((imgs) => imgs.map((img) => img.getAttribute("src")));
     for (const src of cardQrSources) assert.match(src ?? "", /\/install\/qr\/[a-z]+\.svg/, `${width}: 카드 QR 주소 ${src}`);
-    // 각 카드가 안내하는 /get/<id> 설치 링크가 페이지에 존재해야 한다(푸터 패밀리 링크).
+    // 각 카드가 안내하는 /get/<id> 설치 링크가 카드 자체와 푸터에 존재해야 한다.
     const getLinks = page.locator('a[href*="/get/"]');
     assert.ok(await getLinks.count() >= familyAppCount, `${width}: /get 설치 링크 노출`);
     const cardAddresses = await page.locator(".quick-install-card .install-address").allInnerTexts();
     assert.equal(cardAddresses.length, familyAppCount, `${width}: 카드 설치 주소 수`);
-    for (const address of cardAddresses) assert.match(address, /robom\.kr\/get\/[a-z]+/, `${width}: 카드 설치 주소 ${address}`);
-    // 첫 카드의 행동(설치 QR)이 첫 화면 가까이에 있어야 한다.
-    const firstAction = await cardQr.first().boundingBox();
-    assert.ok(firstAction && firstAction.y < Math.max(height, 620), `${width}: 첫 카드 설치 QR가 첫 화면 가까이에 있어야 함`);
+    if (width > 760) {
+      for (const address of cardAddresses) assert.match(address, /robom\.kr\/get\/[a-z]+/, `${width}: 카드 설치 주소 ${address}`);
+      // 데스크톱에서는 첫 카드의 QR가 첫 화면 가까이에 있어야 한다.
+      const firstAction = await cardQr.first().boundingBox();
+      assert.ok(firstAction && firstAction.y < Math.max(height, 620), `${width}: 첫 카드 설치 QR가 첫 화면 가까이에 있어야 함`);
+      results.push({ width, height, firstActionY: Math.round(firstAction.y) });
+    } else {
+      // 같은 폰에서 QR을 스캔시키지 않고, 48px 카드 버튼으로 설치 안내를 연다.
+      const firstAction = await page.locator(".quick-install-card .install-address").first().boundingBox();
+      assert.ok(firstAction && firstAction.height >= 48 && firstAction.y < Math.max(height, 620), `${width}: 첫 카드 설치 안내 버튼`);
+      assert.ok(cardAddresses.every((address) => address.includes("설치 안내 열기")), `${width}: 모바일 설치 안내 문구`);
+      results.push({ width, height, firstActionY: Math.round(firstAction.y) });
+    }
     // 하단 탭바(mobile-tabbar)는 QR 전용 개편 후에도 유지되며 48px 터치 영역을 지킨다.
     const navLinks = page.locator(".mobile-tabbar a:visible");
     for (let index = 0; index < await navLinks.count(); index += 1) {
@@ -110,7 +119,7 @@ try {
     await page.screenshot({ path: resolve(outputDir, `install-outbom-${width}x${height}.png`), fullPage: true });
     assert.deepEqual(errors, [], `${width}: console errors`);
     const vitals = await page.evaluate(() => window.__robomVitals);
-    results.push({ width, height, ...vitals, firstActionY: Math.round(firstAction.y) });
+    Object.assign(results.at(-1), vitals);
     await context.close();
   }
 
