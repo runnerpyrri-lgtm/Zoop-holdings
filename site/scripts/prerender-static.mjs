@@ -79,5 +79,7 @@ for (const path of routes) {
   await writeFile(resolve(outputDir, "index.html"), html);
 }
 await writeFile(resolve(staticDir, ".nojekyll"), "");
+// robom.kr 커스텀 도메인을 GitHub Pages에 연결한다(가비아 A레코드를 Pages IP로 전환한 뒤 실서비스 발효).
+await writeFile(resolve(staticDir, "CNAME"), "robom.kr\n");
 
 console.log(`prerendered ${routes.length} static routes → ${staticDir}`);
