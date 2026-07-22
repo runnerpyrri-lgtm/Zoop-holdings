@@ -85,7 +85,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: 허브·설치·QR·캘린더봄 이전·빌드 SHA 확인
+      - name: 허브·설치·QR·빌드 SHA 확인
         shell: bash
         run: |
           BASE="${{ needs.deploy.outputs.page_url }}"
@@ -93,13 +93,9 @@ jobs:
             HOME="$(curl -fsSL "${BASE}" || true)"
             INSTALL="$(curl -fsSL "${BASE}get/outbom/" || true)"
             QR="$(curl -fsSL "${BASE}install/qr/outbom.svg" || true)"
-            BRIDGE="$(curl -fsSL "${BASE}calendarbom/" || true)"
-            BRIDGE_SW="$(curl -fsSL "${BASE}calendarbom/sw.js" || true)"
             if grep -q "설치·휴대폰 사용" <<<"$HOME" \
               && grep -q "https://robom.kr/get/outbom" <<<"$INSTALL" \
               && grep -q "<svg" <<<"$QR" \
-              && grep -q "독립 주소로 이사" <<<"$BRIDGE" \
-              && grep -q "LEGACY_CACHE_PREFIX" <<<"$BRIDGE_SW" \
               && grep -q "${GITHUB_SHA::7}" <<<"$HOME"; then
               exit 0
             fi
