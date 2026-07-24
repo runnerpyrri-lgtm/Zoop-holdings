@@ -74,7 +74,7 @@ apps:
     name: 러닝봄
     english_name: RunningBom
     repo: robom-labs/runningbom
-    version: 0.18.2
+    version: 0.18.3
     data_version: 2026.07.24-race-data-12
     version_source: https://raw.githubusercontent.com/robom-labs/runningbom/main/package.json
     web_url: https://robom-labs.github.io/runningbom/
@@ -93,8 +93,8 @@ apps:
     stable_install_url: https://robom.kr/get/runningbom
     mobile_status: native-closed-test-candidate
     family_spec_version: 1.1.0
-    last_verified_at: "2026-07-24T12:20:22+09:00"
-    last_deployed_sha: 51ecadeabc0f8bc19cd31784bb072945468040b9
+    last_verified_at: "2026-07-24T14:19:53+09:00"
+    last_deployed_sha: a8e05b10220237a0ac7464d755b519c565794791
     last_data_sync_at: "2026-07-24T08:48:14+09:00"
     freshness_status: healthy
     freshness_slo_hours: 168
@@ -106,7 +106,7 @@ apps:
     name: 자격증봄
     english_name: CertBom
     repo: robom-labs/certbom
-    version: 0.8.1
+    version: 0.8.2
     data_version: 2026.07.20-v4
     version_source: https://raw.githubusercontent.com/robom-labs/certbom/main/package.json
     web_url: https://certbom.vercel.app/
@@ -125,8 +125,8 @@ apps:
     stable_install_url: https://robom.kr/get/certbom
     mobile_status: native-closed-test-candidate
     family_spec_version: 1.1.0
-    last_verified_at: "2026-07-19T15:10:00+09:00"
-    last_deployed_sha: 351abe6ed6389281552be7ae5bb3db73092b9e80
+    last_verified_at: "2026-07-24T14:19:53+09:00"
+    last_deployed_sha: bcb3ff68986e8d9b7558bc87c6b93e7b6628c2d0
     last_data_sync_at: "2026-07-16T15:00:00+09:00"
     freshness_status: last-known-good
     freshness_slo_hours: 48
