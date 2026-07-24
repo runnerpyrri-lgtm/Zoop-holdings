@@ -1,108 +1,62 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "program_id": "ROBOM_4_APP_RELEASE",
-  "program_version": "1.1.0",
-  "governing": ["ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md"],
-  "updated_at": "2026-07-22T00:00:00+09:00",
-  "phase": "TWA_CLOSED_TESTING",
-  "status": "IN_PROGRESS",
-  "session_note": "4앱 패밀리 + robom.kr 웹 허브 릴리스 트랙. homebom·outbom TWA 비공개테스트 진행 중. 네이티브 빌드·백업 오프사이트·스토어 제출은 이 세션 환경 밖(HUMAN/GOOGLE/device).",
-  "versions": {
-    "company_os_version": "1.3.0",
-    "company_os_version_source": "ops/company-os/VERSION",
-    "site_package_version": "2.2.1"
-  },
+  "program_version": "1.2.0",
+  "governing": ["ops/company-os/ROBOM_ULTIMATE_COMPANY_OS.md", "ops/registry/apps.yml"],
+  "updated_at": "2026-07-24T22:55:00+09:00",
+  "phase": "CLOSED_TEST_ROLLOUT",
+  "status": "WAITING_FOR_HOME_REVIEW_AND_TESTER_OPT_IN",
+  "session_note": "4개 Android 앱의 Alpha 비공개 테스트 AAB와 트랙은 모두 생성됐다. 야외봄·러닝봄·자격증봄은 테스터 제공 상태이며 청약봄은 Google 검토 중이다. 앱 목록 요약의 지연 표시는 출시 세부 화면보다 우선하지 않는다.",
   "apps": {
-    "outbom":      { "framework_adapter": "expo-eas",         "registry_version": "0.25.6", "mobile_status": "pwa", "google_play_status": "planned", "app_store_status": "planned", "release_state": "PWA_ONLY", "family_spec_version": "1.1.0" },
-    "homebom":     { "framework_adapter": "expo-eas",         "registry_version": "0.14.8", "mobile_status": "pwa", "google_play_status": "planned", "app_store_status": "planned", "release_state": "PWA_ONLY", "family_spec_version": "1.1.0", "open_pr": "homebom#32 (draft, Edge Function normalize; Supabase deploy smoke 필요)" },
-    "runningbom":  { "framework_adapter": "expo-eas",         "registry_version": "0.17.13", "mobile_status": "pwa", "google_play_status": "planned", "app_store_status": "planned", "release_state": "PWA_ONLY", "family_spec_version": "1.1.0" },
-    "certbom":     { "framework_adapter": "expo-eas",         "registry_version": "0.7.4", "canonical_catalog_count": 104, "store_copy_watch": "모바일 문구 '97개' 잔존 여부 확인 → 104로 정정 게이트", "mobile_status": "pwa", "google_play_status": "planned", "app_store_status": "planned", "release_state": "PWA_ONLY", "family_spec_version": "1.1.0", "open_pr": "certbom#14 (draft, 글자크기 복원; #15 카탈로그 확장과 rebase 필요) + dependabot 8건" }
-  },
-  "completed_actions": [
-    "릴리스 패키지 지침 + 베이스라인/정책/체인지로그 전수 정독(무결성 OK)",
-    "라이브 기준선 감사: 4앱+robom 허브 origin/main·registry 버전·open PR·store status 실측",
-    "상태 드리프트 발견: ops/family/ai/CURRENT-STATE.json·LAST-VERIFIED.json 2026-07-16 고정(familySpecVersion 1.0.0, robom 2.1.4) — 실제(registry spec 1.1.0, site 2.2.1, 앱 다수 상향)와 불일치 → STATE_DRIFT_REPORT.md 기록",
-    "ops/release-program 상태 파일 초기화(PROGRAM_STATE/NEXT_SESSION_PROMPT/HUMAN_BLOCKERS/STATE_DRIFT_REPORT)"
-  ],
-  "in_progress": [],
-  "not_started_this_session": [
-    "Phase1 3-2-1 백업(오프사이트/암호는 HUMAN)",
-    "Phase3 mobile-release-contract v2 스캐폴딩·검증기(대규모, 다음 세션)",
-    "Phase4 open PR 10단계 처리(실제 병합)",
-    "Phase5-9 네이티브 빌드/스토어(대부분 HUMAN/GOOGLE/device)"
-  ],
-  "blocked_external": {
-    "GOOGLE_PLAY_IDENTITY_VERIFICATION": { "state": "APPROVED", "approved_at": "2026-07-21(사용자 확인)", "note": "본인인증 승인 완료. Console에서 '앱 만들기(Create app)' 프롬프트 표시됨. 03_GOOGLE_VERIFICATION_RESUME_PROMPT 흐름으로 진입." }
-  },
-  "critical_finding_native_build": {
-    "state": "NO_NATIVE_BUILD_EXISTS",
-    "evidence": "certbom(파일럿) 및 4앱 모두 eas.json·app.json/app.config·android/·ios/ 없음, expo/react-native/capacitor(certbom 등) 의존성 없음 = 순수 웹 PWA.",
-    "impact": "Play Console 앱 레코드 생성은 가능하나 업로드할 서명 AAB가 아직 없음. '모바일 출시 계약 v2'의 NATIVE_SOURCE_READY 이전 단계.",
-    "build_path_decision_needed": [
-      "A) PWA→TWA 래핑(Bubblewrap/PWABuilder)로 기존 PWA에서 서명 AAB 생성 — 가장 가볍고 무료·PWA-first 가족에 적합. 서명키+Play 업로드는 HUMAN.",
-      "B) Expo/Capacitor 정식 네이티브 앱 신설 + EAS 빌드 — 더 크고 Expo 계정·크리덴셜·빌드 비용(HUMAN/BLOCKED_CEO_COST) 필요."
-    ],
-    "recommendation": "무료·로컬 우선 가족 성격상 파일럿(certbom)은 A)TWA가 최단·최저비용.",
-    "DECISION": "A안 확정(2026-07-21, CEO 위임). 4개 웹앱=PWA→TWA(도구: PWABuilder.com, 로컬 툴체인 불필요). 다음: PWABuilder로 라이브 URL 분석→서명 AAB+assetlinks 생성(서명키·업로드=HUMAN)→Play 업로드. manifest 부족분은 저장소에서 보완.",
-    "PILOT_PAIR_OVERRIDE": {
-      "chosen_at": "2026-07-21(CEO 지시, certbom 대신)",
-      "apps": ["homebom(청약봄)", "outbom(야외봄)"],
-      "reason": "회장이 첫 동시 출시 2종으로 청약봄+야외봄 지정. certbom 파일럿은 후순위로 이동.",
-      "twa_readiness": {
-        "homebom": "READY — apps/web/public/manifest.webmanifest: name/short_name/standalone/192·512·maskable-512 모두 존재. start_url·scope=./ (github pages /homebom/ 서브패스 OK).",
-        "outbom": "READY — app/manifest.ts + src/family-manifest.json: name/short_name/standalone/192·512·maskable-512·theme_color 존재. (maskable-512가 icon-512와 동일 sha=패딩 미적용, 기능상 통과·미관상만 후속 보완 가능)."
-      },
-      "assetlinks_origin_root_finding": {
-        "issue": "두 앱 모두 origin=robom-labs.github.io 공유. TWA Digital Asset Links는 항상 origin 루트 https://robom-labs.github.io/.well-known/assetlinks.json 에서 검증됨(서브패스 무관). 현재 org 루트 pages 저장소(robom-labs.github.io)가 세션 스코프에 없음 → 별도 생성/배치 필요.",
-        "resolution_plan": "AI가 org 루트 pages 저장소에 .well-known/assetlinks.json(두 앱 package_name + Play App Signing SHA-256 다중 엔트리) 배치·배포. 최종 SHA-256은 PWABuilder 서명키 또는 Play Console→앱 서명 페이지에서 확보(HUMAN이 전달). 그 전까지는 미완료.",
-        "human_input_needed": "PWABuilder 생성 후 assetlinks 안의 sha256_cert_fingerprints 값(또는 Play Console 앱 서명 페이지의 SHA-256) 2개를 채팅으로 전달(키스토어 파일 자체는 금지).",
-      "fingerprints_received": {
-        "note": "PWABuilder 업로드키 SHA-256 (2026-07-21 CEO 전달). Play App Signing 활성 → 업로드 후 Play 앱서명키 SHA-256 추가 필요(구글 재서명 대응, 둘 다 배열에 포함).",
-        "kr.robom.homebom_uploadkey": "FE:1A:A4:33:5F:AF:70:F3:31:5B:DA:03:10:06:17:98:3F:34:C3:52:A6:0E:29:8C:5B:23:B7:6E:8E:AC:B3:61",
-        "kr.robom.outbom_uploadkey": "DE:CC:AC:A6:4B:2B:DD:C1:5B:4B:2A:48:C0:CA:C4:8E:A8:B6:24:1A:10:F9:34:EA:F7:DD:B5:0D:00:14:0C:69",
-        "play_app_signing_keys": "PENDING — 각 AAB를 내부테스트 업로드 후 Play Console→설정→앱 무결성/앱 서명의 '앱 서명 키 인증서 SHA-256' 확보 필요"
-      },
-      "hosting_finding_2026-07-21": {
-        "site_serves": "robom hub는 robom-labs.github.io/robom/ (프로젝트 페이지) + robom.kr (커스텀 도메인)에 배포. 실제 앱(/homebom/, /outbom/)은 각 앱 저장소의 프로젝트 페이지로 별도 호스팅.",
-        "existing_assetlinks": "site/public/.well-known/assetlinks.json 존재하나 내용 []. 이 파일은 robom.kr/.well-known/ 와 robom-labs.github.io/robom/.well-known/ 로만 배포됨 → github.io ORIGIN 루트가 아님.",
-        "problem": "PWABuilder를 robom-labs.github.io/homebom/ · /outbom/ 로 실행 → TWA origin=robom-labs.github.io. Digital Asset Links는 https://robom-labs.github.io/.well-known/assetlinks.json (ORIGIN 루트)에서만 검증. 현재 org 루트 pages 저장소(robom-labs.github.io) 부재 → 루트에 파일 배치 불가.",
-        "resolution_options": {
-          "A_org_root_repo": "org에 robom-labs.github.io 저장소 신설 → /.well-known/assetlinks.json (두 앱) + 허브 리다이렉트. 최소·정확. 저장소 신설=사람 승인 항목이라 CEO OK 필요. (권장)",
-          "B_move_to_robom_kr": "앱 canonical을 robom.kr/<app>/로 이전 후 재패키징 — 대규모 라우팅/호스팅 마이그레이션, 이번 목표엔 과함."
-        },
-        "chosen": "A 실행 완료(2026-07-21, CEO 승인 '니가 다 만들어'). 단, org 저장소 생성은 GitHub App 권한 밖(403)이라 CEO가 빈 저장소 robom-labs.github.io 생성 → AI가 add_repo로 스코프 편입 → 파일 푸시.",
-        "DONE": {
-          "repo": "robom-labs/robom-labs.github.io (public, org 루트 Pages 자동 활성)",
-          "commit": "901edd7 — .well-known/assetlinks.json(2앱) + .nojekyll(.well-known 노출 필수) + index.html(robom.kr 리다이렉트)",
-          "pages_build": "success (run 29814830587)",
-          "google_verification": "Google Digital Asset Links API 확인: https://robom-labs.github.io 에서 kr.robom.homebom·kr.robom.outbom 둘 다 statements 반환, 오류 없음(2026-07-21)."
-        },
-        "app_signing_keys_DONE": {
-          "note": "두 앱 모두 AAB를 비공개테스트 트랙 업로드 → Play 앱서명키 SHA-256 확보 → assetlinks에 업로드키와 함께 등록 완료(e18bcc8). 설치 앱 검증 완비.",
-          "kr.robom.homebom_appsigning": "91:0C:7E:D4:F2:B1:54:AD:49:6D:B1:AE:55:4E:AB:5C:76:41:0E:34:51:0E:FD:DD:48:CC:60:C0:3A:E0:9C:07",
-          "kr.robom.outbom_appsigning": "BA:7B:9B:21:9F:04:48:6D:24:4A:10:1A:0F:B5:0A:26:28:58:05:AC:C7:52:1D:37:A6:80:19:46:BA:D6:35:04",
-          "aab_uploaded": "두 앱 v1(1.0.0.0), target SDK 35(2026-08-31 이전 신규 제출 OK), 비공개테스트 Alpha 트랙 초안 저장됨."
-        },
-        "remaining_before_test_live": "각 앱 대시보드 '앱 설정' 5개 오류: 전체설명·국가/지역(대한민국)·금융기능 선언(없음)·건강 선언(없음)·앱 콘텐츠(개인정보처리방침·데이터보안·콘텐츠등급·대상연령·광고) + 비공개테스트 테스터 12명(구글계정) 지정.",
-        "tester_blocker": "CEO가 아직 테스터 12명 미확보(네이버카페 모집 예정). 14일 비공개테스트 시계는 테스터 옵트인+롤아웃 후 시작. 그 외 등록정보·설문·업로드는 테스터 없이 선행 가능."
-        }
-      },
-      "policy_reminder": {
-        "closed_testing": "개인 계정(2023-11-13 이후 생성)은 Production 전 12테스터·14일 비공개 테스트 필요 — 즉시 프로덕션 공개 아님(약 2주 파이프라인).",
-        "target_api": "2026-08-31부터 신규/업데이트 API36+ 타깃 필요. PWABuilder 기본 타깃 확인 게이트."
-      }
+    "outbom": {
+      "version": "0.25.6",
+      "version_code": 2,
+      "main_sha": "3cf078e8f77e3ce2e5ac71be72fe1c104eb996fe",
+      "google_play_status": "CLOSED_TEST_ACTIVE",
+      "release_state": "TESTERS_AVAILABLE",
+      "verified_at": "2026-07-24T16:55:00+09:00"
+    },
+    "homebom": {
+      "version": "0.14.8",
+      "version_code": 16,
+      "main_sha": "0233c5beb96d84780b0e1ffe438c6a13469d9845",
+      "google_play_status": "CLOSED_TEST_REVIEW",
+      "release_state": "WAITING_FOR_GOOGLE_REVIEW",
+      "verified_at": "2026-07-24T16:24:00+09:00"
+    },
+    "runningbom": {
+      "version": "0.18.3",
+      "version_code": 6,
+      "main_sha": "a8e05b10220237a0ac7464d755b519c565794791",
+      "google_play_status": "CLOSED_TEST_ACTIVE",
+      "release_state": "TESTERS_AVAILABLE",
+      "verified_at": "2026-07-24T22:11:00+09:00"
+    },
+    "certbom": {
+      "version": "0.8.3",
+      "version_code": 9,
+      "main_sha": "6f2aa946a79681fdd47f5d52f464c184f3b48d0a",
+      "google_play_status": "CLOSED_TEST_ACTIVE",
+      "release_state": "TESTERS_AVAILABLE",
+      "verified_at": "2026-07-24T22:07:00+09:00"
     }
   },
-  "blocked_ceo": [
-    "스토어/개발자 계정·서명키·시크릿·최종 제출은 HUMAN 전용 — HUMAN_BLOCKERS.md 참조"
+  "completed_actions": [
+    "Google Play 개발자 본인 인증 및 4개 Android App ID 등록",
+    "4개 앱의 Alpha 비공개 테스트 트랙과 테스트용 AAB 업로드",
+    "야외봄·러닝봄·자격증봄 테스터 제공 상태 확인",
+    "청약봄 Alpha 16(0.14.8) Google 검토 시작 확인",
+    "앱별 운영 버전·배포 SHA·서비스워커 캐시와 본사 registry 동기화"
   ],
-  "policy_gates": {
-    "google_play_target_api": "2026-08-31부터 신규/업데이트 앱 Android 16 / API 36+ 타깃 필요",
-    "google_play_closed_test": "2023-11-13 이후 생성 개인 계정은 Production 접근 전 최소 12 테스터·14일 비공개 테스트(실제 계정 유형 확인 필요)",
-    "apple_upload": "2026-04-28부터 Xcode 26+ / iOS 26 SDK+ 필요",
-    "expo_sdk": "SDK 57: Android API 36 / Node 22.13+ / Xcode 26 라인",
-    "apple_privacy_manifest": "지정 3rd-party SDK(Capacitor 포함) privacy manifest/서명 필요 — 실제 포함 버전·Xcode privacy report로 확인"
-  },
-  "ads": "OFF (도입 게이트 통과 전 광고 SDK 금지)",
-  "next_action": "NEXT_SESSION_PROMPT.txt 참조: open PR 재판정·병합·배포가 다음 자동 작업."
+  "open_external_work": [
+    "청약봄 Google 검토 완료 대기",
+    "실제 Google 계정 12명 이상이 각 테스트 링크에서 참여 선택",
+    "12명 참여 후 14일 연속 비공개 테스트 진행"
+  ],
+  "not_release_blocking_for_closed_test": [
+    "App Links와 Universal Links의 최종 검증",
+    "Apple Developer Program 및 iOS 배포",
+    "프로덕션 공개 신청"
+  ],
+  "next_action": "청약봄이 테스터 제공으로 바뀌면 동일 테스터 목록으로 4개 앱 링크를 배포하고, 참여 인원과 14일 진행일을 Play Console에서만 추적한다."
 }

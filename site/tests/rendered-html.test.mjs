@@ -213,8 +213,8 @@ test("registry와 생성된 홈페이지 앱 메타데이터가 완전히 일치
     assert.equal(generated.version, app.version);
     assert.equal(generated.webUrl, app.web_url);
     assert.equal(generated.stableInstallUrl, `https://robom.kr/get/${app.id}`);
-    assert.equal(generated.googlePlayStatus, "planned");
-    assert.equal(generated.appStoreStatus, "planned");
+    assert.equal(generated.googlePlayStatus, app.google_play_status);
+    assert.equal(generated.appStoreStatus, app.app_store_status);
     assert.match(generatedSource, new RegExp(app.version.replaceAll(".", "\\.")));
   }
 });

@@ -3,7 +3,7 @@
 ## 스토어와 서명
 
 - [ ] Apple Developer Program 계약과 활성 4앱 iOS Bundle ID 등록.
-- [ ] Google Play Console 계약과 활성 4앱 Android App ID 등록.
+- [x] Google Play Console 개발자 계정 인증, 활성 4앱 Android App ID 등록, Alpha 비공개 테스트 트랙 생성.
 - [ ] 실제 signing fingerprint·Apple Team ID를 제공한 뒤 App Links·Universal Links 정본 파일 활성화.
 - [ ] registry 등록 앱의 Data Safety·App Privacy·심사 메모를 법률 검토 후 제출.
 

@@ -2,15 +2,16 @@
 
 ## 현재 상태
 
-- 운영 버전: 0.17.3.
+- 운영 버전: 0.18.3.
 - 기존 이름: PushRun.
 - 역할: 러닝 대회 탐색, 접수 시작과 대회일 알림 제공.
 - 목표 저장소: `robom-labs/runningbom`.
 - 현재 배포: https://robom-labs.github.io/runningbom/.
 - 보조 배포: https://runningbom.vercel.app/.
 - 기존 배포: https://runnerpyrri-lgtm.github.io/pushrun/.
-- 운영 main: `2f3a57a7c5a7df2495ab13acf7961a008b220a4e`.
-- PWA 캐시: `pushrun-v0.17.3`.
+- 운영 main: `a8e05b10220237a0ac7464d755b519c565794791`.
+- PWA 캐시: `pushrun-v0.18.3`.
+- Google Play Alpha: versionCode 6, `0.18.3`, 테스터 제공 상태.
 
 ## Next
 
